@@ -3,7 +3,7 @@ from fastapi import Depends, APIRouter, status, HTTPException
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from naples.oauth2 import create_access_token
 
-from  naples import models as m
+from naples import models as m
 from naples import schemas as s
 from naples.logger import log
 from naples.database import get_db
