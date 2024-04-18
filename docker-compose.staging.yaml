@@ -14,26 +14,8 @@ services:
       PGPASSWORD: ${POSTGRES_PASSWORD:-passwd}
       PGUSER: ${POSTGRES_USER:-postgres}
 
-  app:
-    image: simple2b/robert-cohen-backend:latest
-    restart: always
-    command: sh ./start_web.sh
-    environment:
-      APP_ENV: production
-      ALCHEMICAL_DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-passwd}@db:5432/db
-      NEXT_URL: https://robert-cohen.simple2b.net
-    env_file:
-      - .env
-    depends_on:
-      - db
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.robert_cohen_portal.rule=Host(`portal.robert-cohen.simple2b.net`)"
-      - "traefik.http.routers.robert_cohen_portal.tls=true"
-      - "traefik.http.routers.robert_cohen_portal.tls.certresolver=myresolver"
-
   api:
-    image: simple2b/robert-cohen-backend:latest
+    image: simple2b/naples-backend:latest
     restart: always
     command: sh ./start_api.sh
     environment:
@@ -46,24 +28,23 @@ services:
       - .env
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.robert_cohen_api.rule=Host(`api.robert-cohen.simple2b.net`)"
-      - "traefik.http.routers.robert_cohen_api.tls=true"
-      - "traefik.http.routers.robert_cohen_api.tls.certresolver=myresolver"
+      - "traefik.http.routers.naples_api.rule=Host(`api.naples.simple2b.net`)"
+      - "traefik.http.routers.naples_api.tls=true"
+      - "traefik.http.routers.naples_api.tls.certresolver=myresolver"
+  # front:
+  #   image: simple2b/naples-front:latest
+  #   restart: always
+  #   labels:
+  #     - "traefik.enable=true"
+  #     - "traefik.http.routers.naples_front.rule=Host(`naples.simple2b.net`)"
+  #     - "traefik.http.routers.naples_front.tls=true"
+  #     - "traefik.http.routers.naples_front.tls.certresolver=myresolver"
 
-  front:
-    image: simple2b/robert-cohen-front:latest
-    restart: always
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.robert_cohen_front.rule=Host(`robert-cohen.simple2b.net`)"
-      - "traefik.http.routers.robert_cohen_front.tls=true"
-      - "traefik.http.routers.robert_cohen_front.tls.certresolver=myresolver"
-
-  front-prod:
-    image: simple2b/robert-cohen-front-prod:latest
-    restart: always
-    ports:
-      - 127.0.0.1:${LOCAL_API_PORT:-3000}:3000
+  # front-prod:
+  #   image: simple2b/robert-cohen-front-prod:latest
+  #   restart: always
+  #   ports:
+  #     - 127.0.0.1:${LOCAL_API_PORT:-3000}:3000
 
 volumes:
   db_data:
