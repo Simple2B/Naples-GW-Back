@@ -7,8 +7,7 @@ on:
 
 env:
   DOCKER_LOGIN: simple2b
-  IMAGE_NAME: simple2b/robert-cohen-backend
-  IMAGE_NAME_PROD: simple2b/robert-cohen-front-prod
+  IMAGE_NAME: simple2b/naples-backend-backend
   DEPLOY_HOST: ${{ secrets.SSH_HOST_IP_STAGING }}
   DEPLOY_USER_NAME: ${{ secrets.SSH_USER }}
   DEPLOY_SSH_KEY: ${{ secrets.SSH_KEY }}
@@ -119,7 +118,7 @@ jobs:
           key: ${{ env.DEPLOY_SSH_KEY }}
           port: ${{ env.DEPLOY_SSH_PORT }}
           source: docker-compose.staging.yaml
-          target: ~/robert-cohen
+          target: ~/naples-backend
       - name: deploy
         uses: appleboy/ssh-action@v0.1.10
         with:
@@ -128,7 +127,7 @@ jobs:
           key: ${{ env.DEPLOY_SSH_KEY }}
           port: ${{ env.DEPLOY_SSH_PORT }}
           script: |
-            cd ~/robert-cohen &&
+            cd ~/naples-backend &&
             mv docker-compose.staging.yaml docker-compose.yaml &&
             docker compose pull &&
             docker compose up -d &&

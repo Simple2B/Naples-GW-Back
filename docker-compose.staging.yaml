@@ -41,7 +41,7 @@ services:
   #     - "traefik.http.routers.naples_front.tls.certresolver=myresolver"
 
   # front-prod:
-  #   image: simple2b/robert-cohen-front-prod:latest
+  #   image: simple2b/naples-backend-front-prod:latest
   #   restart: always
   #   ports:
   #     - 127.0.0.1:${LOCAL_API_PORT:-3000}:3000
