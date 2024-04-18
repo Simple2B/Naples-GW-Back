@@ -39,5 +39,4 @@ jobs:
       - name: Run pytest
         working-directory: .
         run: |
-          poetry run pytest test_flask
-          poetry run pytest test_api
+          poetry run pytest tests
