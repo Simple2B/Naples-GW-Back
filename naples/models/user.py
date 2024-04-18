@@ -95,4 +95,3 @@ class User(db.Model, ModelMixin):
     def json(self):
         u = s.User.model_validate(self)
         return u.model_dump_json()
-
