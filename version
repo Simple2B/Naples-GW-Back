@@ -1,7 +1,5 @@
 #!/bin/bash
 
-# script to update the version number in the site
-
 # Ensure that the user has provided a valid argument
 case $1 in
     patch)
@@ -11,13 +9,10 @@ case $1 in
     major)
         ;;
     *)
-        echo "Usage: $0 [patch|minor|major]"
-        VERSION=$(node -p "require('./package.json').version")
-        echo "Current version: $VERSION"
+        echo "Invalid argument! Usage: $0 [patch|minor|major]"
         exit 1
         ;;
 esac
-
 
 
 # Ensure that the working directory is clean
@@ -30,24 +25,17 @@ fi
 # Ensure that the local branch is up to date with the remote branch
 git pull
 
-# goto script directory
-cd "$(dirname "$0")"
+# Update the version in the pyproject.toml file
+poetry version $1
+new_version=$(poetry version -s)
+npm version --no-git-tag-version $new_version
 
-# build front-end
-yarn install
-yarn build
-# increment front-end version
-npm version $1 --no-git-tag-version
+# Commit the change
+git commit -am v${new_version}
 
-if [ $? -ne 0 ]; then
-  exit 1
-fi
-# get current package version
-VERSION=$(node -p "require('./package.json').version")
+# Create an annotated Git tag with the updated version
+git tag -a -m v${new_version} v${new_version}
 
-# update poetry version
-poetry version $VERSION
-
-git commit -am v${VERSION}
-git tag -a -m v${VERSION} v${VERSION}
 git push --follow-tags
+
+echo "Version increased to $new_version and Git tag <v${new_version}> created."
