@@ -1,0 +1,17 @@
+{
+  "configurations": [
+    {
+      "name": "FastAPI",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "uvicorn",
+      "args": [
+        "naples:api",
+        "--reload",
+        "--port",
+        "5002"
+      ],
+      "justMyCode": true
+    }
+  ]
+}
