@@ -91,7 +91,6 @@ jobs:
           key: ${{ env.DEPLOY_SSH_KEY }}
           port: ${{ env.DEPLOY_SSH_PORT }}
           script: |
-            rm -rf ~/naples-backend &&
             cd ~/naples/naples-backend &&
             mv docker-compose.staging.yaml docker-compose.yaml &&
             docker compose pull &&
