@@ -27,9 +27,9 @@ services:
       - .env
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.naples_api.rule=Host(`api.naples.simple2b.net`)"
-      - "traefik.http.routers.naples_api.tls=true"
-      - "traefik.http.routers.naples_api.tls.certresolver=myresolver"
+      - "traefik.http.routers.naples.rule=Host(`api.naples.simple2b.net`)"
+      - "traefik.http.routers.naples.tls=true"
+      - "traefik.http.routers.naples.tls.certresolver=myresolver"
   # front:
   #   image: simple2b/naples-front:latest
   #   restart: always
