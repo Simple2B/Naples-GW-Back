@@ -94,5 +94,4 @@ jobs:
             cd ~/naples/naples-backend &&
             mv docker-compose.staging.yaml docker-compose.yaml &&
             docker compose pull &&
-            docker compose up -d &&
-            docker system prune -f
+            docker compose up -d
