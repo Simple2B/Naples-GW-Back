@@ -55,5 +55,5 @@ jobs:
           script: |
             cd ~/naples/naples-backend &&
             mv docker-compose.prod.yaml docker-compose.yaml &&
-            docker compose pull &&
-            docker compose up -d
+            docker-compose pull &&
+            docker-compose up -d
