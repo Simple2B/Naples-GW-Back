@@ -22,7 +22,7 @@ def get_current_user_profile(
 ):
     """Returns the current user profile"""
 
-    log(log.INFO, f"User {current_user.username} requested his profile")
+    log(log.INFO, f"User {current_user.email} requested his profile")
     return current_user
 
 
@@ -39,9 +39,8 @@ def get_users(
         s.User(
             id=user.id,
             uuid=user.uuid,
-            username=user.username,
             email=user.email,
-            activated=user.activated,
+            is_verified=user.is_verified,
             role=user.role,
         )
         for user in db_users

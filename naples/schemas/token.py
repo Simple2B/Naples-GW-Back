@@ -13,5 +13,5 @@ class TokenData(BaseModel):
 
 
 class Auth(BaseModel):
-    username: str
+    email: str
     password: str

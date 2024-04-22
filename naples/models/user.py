@@ -25,22 +25,24 @@ class User(db.Model, ModelMixin):
 
     id: orm.Mapped[int] = orm.mapped_column(primary_key=True)
     uuid: orm.Mapped[str] = orm.mapped_column(sa.String(36), default=lambda: str(uuid4()))
-    username: orm.Mapped[str] = orm.mapped_column(
-        sa.String(64),
-        unique=True,
-        nullable=False,
-    )
     email: orm.Mapped[str] = orm.mapped_column(
         sa.String(128),
         unique=True,
         nullable=False,
     )
+
     password_hash: orm.Mapped[str] = orm.mapped_column(sa.String(256), default="")
-    activated: orm.Mapped[bool] = orm.mapped_column(sa.Boolean, default=False)
+
+    is_verified: orm.Mapped[bool] = orm.mapped_column(sa.Boolean, default=False)
     created_at: orm.Mapped[datetime] = orm.mapped_column(
         sa.DateTime,
         default=datetime_utc,
     )
+
+    role: orm.Mapped[str] = orm.mapped_column(default=s.UserRole.USER.value)
+
+    is_deleted: orm.Mapped[bool] = orm.mapped_column(default=False)
+
     unique_id: orm.Mapped[str] = orm.mapped_column(
         sa.String(36),
         default=gen_password_reset_id,
@@ -49,10 +51,6 @@ class User(db.Model, ModelMixin):
         sa.String(64),
         default=gen_password_reset_id,
     )
-
-    role: orm.Mapped[str] = orm.mapped_column(default=s.UserRole.USER.value)
-
-    is_deleted: orm.Mapped[bool] = orm.mapped_column(default=False)
 
     @property
     def password(self):
@@ -71,10 +69,7 @@ class User(db.Model, ModelMixin):
     ) -> Self | None:
         if not session:
             session = db.session
-        query = cls.select().where(
-            (sa.func.lower(cls.username) == sa.func.lower(user_id))
-            | (sa.func.lower(cls.email) == sa.func.lower(user_id))
-        )
+        query = cls.select().where((sa.func.lower(cls.email) == sa.func.lower(user_id)))
         assert session
         user = session.scalar(query)
         if not user:
@@ -89,7 +84,7 @@ class User(db.Model, ModelMixin):
         self.save()
 
     def __repr__(self):
-        return f"<{self.id}: {self.username},{self.email}>"
+        return f"<{self.id}: {self.email}>"
 
     @property
     def json(self):

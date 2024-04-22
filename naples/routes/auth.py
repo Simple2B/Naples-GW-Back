@@ -27,13 +27,13 @@ def login(credentials: Annotated[HTTPBasicCredentials, Depends(security)], db=De
 
     user = m.User.authenticate(credentials.username, credentials.password, session=db)
     if not user:
-        log(log.ERROR, "User [%s] wrong username or password", credentials.username)
+        log(log.ERROR, "User [%s] wrong username (email) or password", credentials.username)
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Invalid credentials")
     # admin user can not get API token
     if user.role == s.UserRole.ADMIN.value:
-        log(log.ERROR, "User [%s] is an admin user", user.username)
+        log(log.ERROR, "User [%s] is an admin user", user.email)
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin user can not get API token")
-    log(log.INFO, "User [%s] logged in", user.username)
+    log(log.INFO, "User [%s] logged in", user.email)
     return s.Token(access_token=create_access_token(user.id))
 
 
@@ -48,13 +48,13 @@ def login(credentials: Annotated[HTTPBasicCredentials, Depends(security)], db=De
 )
 def get_token(auth_data: s.Auth, db=Depends(get_db)):
     """Logs in a user"""
-    user = m.User.authenticate(auth_data.username, auth_data.password, session=db)
+    user = m.User.authenticate(auth_data.email, auth_data.password, session=db)
     if not user:
-        log(log.ERROR, "User [%s] wrong username or password", auth_data.username)
+        log(log.ERROR, "User [%s] wrong email or password", auth_data.email)
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Invalid credentials")
     # admin user can not get API token
     if user.role == s.UserRole.ADMIN.value:
-        log(log.ERROR, "User [%s] is an admin user", user.username)
+        log(log.ERROR, "User [%s] is an admin user", user.email)
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin user can not get API token")
-    log(log.INFO, "User [%s] logged in", user.username)
+    log(log.INFO, "User [%s] logged in", user.email)
     return s.Token(access_token=create_access_token(user.id))

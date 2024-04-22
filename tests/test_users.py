@@ -13,7 +13,7 @@ def test_get_me(client: TestClient, headers: dict[str, str], test_data: TestData
     response = client.get("/api/users/me", headers=headers)
     assert response.status_code == 200
     user = s.User.model_validate(response.json())
-    assert user.username == test_data.test_users[0].username
+    assert user.email == test_data.test_users[0].email
 
 
 def test_get_users(

@@ -25,7 +25,6 @@ def db(test_data: TestData) -> Generator[orm.Session, None, None]:
         db.Model.metadata.create_all(bind=session.bind)
         for test_user in test_data.test_users:
             user = m.User(
-                username=test_user.username,
                 email=test_user.email,
                 password=test_user.password,
             )
