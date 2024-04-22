@@ -25,11 +25,8 @@ class User(db.Model, ModelMixin):
 
     password_hash: orm.Mapped[str] = orm.mapped_column(sa.String(256), default="")
 
-    is_verified: orm.Mapped[bool] = orm.mapped_column(sa.Boolean, default=False)
-    created_at: orm.Mapped[datetime] = orm.mapped_column(
-        sa.DateTime,
-        default=datetime_utc,
-    )
+    is_verified: orm.Mapped[bool] = orm.mapped_column(default=False)
+    created_at: orm.Mapped[datetime] = orm.mapped_column(default=datetime_utc)
 
     role: orm.Mapped[str] = orm.mapped_column(default=s.UserRole.USER.value)
 
@@ -43,10 +40,6 @@ class User(db.Model, ModelMixin):
         sa.String(64),
         default=create_uuid(),
     )
-
-    store_id: orm.Mapped[int] = orm.mapped_column(sa.Integer, sa.ForeignKey("stores.id"))
-
-    store: orm.RelationshipProperty = orm.relationship("Store", back_populates="user")
 
     @property
     def password(self):

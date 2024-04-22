@@ -1,5 +1,3 @@
-import email
-
 import sqlalchemy as sa
 from sqlalchemy import orm
 
@@ -29,8 +27,6 @@ class Member(db.Model, ModelMixin):
         sa.String(128),
         unique=True,
         nullable=False,
-        index=True,
-        validator=email,
     )
 
     phone: orm.Mapped[str] = orm.mapped_column(sa.String(128), default="")

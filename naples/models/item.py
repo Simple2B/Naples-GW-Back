@@ -12,6 +12,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from .store import Store
+    from .member import Member
 
 
 class Item(db.Model, ModelMixin):
@@ -50,6 +51,8 @@ class Item(db.Model, ModelMixin):
     stage: orm.Mapped[str] = orm.mapped_column(default=s.ItemStage.DRAFT.value)
 
     rieltor_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey("members.id"))
+
+    member: orm.Mapped["Member"] = orm.relationship()
 
     def __repr__(self):
         return f"<{self.uuid}:{self.name} >"
