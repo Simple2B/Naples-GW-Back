@@ -47,9 +47,9 @@ class Item(db.Model, ModelMixin):
 
     address: orm.Mapped[str] = orm.mapped_column(sa.String(256), default="")
 
-    stage: orm.Mapped[str] = orm.mapped_column(default=s.ItemRole.DRAFT.value)
+    stage: orm.Mapped[str] = orm.mapped_column(default=s.ItemStage.DRAFT.value)
 
-    rieltor_id: orm.Mapped[int] = orm.mapped_column(sa.Integer, sa.ForeignKey("members.id"))
+    rieltor_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey("members.id"))
 
     def __repr__(self):
         return f"<{self.uuid}:{self.name} >"

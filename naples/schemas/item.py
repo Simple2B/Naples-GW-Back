@@ -3,7 +3,7 @@ from pydantic import BaseModel, ConfigDict
 from datetime import datetime
 
 
-class ItemRole(enum.Enum):
+class ItemStage(enum.Enum):
     DRAFT = "draft"
     ACTIVE = "active"
     ARCHIVE = "archive"
@@ -20,7 +20,7 @@ class Item(BaseModel):
     deleted_at: datetime | None = None
     address: str = ""
 
-    role: str = ItemRole.DRAFT.value
+    stage: str = ItemStage.DRAFT.value
 
     model_config = ConfigDict(
         from_attributes=True,

@@ -1,4 +1,4 @@
 # flake8: noqa
-from .user import User, gen_password_reset_id
+from .user import User
 from .store import Store
 from .item import Item
