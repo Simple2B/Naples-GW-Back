@@ -1,26 +1,22 @@
 from typing import Self
 from datetime import datetime
-from uuid import uuid4
 
 import sqlalchemy as sa
 from sqlalchemy import orm
 
 from naples.hash_utils import make_hash, hash_verify
 from naples.database import db
-from .utils import ModelMixin, datetime_utc
+from .utils import ModelMixin, datetime_utc, create_uuid
 from naples.logger import log
 from naples import schemas as s
-
-
-def gen_password_reset_id() -> str:
-    return str(uuid4())
 
 
 class User(db.Model, ModelMixin):
     __tablename__ = "users"
 
     id: orm.Mapped[int] = orm.mapped_column(primary_key=True)
-    uuid: orm.Mapped[str] = orm.mapped_column(sa.String(36), default=lambda: str(uuid4()))
+    uuid: orm.Mapped[str] = orm.mapped_column(sa.String(36), default=lambda: create_uuid())
+
     email: orm.Mapped[str] = orm.mapped_column(
         sa.String(128),
         unique=True,
@@ -41,11 +37,11 @@ class User(db.Model, ModelMixin):
 
     unique_id: orm.Mapped[str] = orm.mapped_column(
         sa.String(36),
-        default=gen_password_reset_id,
+        default=create_uuid(),
     )
     reset_password_uid: orm.Mapped[str] = orm.mapped_column(
         sa.String(64),
-        default=gen_password_reset_id,
+        default=create_uuid(),
     )
 
     store_id: orm.Mapped[int] = orm.mapped_column(sa.Integer, sa.ForeignKey("stores.id"))
@@ -80,7 +76,7 @@ class User(db.Model, ModelMixin):
 
     def reset_password(self):
         self.password_hash = ""
-        self.reset_password_uid = gen_password_reset_id()
+        self.reset_password_uid = create_uuid()
         self.save()
 
     def __repr__(self):
