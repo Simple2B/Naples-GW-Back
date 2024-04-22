@@ -1,3 +1,5 @@
+from datetime import datetime, UTC
+
 from naples.database import db
 
 
@@ -11,3 +13,7 @@ class ModelMixin(object):
 
 
 # Add your own utility classes and functions here.
+
+
+def datetime_utc():
+    return datetime.now(UTC)

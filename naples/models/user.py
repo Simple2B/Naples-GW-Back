@@ -1,5 +1,5 @@
 from typing import Self
-from datetime import datetime, UTC
+from datetime import datetime
 from uuid import uuid4
 
 import sqlalchemy as sa
@@ -7,17 +7,13 @@ from sqlalchemy import orm
 
 from naples.hash_utils import make_hash, hash_verify
 from naples.database import db
-from .utils import ModelMixin
+from .utils import ModelMixin, datetime_utc
 from naples.logger import log
 from naples import schemas as s
 
 
 def gen_password_reset_id() -> str:
     return str(uuid4())
-
-
-def datetime_utc():
-    return datetime.now(UTC)
 
 
 class User(db.Model, ModelMixin):
@@ -51,6 +47,10 @@ class User(db.Model, ModelMixin):
         sa.String(64),
         default=gen_password_reset_id,
     )
+
+    store_id: orm.Mapped[int] = orm.mapped_column(sa.Integer, sa.ForeignKey("stores.id"))
+
+    store: orm.RelationshipProperty = orm.relationship("Store", back_populates="user")
 
     @property
     def password(self):
