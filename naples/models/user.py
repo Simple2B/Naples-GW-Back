@@ -9,6 +9,10 @@ from naples.database import db
 from .utils import ModelMixin, datetime_utc, create_uuid
 from naples.logger import log
 from naples import schemas as s
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .store import Store
 
 
 class User(db.Model, ModelMixin):
@@ -40,6 +44,8 @@ class User(db.Model, ModelMixin):
         sa.String(64),
         default=create_uuid(),
     )
+
+    store: orm.Mapped["Store"] = orm.relationship(back_populates="user")
 
     @property
     def password(self):
