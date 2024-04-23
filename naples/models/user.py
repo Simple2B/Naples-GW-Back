@@ -38,11 +38,11 @@ class User(db.Model, ModelMixin):
 
     unique_id: orm.Mapped[str] = orm.mapped_column(
         sa.String(36),
-        default=create_uuid(),
+        default="",
     )
     reset_password_uid: orm.Mapped[str] = orm.mapped_column(
         sa.String(64),
-        default=create_uuid(),
+        default="",
     )
 
     store: orm.Mapped["Store"] = orm.relationship()

@@ -17,11 +17,7 @@ class Member(db.Model, ModelMixin):
 
     uuid: orm.Mapped[str] = orm.mapped_column(sa.String(36), default=lambda: create_uuid())
 
-    name: orm.Mapped[str] = orm.mapped_column(
-        sa.String(128),
-        unique=True,
-        nullable=False,
-    )
+    name: orm.Mapped[str] = orm.mapped_column(sa.String(128), default=False)
 
     email: orm.Mapped[str] = orm.mapped_column(
         sa.String(128),
@@ -39,8 +35,7 @@ class Member(db.Model, ModelMixin):
 
     messenger_url: orm.Mapped[str] = orm.mapped_column(sa.String(256), default="")
 
-    # TODO: check max length of avatar url
-    avatar_url: orm.Mapped[str] = orm.mapped_column(sa.String(256), default="")
+    avatar_url: orm.Mapped[str] = orm.mapped_column(sa.String(512), default="")
 
     def __repr__(self):
         return f"<{self.uuid}:{self.name} >"

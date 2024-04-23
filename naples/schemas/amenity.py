@@ -17,7 +17,7 @@ class AmenityOut(Amenity):
     )
 
 
-class Files(BaseModel):
+class Amenities(BaseModel):
     amenities: list[AmenityOut]
 
     model_config = ConfigDict(

@@ -27,9 +27,6 @@ class File(db.Model, ModelMixin):
 
     url: orm.Mapped[str] = orm.mapped_column(sa.String(256), default="")
 
-    # TODO: must be add size of file ?
-    # size: orm.Mapped[int] = orm.mapped_column(sa.Integer, default=0)
-
     owner_type: orm.Mapped[str] = orm.mapped_column(default=s.OwnerType.STORE.value)
 
     owner_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey("users.id"))

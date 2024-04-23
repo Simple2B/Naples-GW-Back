@@ -50,6 +50,8 @@ class Item(db.Model, ModelMixin):
 
     stage: orm.Mapped[str] = orm.mapped_column(default=s.ItemStage.DRAFT.value)
 
+    size: orm.Mapped[int] = orm.mapped_column(default=0)
+
     realtor_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey("members.id"))
 
     member: orm.Mapped["Member"] = orm.relationship()

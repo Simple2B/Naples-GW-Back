@@ -14,10 +14,7 @@ class Amenity(db.Model, ModelMixin):
 
     is_deleted: orm.Mapped[bool] = orm.mapped_column(default=False)
 
-    value: orm.Mapped[str] = orm.mapped_column(
-        sa.String(64),
-        nullable=True,
-    )
+    value: orm.Mapped[str | None] = orm.mapped_column(sa.String(64))
 
     def __repr__(self):
         return f"<{self.uuid}:{self.value} >"
