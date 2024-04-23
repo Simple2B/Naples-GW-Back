@@ -4,11 +4,6 @@ from sqlalchemy import orm
 from naples.database import db
 from naples import schemas as s
 from .utils import ModelMixin, create_uuid
-from typing import TYPE_CHECKING
-
-
-if TYPE_CHECKING:
-    pass
 
 
 class File(db.Model, ModelMixin):
