@@ -46,7 +46,7 @@ class Store(db.Model, ModelMixin):
 
     user_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey("users.id"))
 
-    user: orm.Mapped["User"] = orm.relationship()
+    user: orm.Mapped["User"] = orm.relationship(back_populates="store")
 
     created_at: orm.Mapped[datetime] = orm.mapped_column(
         default=datetime_utc,

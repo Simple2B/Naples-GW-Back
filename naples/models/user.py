@@ -45,7 +45,7 @@ class User(db.Model, ModelMixin):
         default=create_uuid(),
     )
 
-    store: orm.Mapped["Store"] = orm.relationship(back_populates="user")
+    store: orm.Mapped["Store"] = orm.relationship()
 
     @property
     def password(self):
