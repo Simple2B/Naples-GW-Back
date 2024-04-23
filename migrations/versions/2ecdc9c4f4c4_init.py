@@ -1,7 +1,7 @@
 """init
 
 Revision ID: 2ecdc9c4f4c4
-Revises: 
+Revises:
 Create Date: 2024-04-23 14:24:46.868241
 
 """
@@ -100,8 +100,8 @@ def upgrade() -> None:
     sa.Column('deleted_at', sa.DateTime(), nullable=True),
     sa.Column('address', sa.String(length=256), nullable=False),
     sa.Column('stage', sa.String(), nullable=False),
-    sa.Column('rieltor_id', sa.Integer(), nullable=False),
-    sa.ForeignKeyConstraint(['rieltor_id'], ['members.id'], ),
+    sa.Column('realtor_id', sa.Integer(), nullable=False),
+    sa.ForeignKeyConstraint(['realtor_id'], ['members.id'], ),
     sa.ForeignKeyConstraint(['store_id'], ['stores.id'], ),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('name')

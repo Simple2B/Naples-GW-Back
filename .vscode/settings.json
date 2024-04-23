@@ -4,7 +4,7 @@
     "fastapi",
     "passlib",
     "pydantic",
-    "rieltor",
+    "realtor",
     "SQLALCHEMY"
   ],
   "python.testing.unittestArgs": [
