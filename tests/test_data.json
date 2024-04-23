@@ -1,16 +1,50 @@
 {
   "test_users": [
     {
+      "id": 1,
+      "uuid": "6915ad0f-392e-444d-96b1-f04dba7e751b",
       "email": "testemail1@gmail.com",
       "password": "1234"
     },
     {
+      "id": 2,
+      "uuid": "f53fecaf-c84a-4ac0-bfed-d6c945d91460",
       "email": "testemail2@gmail.com",
       "password": "1234"
     },
     {
+      "id": 3,
+      "uuid": "3037b1d3-a5a9-4a06-97e4-a77eca1825c7",
       "email": "testemail3@gmail.com",
       "password": "1234"
+    }
+  ],
+  "test_stores": [
+    {
+      "uuid": "6915ad0f-392e-444d-96b1-f04dba7e751b",
+      "name": "test_store1",
+      "header": "test_header1",
+      "sub_header": "test_sub_header1",
+      "url": "test_url1",
+      "logo_url": "test_logo_url1",
+      "about_us": "test_about_us1",
+      "email": "testemail_1@gmail.com",
+      "instagram_url": "test_instagram_url1",
+      "messenger_url": "test_messenger_url1",
+      "user_id": 1
+    },
+    {
+      "uuid": "f53fecaf-c84a-4ac0-bfed-d6c945d91460",
+      "name": "test_store2",
+      "header": "test_header2",
+      "sub_header": "test_sub_header2",
+      "url": "test_url2",
+      "logo_url": "test_logo_url2",
+      "about_us": "test_about_us2",
+      "email": "testemail_2@gmail.com",
+      "instagram_url": "test_instagram_url2",
+      "messenger_url": "test_messenger_url2",
+      "user_id": 2
     }
   ]
 }
