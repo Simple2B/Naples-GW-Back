@@ -57,3 +57,15 @@ jobs:
             mv docker-compose.prod.yaml docker-compose.yaml &&
             docker-compose pull &&
             docker-compose up -d
+
+  notify:
+    runs-on: Linux
+    needs: deploy
+    steps:
+      - name: send telegram message on push
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_TO }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          message: |
+            [Backend] prod deploy: api-prod.naples.simple2b.net

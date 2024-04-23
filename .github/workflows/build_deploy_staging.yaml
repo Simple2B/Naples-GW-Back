@@ -95,3 +95,15 @@ jobs:
             mv docker-compose.staging.yaml docker-compose.yaml &&
             docker compose pull &&
             docker compose up -d
+
+  notify:
+    runs-on: Linux
+    needs: deploy
+    steps:
+      - name: send telegram message on push
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_TO }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          message: |
+            [Backend] deploy: ${{ github.event.head_commit.message }} api.naples.simple2b.net (staging)
