@@ -7,7 +7,7 @@ from naples.logger import log
 
 import sqlalchemy as sa
 from sqlalchemy.orm import Session
-from sqlalchemy.sql.expression import Executable
+# from sqlalchemy.sql.expression import Executable
 
 from naples.dependency import get_current_user
 from naples.database import get_db

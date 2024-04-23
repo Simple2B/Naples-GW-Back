@@ -1,7 +1,8 @@
 from fastapi.testclient import TestClient
 
 from naples import schemas as s
-from naples import models as m
+
+# from naples import models as m
 from naples.config import config
 
 from .test_data import TestData
