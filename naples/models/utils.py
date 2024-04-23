@@ -1,3 +1,6 @@
+from datetime import datetime, UTC
+from uuid import uuid4
+
 from naples.database import db
 
 
@@ -10,4 +13,9 @@ class ModelMixin(object):
         return self
 
 
-# Add your own utility classes and functions here.
+def datetime_utc():
+    return datetime.now(UTC)
+
+
+def create_uuid():
+    return uuid4().hex

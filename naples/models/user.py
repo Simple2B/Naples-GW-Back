@@ -1,58 +1,51 @@
 from typing import Self
-from datetime import datetime, UTC
-from uuid import uuid4
+from datetime import datetime
 
 import sqlalchemy as sa
 from sqlalchemy import orm
 
 from naples.hash_utils import make_hash, hash_verify
 from naples.database import db
-from .utils import ModelMixin
+from .utils import ModelMixin, datetime_utc, create_uuid
 from naples.logger import log
 from naples import schemas as s
+from typing import TYPE_CHECKING
 
-
-def gen_password_reset_id() -> str:
-    return str(uuid4())
-
-
-def datetime_utc():
-    return datetime.now(UTC)
+if TYPE_CHECKING:
+    from .store import Store
 
 
 class User(db.Model, ModelMixin):
     __tablename__ = "users"
 
     id: orm.Mapped[int] = orm.mapped_column(primary_key=True)
-    uuid: orm.Mapped[str] = orm.mapped_column(sa.String(36), default=lambda: str(uuid4()))
-    username: orm.Mapped[str] = orm.mapped_column(
-        sa.String(64),
-        unique=True,
-        nullable=False,
-    )
+    uuid: orm.Mapped[str] = orm.mapped_column(sa.String(36), default=lambda: create_uuid())
+
     email: orm.Mapped[str] = orm.mapped_column(
         sa.String(128),
         unique=True,
         nullable=False,
     )
+
     password_hash: orm.Mapped[str] = orm.mapped_column(sa.String(256), default="")
-    activated: orm.Mapped[bool] = orm.mapped_column(sa.Boolean, default=False)
-    created_at: orm.Mapped[datetime] = orm.mapped_column(
-        sa.DateTime,
-        default=datetime_utc,
-    )
-    unique_id: orm.Mapped[str] = orm.mapped_column(
-        sa.String(36),
-        default=gen_password_reset_id,
-    )
-    reset_password_uid: orm.Mapped[str] = orm.mapped_column(
-        sa.String(64),
-        default=gen_password_reset_id,
-    )
+
+    is_verified: orm.Mapped[bool] = orm.mapped_column(default=False)
+    created_at: orm.Mapped[datetime] = orm.mapped_column(default=datetime_utc)
 
     role: orm.Mapped[str] = orm.mapped_column(default=s.UserRole.USER.value)
 
     is_deleted: orm.Mapped[bool] = orm.mapped_column(default=False)
+
+    unique_id: orm.Mapped[str] = orm.mapped_column(
+        sa.String(36),
+        default="",
+    )
+    reset_password_uid: orm.Mapped[str] = orm.mapped_column(
+        sa.String(64),
+        default="",
+    )
+
+    store: orm.Mapped["Store"] = orm.relationship()
 
     @property
     def password(self):
@@ -71,10 +64,7 @@ class User(db.Model, ModelMixin):
     ) -> Self | None:
         if not session:
             session = db.session
-        query = cls.select().where(
-            (sa.func.lower(cls.username) == sa.func.lower(user_id))
-            | (sa.func.lower(cls.email) == sa.func.lower(user_id))
-        )
+        query = cls.select().where((sa.func.lower(cls.email) == sa.func.lower(user_id)))
         assert session
         user = session.scalar(query)
         if not user:
@@ -85,11 +75,11 @@ class User(db.Model, ModelMixin):
 
     def reset_password(self):
         self.password_hash = ""
-        self.reset_password_uid = gen_password_reset_id()
+        self.reset_password_uid = create_uuid()
         self.save()
 
     def __repr__(self):
-        return f"<{self.id}: {self.username},{self.email}>"
+        return f"<{self.id}: {self.email}>"
 
     @property
     def json(self):

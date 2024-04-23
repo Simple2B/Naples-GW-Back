@@ -6,7 +6,7 @@
       "request": "launch",
       "module": "uvicorn",
       "args": [
-        "naples:api",
+        "naples.main:api",
         "--reload",
         "--port",
         "5002"
