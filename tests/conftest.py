@@ -9,7 +9,7 @@ load_dotenv("tests/test.env")
 from fastapi.testclient import TestClient
 from sqlalchemy import orm
 
-from naples import api
+from naples.main import api
 from naples import models as m
 from naples import schemas as s
 

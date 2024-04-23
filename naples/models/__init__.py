@@ -1,4 +1,5 @@
 # flake8: noqa
+from naples.database import db
 from .user import User
 from .store import Store
 from .item import Item
