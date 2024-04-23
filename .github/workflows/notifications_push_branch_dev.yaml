@@ -1,0 +1,19 @@
+name: Notifications on push to develop branch
+
+on:
+  push:
+    branches: [develop]
+
+jobs:
+  notify:
+    runs-on: Linux
+    steps:
+      - name: send telegram message on push
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_TO }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          message: |
+            [Backend] ${{ github.actor }} UPDATED develop branch in ${{ github.event.repository.name }} repository
+            Title: ${{ github.event.head_commit.message }}
+            Changes: ${{ github.event.head_commit.url }}
