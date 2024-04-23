@@ -1,4 +1,5 @@
 from typing import Generator
+import uuid
 
 import pytest
 from dotenv import load_dotenv
@@ -25,10 +26,27 @@ def db(test_data: TestData) -> Generator[orm.Session, None, None]:
         db.Model.metadata.create_all(bind=session.bind)
         for test_user in test_data.test_users:
             user = m.User(
+                id=test_user.id,
                 email=test_user.email,
                 password=test_user.password,
             )
             session.add(user)
+
+        for test_store in test_data.test_stores:
+            store = m.Store(
+                uuid=test_store.uuid,
+                name=test_store.name,
+                header=test_store.header,
+                sub_header=test_store.sub_header,
+                url=test_store.url,
+                logo_url=test_store.logo_url,
+                about_us=test_store.about_us,
+                email=test_store.email,
+                instagram_url=test_store.instagram_url,
+                messenger_url=test_store.messenger_url,
+                user_id=test_store.user_id,
+            )
+            session.add(store)
 
         session.commit()
 
