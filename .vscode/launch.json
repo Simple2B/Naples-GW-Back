@@ -12,6 +12,16 @@
         "5002"
       ],
       "justMyCode": true
+    },
+    {
+      "name": "Test API",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "pytest",
+      "args": [
+        "tests"
+      ],
+      "justMyCode": false
     }
   ]
 }
