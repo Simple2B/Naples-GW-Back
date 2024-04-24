@@ -12,7 +12,8 @@ sys.path = ["", ".."] + sys.path[1:]
 
 from naples import models as m  # noqa: E402
 from naples.models import db  # noqa: E402
-from naples import schemas as s  # noqa: E402
+
+# from naples import schemas as s  # noqa: E402
 from naples.logger import log  # noqa: E402
 
 
