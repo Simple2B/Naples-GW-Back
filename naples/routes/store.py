@@ -38,7 +38,7 @@ def get_store(
     return store
 
 
-# TODO: need to implement this route or it must be without current_user
+# TODO: need to implement this route (may be it must be without current_user)
 @store_router.get("/", status_code=status.HTTP_200_OK, response_model=s.Stores)
 def get_stors(
     db: Session = Depends(get_db),
@@ -51,7 +51,7 @@ def get_stors(
 
 @store_router.post("/", status_code=status.HTTP_201_CREATED, response_model=s.StoreOut)
 def create_stote(
-    job: s.Store,
+    job: s.StoreIn,
     db: Session = Depends(get_db),
     current_user: m.User = Depends(get_current_user),
 ):

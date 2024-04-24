@@ -4,6 +4,7 @@ from naples import schemas as s
 
 # from naples import models as m
 from naples.config import config
+from naples.models import user
 
 from .test_data import TestData
 
@@ -19,7 +20,16 @@ def test_get_store(client: TestClient, headers: dict[str, str], test_data: TestD
 
 
 def test_create_stote(client: TestClient, headers: dict[str, str], test_data: TestData):
-    pass
-    # test_store =
-    # response = client.post("/api/", headers=headers, job=test_store)
-    # assert response.status_code == 200
+    test_store = s.StoreIn(
+        name="Test Store",
+        header="Header",
+        sub_header="Sub Header",
+        url="test_url",
+        logo_url="logo_url",
+        about_us="about_us",
+        email="user@email.com",
+        instagram_url="instagram_url",
+        messenger_url="messenger_url",
+    )
+    response = client.post("/api/stores/", headers=headers, json=test_store.model_dump())
+    assert response.status_code == 201
