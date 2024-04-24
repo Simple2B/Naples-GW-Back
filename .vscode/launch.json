@@ -22,6 +22,16 @@
         "tests"
       ],
       "justMyCode": false
+    },
+    {
+      "name": "Fill db with locations",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "invoke",
+      "args": [
+        "export-usa-locations-from-csv-file"
+      ],
+      "justMyCode": true
     }
   ]
 }
