@@ -20,9 +20,9 @@ class City(db.Model, ModelMixin):
 
     name: orm.Mapped[str] = orm.mapped_column(sa.String(128))
 
-    region_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey("counties.id"))
+    county_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey("counties.id"))
 
-    region: orm.Mapped["County"] = orm.relationship("County", back_populates="counties")
+    county: orm.Mapped["County"] = orm.relationship("County")
 
     def __repr__(self):
         return f"<{self.id}:{self.name} >"

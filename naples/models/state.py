@@ -24,7 +24,7 @@ class State(db.Model, ModelMixin):
     # in csv file this field name is "state_id"
     abbreviated_name: orm.Mapped[str] = orm.mapped_column(sa.String(2))
 
-    regions: orm.Mapped[list["County"]] = orm.relationship("County")
+    counties: orm.Mapped[list["County"]] = orm.relationship("County")
 
     def __repr__(self):
         return f"<{self.id}:{self.name} >"
