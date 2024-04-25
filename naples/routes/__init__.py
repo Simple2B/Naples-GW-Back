@@ -5,6 +5,7 @@ from .user import user_router
 
 from .auth import router as auth_router
 from .store import store_router
+from .locations import location_router
 
 # from .notify import notification_test_router
 
@@ -14,6 +15,7 @@ router = APIRouter(prefix="/api", tags=["API"])
 router.include_router(user_router)
 router.include_router(auth_router)
 router.include_router(store_router)
+router.include_router(location_router)
 
 
 @router.get("/list-endpoints/")

@@ -1,7 +1,7 @@
-from typing import Generator
-import uuid
-
 import pytest
+from typing import Generator
+from pathlib import Path
+
 from dotenv import load_dotenv
 
 load_dotenv("tests/test.env")
@@ -12,14 +12,18 @@ from sqlalchemy import orm
 
 from naples.main import api
 from naples import models as m
-from naples import schemas as s
+
 
 from .test_data import TestData
+
+MODULE_PATH = Path(__file__).parent
+TEST_CSV_FILE = MODULE_PATH / ".." / "data" / "test_uscities.csv"
 
 
 @pytest.fixture
 def db(test_data: TestData) -> Generator[orm.Session, None, None]:
     from naples.database import db, get_db
+    from services.export_usa_locations import export_usa_locations_from_csv_file
 
     with db.Session() as session:
         db.Model.metadata.drop_all(bind=session.bind)
@@ -48,6 +52,10 @@ def db(test_data: TestData) -> Generator[orm.Session, None, None]:
             )
             session.add(store)
 
+        states = export_usa_locations_from_csv_file(session, TEST_CSV_FILE)
+
+        states
+
         session.commit()
 
         def override_get_db() -> Generator:
@@ -57,6 +65,11 @@ def db(test_data: TestData) -> Generator[orm.Session, None, None]:
         yield session
         # clean up
         db.Model.metadata.drop_all(bind=session.bind)
+
+
+@pytest.fixture
+def full_db(db: orm.Session) -> Generator[orm.Session, None, None]:
+    yield db
 
 
 @pytest.fixture
