@@ -47,7 +47,14 @@ def get_items(
     return s.Items(items=cast(list, items))
 
 
-@item_router.post("/", status_code=status.HTTP_201_CREATED, response_model=s.ItemOut)
+@item_router.post(
+    "/",
+    status_code=status.HTTP_201_CREATED,
+    response_model=s.ItemOut,
+    responses={
+        404: {"description": "Store not found"},
+    },
+)
 def create_item(
     item_rieltor: s.ItemRieltorIn,
     db: Session = Depends(get_db),
@@ -74,5 +81,6 @@ def create_item(
         )
         db.add(new_member)
     db.commit()
+
     log(log.INFO, "Created item [%s] for store [%s]", new_item.name, new_item.store_id)
     return new_item
