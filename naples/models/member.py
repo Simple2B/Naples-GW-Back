@@ -26,7 +26,7 @@ class Member(db.Model, ModelMixin):
         nullable=False,
     )
 
-    phone: orm.Mapped[str] = orm.mapped_column(sa.String(128), default="")
+    phone: orm.Mapped[str] = orm.mapped_column(sa.String(16), default="")
 
     store_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey("stores.id"))
 

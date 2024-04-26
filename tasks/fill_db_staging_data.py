@@ -58,6 +58,7 @@ def create_user_with_store():
                 logo_url=test_store["logo_url"],
                 about_us=test_store["about_us"],
                 email=test_store["email"],
+                phone=test_store["phone"],
                 instagram_url=test_store["instagram_url"],
                 messenger_url=test_store["messenger_url"],
                 user_id=test_store["user_id"],
