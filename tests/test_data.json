@@ -56,7 +56,8 @@
       "image_url": "test_image_url1",
       "store_id": 1,
       "bedrooms_count": 1,
-      "bathrooms_count": 1
+      "bathrooms_count": 1,
+      "created_at": "2024-05-03T00:00:00Z"
     },
     {
       "uuid": "f53fecaf-c84a-4ac0-bfed-d6c945d91460",
@@ -64,9 +65,43 @@
       "description": "test_description2",
       "price": 299,
       "image_url": "test_image_url2",
-      "store_id": 2,
+      "store_id": 1,
       "bedrooms_count": 4,
-      "bathrooms_count": 2
+      "bathrooms_count": 2,
+      "created_at": "2024-04-01T00:00:00Z"
+    },
+    {
+      "uuid": "f55fecaf-c84a-4ac0-bfed-d6c100d91465",
+      "name": "test_item3",
+      "description": "test_description3",
+      "price": 299,
+      "image_url": "test_image_url3",
+      "store_id": 1,
+      "bedrooms_count": 4,
+      "bathrooms_count": 2,
+      "created_at": "2024-04-01T00:00:00Z"
+    }
+  ],
+  "test_members": [
+    {
+      "uuid": "6915ad0f-392e-444d-96b1-f04dba7e751b",
+      "name": "rieltor_1",
+      "email": "rieltor_1@email.com",
+      "phone": "123456789",
+      "store_id": 1,
+      "instagram_url": "test_instagram_url1",
+      "messenger_url": "test_messenger_url1",
+      "avatar_url": "test_avatar_url1"
+    },
+    {
+      "uuid": "6915ad0f-392e-333d-96b1-f04dba7e102h",
+      "name": "rieltor_2",
+      "email": "rieltor_2@email.com",
+      "phone": "123456789",
+      "store_id": 2,
+      "instagram_url": "test_instagram_url2",
+      "messenger_url": "test_messenger_url2",
+      "avatar_url": "test_avatar_url2"
     }
   ]
 }

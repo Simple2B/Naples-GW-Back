@@ -52,9 +52,37 @@ def db(test_data: TestData) -> Generator[orm.Session, None, None]:
             )
             session.add(store)
 
-        states = export_usa_locations_from_csv_file(session, TEST_CSV_FILE)
+        export_usa_locations_from_csv_file(session, TEST_CSV_FILE)
 
-        states
+        for test_item in test_data.test_items:
+            item = m.Item(
+                uuid=test_item.uuid,
+                name=test_item.name,
+                description=test_item.description,
+                latitude=test_item.latitude,
+                longitude=test_item.longitude,
+                address=test_item.address,
+                size=test_item.size,
+                bedrooms_count=test_item.bedrooms_count,
+                bathrooms_count=test_item.bathrooms_count,
+                stage=test_item.stage,
+                category=test_item.category,
+                type=test_item.type,
+                store_id=test_item.store_id,
+            )
+            session.add(item)
+        for member in test_data.test_members:
+            member = m.Member(
+                uuid=member.uuid,
+                name=member.name,
+                email=member.email,
+                phone=member.phone,
+                instagram_url=member.instagram_url,
+                messenger_url=member.messenger_url,
+                avatar_url=member.avatar_url,
+                store_id=member.store_id,
+            )
+            session.add(member)
 
         session.commit()
 

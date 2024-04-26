@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from naples.schemas import store as s
+from naples import schemas as s
 
 
 class TestUser(BaseModel):
@@ -15,3 +15,5 @@ class TestData(BaseModel):
 
     test_users: list[TestUser]
     test_stores: list[s.StoreOut]
+    test_items: list[s.ItemOut]
+    test_members: list[s.MemberOut]
