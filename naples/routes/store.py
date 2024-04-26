@@ -38,7 +38,7 @@ def get_store(
     return store
 
 
-# TODO: need to implement this route (may be it must be without current_user)
+# TODO: implement this route with Depends from admin
 @store_router.get("/", status_code=status.HTTP_200_OK, response_model=s.Stores)
 def get_stors(
     db: Session = Depends(get_db),
