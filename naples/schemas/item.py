@@ -78,7 +78,6 @@ class ItemRieltorIn(BaseModel):
 
 class ItemOut(Item):
     uuid: str
-    files: list[FileOut] | None = None
 
     model_config = ConfigDict(
         from_attributes=True,
