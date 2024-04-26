@@ -34,12 +34,12 @@
       "justMyCode": true
     },
     {
-      "name": "Fill db locations (only New York state)",
+      "name": "Fill db staging data",
       "type": "debugpy",
       "request": "launch",
       "module": "invoke",
       "args": [
-        "fill-db-newyork-locations"
+        "fill-db-staging-data"
       ],
       "justMyCode": true
     }

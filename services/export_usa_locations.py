@@ -104,7 +104,7 @@ def export_usa_locations_from_csv_file(session: Session, file_path: Path, is_new
 
             log(log.INFO, "City [%s] created for county [%s]", city_name, county_name)
 
-    print("[Done]: Export USA locations from csv file to db")
+    log(log.INFO, "[Done]: Export USA locations from csv file to db")
 
     query = sa.select(m.State)
     states: Sequence[m.State] = session.scalars(query).all()
