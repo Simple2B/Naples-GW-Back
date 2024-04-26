@@ -2,7 +2,6 @@ import enum
 from pydantic import BaseModel, ConfigDict
 from datetime import datetime
 from .member import MemberIn
-from .file import FileOut
 
 
 class ItemTypes(enum.Enum):
