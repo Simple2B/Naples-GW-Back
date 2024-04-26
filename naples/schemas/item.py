@@ -41,6 +41,8 @@ class Item(BaseModel):
     category: str = ItemCategories.BUY.value
     type: str = ItemTypes.HOUSE.value
 
+    realtor_id: int | None = None
+
     model_config = ConfigDict(
         from_attributes=True,
     )

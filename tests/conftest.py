@@ -69,6 +69,7 @@ def db(test_data: TestData) -> Generator[orm.Session, None, None]:
                 category=test_item.category,
                 type=test_item.type,
                 store_id=test_item.store_id,
+                realtor_id=test_item.realtor_id,
             )
             session.add(item)
         for member in test_data.test_members:
