@@ -2,6 +2,7 @@ import enum
 from pydantic import BaseModel, ConfigDict
 from datetime import datetime
 from .member import MemberIn
+from .file import FileOut
 
 
 class ItemTypes(enum.Enum):
@@ -75,6 +76,7 @@ class ItemRieltorIn(BaseModel):
 
 class ItemOut(Item):
     uuid: str
+    files: list[FileOut] | None = None
 
     model_config = ConfigDict(
         from_attributes=True,
