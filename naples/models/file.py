@@ -4,6 +4,11 @@ from sqlalchemy import orm
 from naples.database import db
 from naples import schemas as s
 from .utils import ModelMixin, create_uuid
+from typing import TYPE_CHECKING
+
+
+if TYPE_CHECKING:
+    from .user import User
 
 
 class File(db.Model, ModelMixin):
@@ -30,6 +35,8 @@ class File(db.Model, ModelMixin):
     owner_type: orm.Mapped[str] = orm.mapped_column(default=s.OwnerType.STORE.value)
 
     owner_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey("users.id"))
+
+    owner: orm.Mapped["User"] = orm.relationship()
 
     def __repr__(self):
         return f"<{self.uuid}:{self.name} >"

@@ -1,6 +1,5 @@
 from datetime import datetime
 
-
 import sqlalchemy as sa
 from sqlalchemy import orm
 
@@ -49,12 +48,14 @@ class Item(db.Model, ModelMixin):
     address: orm.Mapped[str] = orm.mapped_column(sa.String(256), default="")
 
     stage: orm.Mapped[str] = orm.mapped_column(default=s.ItemStage.DRAFT.value)
+    category: orm.Mapped[str] = orm.mapped_column(default=s.ItemCategories.BUY.value)
+    type: orm.Mapped[str] = orm.mapped_column(default=s.ItemTypes.HOUSE.value)
 
     size: orm.Mapped[int] = orm.mapped_column(default=0)
     bedrooms_count: orm.Mapped[int] = orm.mapped_column(default=0)
     bathrooms_count: orm.Mapped[int] = orm.mapped_column(default=0)
 
-    realtor_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey("members.id"))
+    realtor_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey("members.id"), nullable=True)
 
     realtor: orm.Mapped["Member"] = orm.relationship()
 
