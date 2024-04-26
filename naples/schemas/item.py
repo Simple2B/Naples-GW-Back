@@ -3,6 +3,18 @@ from pydantic import BaseModel, ConfigDict
 from datetime import datetime
 
 
+class ItemTypes(enum.Enum):
+    HOUSE = "house"
+    APARTMENT = "apartment"
+    LAND = "land"
+    COMMERCIAL = "commercial"
+
+
+class ItemCategories(enum.Enum):
+    BUY = "buy"
+    RENT = "rent"
+
+
 class ItemStage(enum.Enum):
     DRAFT = "draft"
     ACTIVE = "active"
@@ -19,6 +31,9 @@ class Item(BaseModel):
     created_at: datetime
     deleted_at: datetime | None = None
     address: str = ""
+    size: int = 0
+    bedrooms_count: int = 0
+    bathrooms_count: int = 0
 
     stage: str = ItemStage.DRAFT.value
 

@@ -46,5 +46,27 @@
       "messenger_url": "test_messenger_url2",
       "user_id": 2
     }
+  ],
+  "test_items": [
+    {
+      "uuid": "6915ad0f-392e-444d-96b1-f04dba7e751b",
+      "name": "test_item1",
+      "description": "test_description1",
+      "price": 199,
+      "image_url": "test_image_url1",
+      "store_id": 1,
+      "bedrooms_count": 1,
+      "bathrooms_count": 1
+    },
+    {
+      "uuid": "f53fecaf-c84a-4ac0-bfed-d6c945d91460",
+      "name": "test_item2",
+      "description": "test_description2",
+      "price": 299,
+      "image_url": "test_image_url2",
+      "store_id": 2,
+      "bedrooms_count": 4,
+      "bathrooms_count": 2
+    }
   ]
 }
