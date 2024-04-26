@@ -67,19 +67,21 @@ def create_item(
         log(log.ERROR, "User [%s] has no store", current_user.email)
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User has no store")
 
-    new_item: m.Item = m.Item(
-        **item_rieltor.item.model_dump(),
-        store_id=store.id,
-    )
-
-    db.add(new_item)
-
     if item_rieltor.rieltor:
         new_member: m.Member = m.Member(
             **item_rieltor.rieltor.model_dump(),
             store_id=store.id,
         )
         db.add(new_member)
+        db.flush()
+
+    new_item: m.Item = m.Item(
+        **item_rieltor.item.model_dump(),
+        store_id=store.id,
+        realtor_id=new_member.id,
+    )
+
+    db.add(new_item)
     db.commit()
 
     log(log.INFO, "Created item [%s] for store [%s]", new_item.name, new_item.store_id)

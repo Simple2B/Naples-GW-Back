@@ -40,11 +40,9 @@ def create_user_with_store():
                 password=test_user["password"],
             )
             session.add(user)
-            session.commit()
             log(log.INFO, "User [%s] created", test_user["email"])
             session.flush()
 
-    with db.begin() as session:
         test_store: m.Store = test_data["test_stores"][0]
         store = session.query(m.Store).filter(m.Store.uuid == test_store["uuid"]).first()
         if not store:
@@ -62,11 +60,9 @@ def create_user_with_store():
                 user_id=test_store["user_id"],
             )
             session.add(store)
-            session.commit()
             log(log.INFO, "Store [%s] created", test_store["name"])
             session.flush()
 
-    with db.begin() as session:
         test_members: list[m.Member] = test_data["test_members"]
         for member in test_members:
             member_db: m.Member = session.query(m.Member).filter(m.Member.uuid == member["uuid"]).first()
@@ -82,11 +78,9 @@ def create_user_with_store():
                     store_id=member["store_id"],
                 )
                 session.add(new_member)
-                session.commit()
                 log(log.INFO, "Member [%s] created", member["name"])
                 session.flush()
 
-    with db.begin() as session:
         test_items: list[m.Item] = test_data["test_items"]
         for test_item in test_items:
             item_db = session.query(m.Item).filter(m.Item.uuid == test_item["uuid"]).first()
