@@ -110,7 +110,7 @@ def client(db) -> Generator[TestClient, None, None]:
 @pytest.fixture
 def test_data() -> Generator[TestData, None, None]:
     """Returns a TestData object"""
-    with open("tests/test_data.json", "r") as f:
+    with open("data/test_data.json", "r") as f:
         yield TestData.model_validate_json(f.read())
 
 
