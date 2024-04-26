@@ -48,16 +48,31 @@ def get_items(
 
 
 @item_router.post("/", status_code=status.HTTP_201_CREATED, response_model=s.ItemOut)
-def create_stote(
-    item: s.Item,
+def create_item(
+    item_rieltor: s.ItemRieltorIn,
     db: Session = Depends(get_db),
     current_user: m.User = Depends(get_current_user),
 ):
+    """Create a new item"""
+    store: m.Store | None = db.scalar(sa.select(m.Store).where(m.Store.user_id == current_user.id))
+
+    if not store:
+        log(log.ERROR, "User [%s] has no store", current_user.email)
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User has no store")
+
     new_item: m.Item = m.Item(
-        **item.model_dump(),
-        user_id=current_user.id,
+        **item_rieltor.item.model_dump(),
+        store_id=store.id,
     )
+
     db.add(new_item)
+
+    if item_rieltor.rieltor:
+        new_member: m.Member = m.Member(
+            **item_rieltor.rieltor.model_dump(),
+            store_id=store.id,
+        )
+        db.add(new_member)
     db.commit()
-    log(log.INFO, "Created item [%s] for user [%s]", new_item.name, new_item.user_id)
+    log(log.INFO, "Created item [%s] for store [%s]", new_item.name, new_item.store_id)
     return new_item
