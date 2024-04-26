@@ -1,6 +1,7 @@
-from typing import Generator
-
 import pytest
+from typing import Generator
+from pathlib import Path
+
 from dotenv import load_dotenv
 
 load_dotenv("tests/test.env")
@@ -11,24 +12,49 @@ from sqlalchemy import orm
 
 from naples.main import api
 from naples import models as m
-from naples import schemas as s
+
 
 from .test_data import TestData
+
+MODULE_PATH = Path(__file__).parent
+TEST_CSV_FILE = MODULE_PATH / ".." / "data" / "test_uscities.csv"
 
 
 @pytest.fixture
 def db(test_data: TestData) -> Generator[orm.Session, None, None]:
     from naples.database import db, get_db
+    from services.export_usa_locations import export_usa_locations_from_csv_file
 
     with db.Session() as session:
         db.Model.metadata.drop_all(bind=session.bind)
         db.Model.metadata.create_all(bind=session.bind)
         for test_user in test_data.test_users:
             user = m.User(
+                id=test_user.id,
                 email=test_user.email,
                 password=test_user.password,
             )
             session.add(user)
+
+        for test_store in test_data.test_stores:
+            store = m.Store(
+                uuid=test_store.uuid,
+                name=test_store.name,
+                header=test_store.header,
+                sub_header=test_store.sub_header,
+                url=test_store.url,
+                logo_url=test_store.logo_url,
+                about_us=test_store.about_us,
+                email=test_store.email,
+                instagram_url=test_store.instagram_url,
+                messenger_url=test_store.messenger_url,
+                user_id=test_store.user_id,
+            )
+            session.add(store)
+
+        states = export_usa_locations_from_csv_file(session, TEST_CSV_FILE)
+
+        states
 
         session.commit()
 
@@ -39,6 +65,11 @@ def db(test_data: TestData) -> Generator[orm.Session, None, None]:
         yield session
         # clean up
         db.Model.metadata.drop_all(bind=session.bind)
+
+
+@pytest.fixture
+def full_db(db: orm.Session) -> Generator[orm.Session, None, None]:
+    yield db
 
 
 @pytest.fixture

@@ -12,6 +12,26 @@
         "5002"
       ],
       "justMyCode": true
+    },
+    {
+      "name": "Test API",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "pytest",
+      "args": [
+        "tests"
+      ],
+      "justMyCode": false
+    },
+    {
+      "name": "Fill db with locations",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "invoke",
+      "args": [
+        "fill-db-locations"
+      ],
+      "justMyCode": true
     }
   ]
 }
