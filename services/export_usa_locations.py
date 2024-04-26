@@ -49,11 +49,6 @@ def get_data_from_csv_file(file_path: Path):
         # ['city', 'city_ascii', 'state_id', 'state_name', 'county_name']
 
         CITY_NAME_INDEX = header.index("city")
-
-        # TODO: check if we need this field (it seams this field the same as city)
-        # ASCII (American Standard Code for Information Interchange)
-        # CITY_ASCII_INDEX = header.index("city_ascii")
-
         ABBREVIATED_NAME_INDEX = header.index("state_id")
         STATE_NAME_INDEX = header.index("state_name")
         COUNTY_NAME_INDEX = header.index("county_name")
