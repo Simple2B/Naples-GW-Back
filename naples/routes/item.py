@@ -26,16 +26,17 @@ item_router = APIRouter(prefix="/items", tags=["Items"])
 )
 def get_item(
     item_uuid: str,
-    store_url: str | None = None,
     db: Session = Depends(get_db),
     current_store: m.Store = Depends(get_current_store),
 ):
     """Get item by UUID"""
 
-    item: m.Item | None = db.scalar(sa.select(m.Item).where(m.Item.uuid == item_uuid))
+    item: m.Item | None = db.scalar(
+        sa.select(m.Item).where(m.Item.uuid == item_uuid, m.Item.store_id == current_store.id)
+    )
 
     if not item:
-        log(log.ERROR, "Item [%s] not found", item_uuid)
+        log(log.ERROR, "Item [%s] not found for store [%s]", item_uuid, current_store.url)
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
 
     return item
@@ -57,7 +58,6 @@ def get_items(
     type: str | None = None,
     price_max: int | None = None,
     price_min: int | None = None,
-    store_url: str | None = None,
     db: Session = Depends(get_db),
     current_store: m.Store = Depends(get_current_store),
 ):
