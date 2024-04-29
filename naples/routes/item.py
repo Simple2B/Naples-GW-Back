@@ -9,7 +9,7 @@ from naples.logger import log
 import sqlalchemy as sa
 from sqlalchemy.orm import Session
 
-from naples.dependency import get_current_user
+from naples.dependency import get_current_user, get_current_store
 from naples.database import get_db
 
 
@@ -26,15 +26,18 @@ item_router = APIRouter(prefix="/items", tags=["Items"])
 )
 def get_item(
     item_uuid: str,
+    store_url: str | None = None,
     db: Session = Depends(get_db),
-    current_user: m.User = Depends(get_current_user),
+    current_store: m.Store = Depends(get_current_store),
 ):
     """Get item by UUID"""
 
     item: m.Item | None = db.scalar(sa.select(m.Item).where(m.Item.uuid == item_uuid))
+
     if not item:
         log(log.ERROR, "Item [%s] not found", item_uuid)
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
+
     return item
 
 
@@ -44,6 +47,8 @@ def get_item(
     response_model=s.Items,
     responses={
         404: {"description": "Store not found"},
+        403: {"description": "Invalid URL"},
+        400: {"description": "Store URL is not provided"},
     },
 )
 def get_items(
@@ -52,21 +57,16 @@ def get_items(
     type: str | None = None,
     price_max: int | None = None,
     price_min: int | None = None,
+    store_url: str | None = None,
     db: Session = Depends(get_db),
-    current_user: m.User = Depends(get_current_user),
+    current_store: m.Store = Depends(get_current_store),
 ):
     """Get items by filters"""
-
-    store: m.Store | None = db.scalar(sa.select(m.Store).where(m.Store.user_id == current_user.id))
-
-    if not store:
-        log(log.ERROR, "User [%s] has no store", current_user.email)
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User has no store")
 
     stmt = sa.select(m.Item).where(
         sa.and_(
             m.Item.is_deleted.is_(False),
-            m.Item.store_id == store.id,
+            m.Item.store_id == current_store.id,
         )
     )
 

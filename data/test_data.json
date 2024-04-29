@@ -25,7 +25,7 @@
       "name": "test_store1",
       "header": "Beautiful homes made for you",
       "sub_header": "Your journey to finding the perfect property begins here. Explore our listings to find the home that matches your dreams.",
-      "url": "https://southernhospitalityblog.com/wp-content/uploads/2021/11/AHL_Home-for-the-Holidays_Architect-and-Developer-Logan-Design-Group_Greenery-Boxwoods-Gardens-Gifts_PC-David-ChristensenSH.jpg",
+      "url": "store1.namples.com",
       "logo_url": "https://i.pinimg.com/564x/db/ce/52/dbce52eec4f4a4efc6fd451016e96a7d.jpg",
       "about_us": "Email, call, or complete the form to discover more about the properties",
       "email": "store1@gmail.com",
@@ -39,7 +39,7 @@
       "name": "test_store2",
       "header": "Beautiful homes made for you",
       "sub_header": "Your journey to finding the perfect property begins here. Explore our listings to find the home that matches your dreams.",
-      "url": "https://cdn.onekindesign.com/wp-content/uploads/2019/01/Rustic-Mountain-Home-Berlin-Architects-01-1-Kindesign.jpg",
+      "url": "store1.namples.ua",
       "logo_url": "https://i.pinimg.com/564x/c9/16/88/c916883b3cc12c5f73eaafb5eedb8d54.jpg",
       "about_us": "test_about_us2",
       "email": "store2@gmail.com",
@@ -159,6 +159,22 @@
       "original_name": "test_file5",
       "url": "https://i.pinimg.com/564x/b7/3b/d5/b73bd54de8d8faf40fdafe221f7ce8db.jpg",
       "owner_type": "item",
+      "owner_id": 2
+    },
+    {
+      "uuid": "62e617ce4a6746aaa64158b2164f6adf",
+      "name": "test_file6",
+      "original_name": "test_file6",
+      "url": "https://southernhospitalityblog.com/wp-content/uploads/2021/11/AHL_Home-for-the-Holidays_Architect-and-Developer-Logan-Design-Group_Greenery-Boxwoods-Gardens-Gifts_PC-David-ChristensenSH.jpg",
+      "owner_type": "store",
+      "owner_id": 1
+    },
+    {
+      "uuid": "b384fca22d2f41b18c840aeedd05e927",
+      "name": "test_file7",
+      "original_name": "test_file7",
+      "url": "https://cdn.onekindesign.com/wp-content/uploads/2019/01/Rustic-Mountain-Home-Berlin-Architects-01-1-Kindesign.jpg",
+      "owner_type": "store",
       "owner_id": 2
     }
   ]
