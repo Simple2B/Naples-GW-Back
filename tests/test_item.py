@@ -66,7 +66,7 @@ def test_get_items(client: TestClient, full_db: Session, headers: dict[str, str]
     assert store
 
     store_url: str = store.url
-    response = client.get(f"/api/items?store_url={store_url}", headers=headers)
+    response = client.get(f"/api/items?store_url={store_url}&limit={4}", headers=headers)
     assert response.status_code == 200
 
     items: Sequence[s.ItemOut] = s.Items.model_validate(response.json()).items

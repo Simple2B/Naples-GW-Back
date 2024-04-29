@@ -1,5 +1,6 @@
 from typing import Sequence, cast
 from fastapi import Depends, APIRouter, status, HTTPException
+from fastapi_pagination import Page, paginate, LimitOffsetPage
 
 
 import naples.models as m
@@ -45,7 +46,7 @@ def get_item(
 @item_router.get(
     "/",
     status_code=status.HTTP_200_OK,
-    response_model=s.Items,
+    response_model=LimitOffsetPage[s.ItemOut],
     responses={
         404: {"description": "Store not found"},
         403: {"description": "Invalid URL"},
@@ -58,10 +59,12 @@ def get_items(
     type: str | None = None,
     price_max: int | None = None,
     price_min: int | None = None,
+    limit: int = 4,
+    offset: int = 0,
     db: Session = Depends(get_db),
     current_store: m.Store = Depends(get_current_store),
 ):
-    """Get items by filters"""
+    """Get items by filters and pagination"""
 
     stmt = sa.select(m.Item).where(
         sa.and_(
@@ -84,9 +87,18 @@ def get_items(
     if price_min and price_max:
         stmt = stmt.where(sa.and_(m.Item.price >= price_min, m.Item.price <= price_max))
 
-    items: Sequence[m.Item] = db.scalars(stmt).all()
+    db_items: Sequence[m.Item] = db.scalars(stmt).all()
+    items: Sequence[s.ItemOut] = [cast(s.ItemOut, item) for item in db_items]
 
-    return s.Items(items=[cast(s.ItemOut, item) for item in items])
+    size: int = 4
+
+    if not items:
+        return paginate([])
+
+    # pages: int = math.ceil(len(items) / 4)
+    # total: int = len(items)
+    # TODO: add limit and offset
+    return paginate(items)
 
 
 @item_router.get(
