@@ -1,5 +1,6 @@
-from typing import Sequence, cast
-from fastapi import Depends, APIRouter, status, HTTPException
+from typing import Sequence, cast, Annotated, Union
+from fastapi import Depends, APIRouter, status, HTTPException, Query
+
 
 import naples.models as m
 import naples.schemas as s
@@ -37,7 +38,7 @@ def get_item(
     return item
 
 
-@item_router.post(
+@item_router.get(
     "/",
     status_code=status.HTTP_200_OK,
     response_model=s.Items,
@@ -46,10 +47,16 @@ def get_item(
     },
 )
 def get_items(
-    data: s.ItemsFilterDataIn,
+    city_uuid: str | None = None,
+    category: str | None = None,
+    type: str | None = None,
+    price_max: int | None = None,
+    price_min: int | None = None,
     db: Session = Depends(get_db),
     current_user: m.User = Depends(get_current_user),
 ):
+    """Get items by filters"""
+
     store: m.Store | None = db.scalar(sa.select(m.Store).where(m.Store.user_id == current_user.id))
 
     if not store:
@@ -63,19 +70,19 @@ def get_items(
         )
     )
 
-    city: m.City | None = db.scalar(sa.select(m.City).where(m.City.uuid == data.city_uuid))
+    city: m.City | None = db.scalar(sa.select(m.City).where(m.City.uuid == city_uuid))
 
     if city:
         stmt = stmt.where(m.Item.city_id == city.id)
 
-    if data.category:
-        stmt = stmt.where(m.Item.category == data.category)
+    if category:
+        stmt = stmt.where(m.Item.category == category)
 
-    if data.type:
-        stmt = stmt.where(m.Item.type == data.type)
+    if type:
+        stmt = stmt.where(m.Item.type == type)
 
-    if data.price_min and data.price_max:
-        stmt = stmt.where(sa.and_(m.Item.price >= data.price_min, m.Item.price <= data.price_max))
+    if price_min and price_max:
+        stmt = stmt.where(sa.and_(m.Item.price >= price_min, m.Item.price <= price_max))
 
     items: Sequence[m.Item] = db.scalars(stmt).all()
 
@@ -83,7 +90,7 @@ def get_items(
 
 
 @item_router.get(
-    "/filters",
+    "/filters/data",
     status_code=status.HTTP_200_OK,
     response_model=s.ItemsFilterDataOut,
 )
@@ -132,9 +139,9 @@ def create_item(
         log(log.ERROR, "User [%s] has no store", current_user.email)
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User has no store")
 
-    if data.rieltor:
+    if data.realtor:
         new_member: m.Member = m.Member(
-            **data.rieltor.model_dump(),
+            **data.realtor.model_dump(),
             store_id=store.id,
         )
         db.add(new_member)
