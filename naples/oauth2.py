@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 from fastapi import status
 from jose import JWTError, jwt
 from fastapi import HTTPException
@@ -22,7 +22,7 @@ INVALID_CREDENTIALS_EXCEPTION = HTTPException(
 def create_access_token(user_id: int) -> str:
     to_encode = s.TokenData(
         user_id=user_id,
-        exp=datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES),
+        exp=datetime.now(UTC) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES),
     ).model_dump()
 
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY)

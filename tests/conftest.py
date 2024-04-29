@@ -1,3 +1,4 @@
+from hmac import new
 import pytest
 from typing import Generator
 from pathlib import Path
@@ -16,6 +17,7 @@ from naples import models as m
 
 from .test_data import TestData
 
+
 MODULE_PATH = Path(__file__).parent
 TEST_CSV_FILE = MODULE_PATH / ".." / "data" / "test_uscities.csv"
 
@@ -24,37 +26,27 @@ TEST_CSV_FILE = MODULE_PATH / ".." / "data" / "test_uscities.csv"
 def db(test_data: TestData) -> Generator[orm.Session, None, None]:
     from naples.database import db, get_db
     from services.export_usa_locations import export_usa_locations_from_csv_file
+    from services.create_test_data import create_item, create_member, create_store, create_user
 
     with db.Session() as session:
         db.Model.metadata.drop_all(bind=session.bind)
         db.Model.metadata.create_all(bind=session.bind)
         for test_user in test_data.test_users:
-            user = m.User(
-                id=test_user.id,
-                email=test_user.email,
-                password=test_user.password,
-            )
+            user = create_user(test_user)
             session.add(user)
 
         for test_store in test_data.test_stores:
-            store = m.Store(
-                uuid=test_store.uuid,
-                name=test_store.name,
-                header=test_store.header,
-                sub_header=test_store.sub_header,
-                url=test_store.url,
-                logo_url=test_store.logo_url,
-                about_us=test_store.about_us,
-                email=test_store.email,
-                instagram_url=test_store.instagram_url,
-                messenger_url=test_store.messenger_url,
-                user_id=test_store.user_id,
-            )
+            store = create_store(test_store)
             session.add(store)
 
-        states = export_usa_locations_from_csv_file(session, TEST_CSV_FILE)
+        export_usa_locations_from_csv_file(session, TEST_CSV_FILE)
 
-        states
+        for test_item in test_data.test_items:
+            item = create_item(test_item, city_id=test_item.city_id)
+            session.add(item)
+        for member in test_data.test_members:
+            new_member = create_member(member)
+            session.add(new_member)
 
         session.commit()
 
@@ -82,7 +74,7 @@ def client(db) -> Generator[TestClient, None, None]:
 @pytest.fixture
 def test_data() -> Generator[TestData, None, None]:
     """Returns a TestData object"""
-    with open("tests/test_data.json", "r") as f:
+    with open("data/test_data.json", "r") as f:
         yield TestData.model_validate_json(f.read())
 
 

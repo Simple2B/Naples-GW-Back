@@ -24,12 +24,22 @@
       "justMyCode": false
     },
     {
-      "name": "Fill db with locations",
+      "name": "Fill db with locations (all USA states)",
       "type": "debugpy",
       "request": "launch",
       "module": "invoke",
       "args": [
         "fill-db-locations"
+      ],
+      "justMyCode": true
+    },
+    {
+      "name": "Fill db staging data",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "invoke",
+      "args": [
+        "fill-db-staging-data"
       ],
       "justMyCode": true
     }

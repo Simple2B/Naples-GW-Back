@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from .store import Store
+    from .item import Item
 
 
 class Member(db.Model, ModelMixin):
@@ -25,7 +26,7 @@ class Member(db.Model, ModelMixin):
         nullable=False,
     )
 
-    phone: orm.Mapped[str] = orm.mapped_column(sa.String(128), default="")
+    phone: orm.Mapped[str] = orm.mapped_column(sa.String(16), default="")
 
     store_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey("stores.id"))
 
@@ -36,6 +37,8 @@ class Member(db.Model, ModelMixin):
     messenger_url: orm.Mapped[str] = orm.mapped_column(sa.String(256), default="")
 
     avatar_url: orm.Mapped[str] = orm.mapped_column(sa.String(512), default="")
+
+    items: orm.Mapped[list["Item"]] = orm.relationship("Item", viewonly=True)
 
     def __repr__(self):
         return f"<{self.uuid}:{self.name} >"

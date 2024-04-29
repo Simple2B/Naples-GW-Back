@@ -28,7 +28,7 @@ class Store(db.Model, ModelMixin):
 
     sub_header: orm.Mapped[str] = orm.mapped_column(sa.String(256), default="")
 
-    url: orm.Mapped[str] = orm.mapped_column(sa.String(256), default="")
+    url: orm.Mapped[str] = orm.mapped_column(sa.String(256), unique=True, default="")
 
     logo_url: orm.Mapped[str] = orm.mapped_column(sa.String(256), default="")
 
@@ -39,6 +39,7 @@ class Store(db.Model, ModelMixin):
         unique=True,
         nullable=False,
     )
+    phone: orm.Mapped[str] = orm.mapped_column(sa.String(16), default="")
 
     instagram_url: orm.Mapped[str] = orm.mapped_column(sa.String(256), default="")
 

@@ -51,12 +51,12 @@ def get_stors(
 
 @store_router.post("/", status_code=status.HTTP_201_CREATED, response_model=s.StoreOut)
 def create_stote(
-    job: s.StoreIn,
+    store: s.StoreIn,
     db: Session = Depends(get_db),
     current_user: m.User = Depends(get_current_user),
 ):
     new_store: m.Store = m.Store(
-        **job.model_dump(),
+        **store.model_dump(),
         user_id=current_user.id,
     )
     db.add(new_store)

@@ -9,6 +9,7 @@ class Store(BaseModel):
     logo_url: str = ""
     about_us: str = ""
     email: str
+    phone: str = ""
     instagram_url: str = ""
     messenger_url: str = ""
     user_id: int

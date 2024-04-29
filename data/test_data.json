@@ -1,0 +1,165 @@
+{
+  "test_users": [
+    {
+      "id": 1,
+      "uuid": "6915ad0f-392e-444d-96b1-f04dba7e751b",
+      "email": "testemail1@gmail.com",
+      "password": "1234"
+    },
+    {
+      "id": 2,
+      "uuid": "f53fecaf-c84a-4ac0-bfed-d6c945d91460",
+      "email": "testemail2@gmail.com",
+      "password": "1234"
+    },
+    {
+      "id": 3,
+      "uuid": "3037b1d3-a5a9-4a06-97e4-a77eca1825c7",
+      "email": "testemail3@gmail.com",
+      "password": "1234"
+    }
+  ],
+  "test_stores": [
+    {
+      "uuid": "6915ad0f-392e-444d-96b1-f04dba7e751b",
+      "name": "test_store1",
+      "header": "Beautiful homes made for you",
+      "sub_header": "Your journey to finding the perfect property begins here. Explore our listings to find the home that matches your dreams.",
+      "url": "https://southernhospitalityblog.com/wp-content/uploads/2021/11/AHL_Home-for-the-Holidays_Architect-and-Developer-Logan-Design-Group_Greenery-Boxwoods-Gardens-Gifts_PC-David-ChristensenSH.jpg",
+      "logo_url": "https://i.pinimg.com/564x/db/ce/52/dbce52eec4f4a4efc6fd451016e96a7d.jpg",
+      "about_us": "Email, call, or complete the form to discover more about the properties",
+      "email": "store1@gmail.com",
+      "phone": "321221231",
+      "instagram_url": "test_instagram_url1",
+      "messenger_url": "test_messenger_url1",
+      "user_id": 1
+    },
+    {
+      "uuid": "f53fecaf-c84a-4ac0-bfed-d6c945d91460",
+      "name": "test_store2",
+      "header": "Beautiful homes made for you",
+      "sub_header": "Your journey to finding the perfect property begins here. Explore our listings to find the home that matches your dreams.",
+      "url": "https://cdn.onekindesign.com/wp-content/uploads/2019/01/Rustic-Mountain-Home-Berlin-Architects-01-1-Kindesign.jpg",
+      "logo_url": "https://i.pinimg.com/564x/c9/16/88/c916883b3cc12c5f73eaafb5eedb8d54.jpg",
+      "about_us": "test_about_us2",
+      "email": "store2@gmail.com",
+      "phone": "321221231",
+      "instagram_url": "test_instagram_url2",
+      "messenger_url": "test_messenger_url2",
+      "user_id": 2
+    }
+  ],
+  "test_items": [
+    {
+      "uuid": "6915ad0f-392e-444d-96b1-f04dba7e751b",
+      "name": "test_item1",
+      "description": "test_description1",
+      "price": 199,
+      "store_id": 1,
+      "bedrooms_count": 1,
+      "bathrooms_count": 1,
+      "address": "test_address1",
+      "created_at": "2024-05-03T00:00:00Z",
+      "size": 1000,
+      "stage": "active",
+      "category": "rent",
+      "type": "house",
+      "latitude": "40.7128",
+      "longitude": "74.0060",
+      "realtor_id": 1,
+      "city_id": 1
+    },
+    {
+      "uuid": "f53fecaf-c84a-4ac0-bfed-d6c945d91460",
+      "name": "test_item2",
+      "description": "test_description2",
+      "price": 299,
+      "store_id": 1,
+      "bedrooms_count": 4,
+      "bathrooms_count": 2,
+      "created_at": "2024-04-01T00:00:00Z",
+      "address": "test_address2",
+      "size": 2000,
+      "stage": "active",
+      "category": "rent",
+      "type": "house",
+      "latitude": "40.7128",
+      "longitude": "74.0060",
+      "realtor_id": 1,
+      "city_id": 2
+    },
+    {
+      "uuid": "f55fecaf-c84a-4ac0-bfed-d6c100d91465",
+      "name": "test_item3",
+      "description": "test_description3",
+      "price": 299,
+      "store_id": 1,
+      "bedrooms_count": 4,
+      "bathrooms_count": 2,
+      "created_at": "2024-04-01T00:00:00Z",
+      "address": "test_address3",
+      "size": 2000,
+      "stage": "active",
+      "category": "rent",
+      "type": "house",
+      "latitude": "40.7128",
+      "longitude": "74.0060",
+      "realtor_id": 1,
+      "city_id": 3
+    }
+  ],
+  "test_members": [
+    {
+      "uuid": "6915ad0f-392e-444d-96b1-f04dba7e751b",
+      "name": "rieltor_1",
+      "email": "rieltor_1@email.com",
+      "phone": "123456789",
+      "store_id": 1,
+      "instagram_url": "test_instagram_url1",
+      "messenger_url": "test_messenger_url1",
+      "avatar_url": "test_avatar_url1"
+    }
+  ],
+  "test_files": [
+    {
+      "uuid": "13e5ba4b010a4bd2af5b09b349cf41ab",
+      "name": "test_file1",
+      "original_name": "test_file1",
+      "url": "https://i.pinimg.com/564x/30/fd/fd/30fdfd121bb2074db9a4a458779631ef.jpg",
+      "owner_type": "item",
+      "owner_id": 1
+    },
+    {
+      "uuid": "96d02f3fa55e48b785e20d50b1642d67",
+      "name": "test_file2",
+      "original_name": "test_file2",
+      "url": "https://i.pinimg.com/564x/f6/52/49/f652490b7271082e2e0af11168ba1e45.jpg",
+      "owner_type": "item",
+      "owner_id": 2
+    },
+    {
+      "uuid": "e6d4843c66664c7cb54a54f512a41a22",
+      "name": "test_file3",
+      "original_name": "test_file3",
+      "url": "https://i.pinimg.com/564x/b8/4f/50/b84f50ad2d812f4a3634e520740d1370.jpg",
+      "owner_type": "item",
+      "owner_id": 3
+    },
+    {
+      "uuid": "f1c50205c4794147b3163cadb034e5b9",
+      "name": "test_file4",
+      "original_name": "test_file4",
+      "url": "https://i.pinimg.com/564x/b7/3b/d5/b73bd54de8d8faf40fdafe221f7ce8db.jpg",
+      "owner_type": "item",
+      "owner_id": 1
+    },
+    {
+      "uuid": "c64f9264fc8946fbb8dccba48feafaa2",
+      "name": "test_file5",
+      "original_name": "test_file5",
+      "url": "https://i.pinimg.com/564x/b7/3b/d5/b73bd54de8d8faf40fdafe221f7ce8db.jpg",
+      "owner_type": "item",
+      "owner_id": 2
+    }
+  ]
+}
