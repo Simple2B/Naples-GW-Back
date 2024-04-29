@@ -12,8 +12,8 @@ class ItemTypes(enum.Enum):
 
 
 class ItemCategories(enum.Enum):
-    BUY = "buy"
-    RENT = "rent"
+    BUY = "BUY"
+    RENT = "RENT"
 
 
 class ItemStage(enum.Enum):
@@ -69,7 +69,7 @@ class ItemIn(BaseModel):
 
 class ItemRieltorIn(BaseModel):
     item: ItemIn
-    rieltor: MemberIn | None = None
+    realtor: MemberIn | None = None
 
     model_config = ConfigDict(
         from_attributes=True,

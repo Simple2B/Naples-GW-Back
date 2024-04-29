@@ -46,18 +46,18 @@ def test_create_item(client: TestClient, full_db: Session, headers: dict[str, st
         type=s.ItemTypes.HOUSE.value,
         city_uuid=city.uuid,
     )
-    data = s.ItemRieltorIn(item=test_item, rieltor=test_rieltor)
+    data = s.ItemRieltorIn(item=test_item, realtor=test_rieltor)
     response = client.post("/api/items/", headers=headers, json=data.model_dump())
+    assert response.status_code == 201
+
+
+def test_get_filters_data(client: TestClient, headers: dict[str, str], test_data: TestData):
+    response = client.get("/api/items/filters/data", headers=headers)
     assert response.status_code == 200
 
 
-# def test_get_filters_data(client: TestClient, headers: dict[str, str], test_data: TestData):
-#     response = client.get("/api/items/filters", headers=headers)
-#     assert response.status_code == 200
-
-
 def test_get_items(client: TestClient, full_db: Session, headers: dict[str, str], test_data: TestData):
-    response = client.post("/api/items/", headers=headers, json={})
+    response = client.get("/api/items/", headers=headers)
     assert response.status_code == 200
     items: Sequence[s.ItemOut] = s.Items.model_validate(response.json()).items
     assert items
@@ -68,17 +68,13 @@ def test_get_items(client: TestClient, full_db: Session, headers: dict[str, str]
 
     city_uuid = city.uuid
     category = s.ItemCategories.BUY.value
+
+    response = client.get(f"/api/items?city_uuid={city_uuid}&category={category}", headers=headers)
+    assert response.status_code == 200
+
     type = s.ItemTypes.HOUSE.value
     price_min = 0
     price_max = 10000
 
-    data: s.ItemsFilterDataIn = s.ItemsFilterDataIn(
-        city_uuid=city_uuid,
-        category=category,
-        type=type,
-        price_min=price_min,
-        price_max=price_max,
-    )
-
-    response = client.post("/api/items/", headers=headers, json=data.model_dump())
+    response = client.get(f"/api/items?type={type}&price_min={price_min}&price_max={price_max}", headers=headers)
     assert response.status_code == 200

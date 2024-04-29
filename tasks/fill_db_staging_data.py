@@ -23,9 +23,9 @@ def fill_db_newyork_locations(with_print: bool = True):
         export_usa_locations_from_csv_file(session, CSV_FILE, is_new_york=True)
 
 
-# create user, store, member (rieltor in item) and items for staging
+# create user, store, member (realtor in item) and items for staging
 def create_user_with_store():
-    """Create user, store, member (rieltor in item) and items for staging"""
+    """Create user, store, member (realtor in item) and items for staging"""
 
     from naples import models as m
     from naples.database import db
