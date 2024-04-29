@@ -60,7 +60,7 @@ class Item(db.Model, ModelMixin):
     bedrooms_count: orm.Mapped[int] = orm.mapped_column(default=0)
     bathrooms_count: orm.Mapped[int] = orm.mapped_column(default=0)
 
-    price: orm.Mapped[int] = orm.mapped_column(default=0)
+    price: orm.Mapped[int] = orm.mapped_column()
 
     realtor_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey("members.id"))
 

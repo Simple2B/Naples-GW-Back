@@ -33,6 +33,7 @@ class Item(BaseModel):
     deleted_at: datetime | None = None
     address: str = ""
     size: int = 0
+    price: int
     bedrooms_count: int = 0
     bathrooms_count: int = 0
 
@@ -54,6 +55,7 @@ class ItemIn(BaseModel):
     longitude: float = 0.0
     address: str = ""
     size: int = 0
+    price: int
     bedrooms_count: int = 0
     bathrooms_count: int = 0
     city_uuid: str

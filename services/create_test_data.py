@@ -1,10 +1,8 @@
-import sys
 from naples import models as m
 from naples import schemas as s
 
-sys.path = ["", ".."] + sys.path[1:]
 
-from tests.test_data import TestUser  # noqa: E402
+from tests.test_data import TestUser
 
 
 def create_user(test_user: TestUser) -> m.User:
@@ -56,6 +54,7 @@ def create_item(test_item: s.ItemOut, city_id: int) -> m.Item:
         store_id=test_item.store_id,
         realtor_id=test_item.realtor_id,
         city_id=city_id,
+        price=test_item.price,
     )
     return item
 

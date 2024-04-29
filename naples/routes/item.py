@@ -1,5 +1,5 @@
-from typing import Sequence, cast, Annotated, Union
-from fastapi import Depends, APIRouter, status, HTTPException, Query
+from typing import Sequence, cast
+from fastapi import Depends, APIRouter, status, HTTPException
 
 
 import naples.models as m
@@ -160,6 +160,7 @@ def create_item(
         longitude=data.item.longitude,
         address=data.item.address,
         size=data.item.size,
+        price=data.item.price,
         bedrooms_count=data.item.bedrooms_count,
         bathrooms_count=data.item.bathrooms_count,
         stage=data.item.stage,

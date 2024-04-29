@@ -44,6 +44,7 @@ def test_create_item(client: TestClient, full_db: Session, headers: dict[str, st
         stage=s.ItemStage.DRAFT.value,
         category=s.ItemCategories.BUY.value,
         type=s.ItemTypes.HOUSE.value,
+        price=1000,
         city_uuid=city.uuid,
     )
     data = s.ItemRieltorIn(item=test_item, realtor=test_rieltor)
