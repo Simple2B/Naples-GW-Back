@@ -2,6 +2,12 @@ from pydantic import BaseModel
 from naples import schemas as s
 
 
+class TestItem(s.ItemOut):
+    __test__ = False
+
+    city_id: int
+
+
 class TestUser(BaseModel):
     __test__ = False
 
@@ -15,5 +21,5 @@ class TestData(BaseModel):
 
     test_users: list[TestUser]
     test_stores: list[s.StoreOut]
-    test_items: list[s.ItemOut]
+    test_items: list[TestItem]
     test_members: list[s.MemberOut]

@@ -1,7 +1,10 @@
 from typing import Sequence
 from fastapi.testclient import TestClient
+from sqlalchemy.orm import Session
+from sqlalchemy import select
 
 from naples import schemas as s
+from naples import models as m
 
 from naples.config import config
 
@@ -18,7 +21,9 @@ def test_get_item(client: TestClient, headers: dict[str, str], test_data: TestDa
     assert item.uuid == test_data.test_items[0].uuid
 
 
-def test_create_item(client: TestClient, headers: dict[str, str], test_data: TestData):
+def test_create_item(client: TestClient, full_db: Session, headers: dict[str, str], test_data: TestData):
+    city: m.City | None = full_db.scalar(select(m.City))
+    assert city
     test_rieltor = s.MemberIn(
         name="Test Member",
         email="tets@email.com",
@@ -39,6 +44,7 @@ def test_create_item(client: TestClient, headers: dict[str, str], test_data: Tes
         stage=s.ItemStage.DRAFT.value,
         category=s.ItemCategories.BUY.value,
         type=s.ItemTypes.HOUSE.value,
+        city_uuid=city.uuid,
     )
     test_item_rieltor = s.ItemRieltorIn(item=test_item, rieltor=test_rieltor)
     response = client.post("/api/items/", headers=headers, json=test_item_rieltor.model_dump())

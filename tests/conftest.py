@@ -42,7 +42,7 @@ def db(test_data: TestData) -> Generator[orm.Session, None, None]:
         export_usa_locations_from_csv_file(session, TEST_CSV_FILE)
 
         for test_item in test_data.test_items:
-            item = create_item(test_item)
+            item = create_item(test_item, city_id=test_item.city_id)
             session.add(item)
         for member in test_data.test_members:
             new_member = create_member(member)
