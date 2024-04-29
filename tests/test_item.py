@@ -1,3 +1,4 @@
+from typing import Sequence
 from fastapi.testclient import TestClient
 
 from naples import schemas as s
@@ -42,3 +43,15 @@ def test_create_item(client: TestClient, headers: dict[str, str], test_data: Tes
     test_item_rieltor = s.ItemRieltorIn(item=test_item, rieltor=test_rieltor)
     response = client.post("/api/items/", headers=headers, json=test_item_rieltor.model_dump())
     assert response.status_code == 201
+
+
+def test_get_filters_data(client: TestClient, headers: dict[str, str], test_data: TestData):
+    response = client.get("/api/items/filters", headers=headers)
+    assert response.status_code == 200
+
+
+def test_get_items(client: TestClient, headers: dict[str, str], test_data: TestData):
+    response = client.get("/api/items/", headers=headers)
+    assert response.status_code == 200
+    items: Sequence[s.ItemOut] = s.Items.model_validate(response.json()).items  # type: ignore
+    assert len(items) == len(test_data.test_items)

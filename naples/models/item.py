@@ -12,6 +12,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from .store import Store
     from .member import Member
+    from .city import City
 
 
 class Item(db.Model, ModelMixin):
@@ -37,6 +38,10 @@ class Item(db.Model, ModelMixin):
 
     store: orm.Mapped["Store"] = orm.relationship()
 
+    city_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey("cities.id"))
+
+    city: orm.Mapped["City"] = orm.relationship()
+
     is_deleted: orm.Mapped[bool] = orm.mapped_column(default=False)
 
     created_at: orm.Mapped[datetime] = orm.mapped_column(
@@ -54,6 +59,8 @@ class Item(db.Model, ModelMixin):
     size: orm.Mapped[int] = orm.mapped_column(default=0)
     bedrooms_count: orm.Mapped[int] = orm.mapped_column(default=0)
     bathrooms_count: orm.Mapped[int] = orm.mapped_column(default=0)
+
+    price: orm.Mapped[int] = orm.mapped_column(default=0)
 
     realtor_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey("members.id"))
 

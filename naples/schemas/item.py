@@ -56,6 +56,7 @@ class ItemIn(BaseModel):
     size: int = 0
     bedrooms_count: int = 0
     bathrooms_count: int = 0
+    city_uuid: str
 
     stage: str = ItemStage.DRAFT.value
     category: str = ItemCategories.BUY.value
@@ -89,3 +90,10 @@ class Items(BaseModel):
     model_config = ConfigDict(
         from_attributes=True,
     )
+
+
+class ItemsFilterData(BaseModel):
+    categories: list[ItemCategories]
+    types: list[ItemTypes]
+    price_max: int
+    price_min: int

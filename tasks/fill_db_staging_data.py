@@ -1,4 +1,5 @@
 import sys
+from typing import Sequence
 from invoke import task
 from pathlib import Path
 
@@ -67,11 +68,15 @@ def create_user_with_store():
 
         test_items_data = test_data.test_items
         test_items: list[m.Item] = [m.Item(**item.model_dump()) for item in test_items_data]
+        cities: Sequence[m.City] = session.query(m.City).all()
+        cities_ids = [city.id for city in cities]
         for test_item in test_items:
             item_db = session.query(m.Item).filter(m.Item.uuid == test_item.uuid).first()
             if not item_db:
-                item = create_item(test_item)
-                log(log.INFO, "Item [%s] created", test_item.name)
+                index = test_items.index(test_item)
+                city_id = cities_ids[index % len(cities_ids)]
+                item = create_item(test_item, city_id)
+                log(log.INFO, "Item [%s] created with city [%s]", test_item.name, city_id)
                 session.add(item)
 
     session.commit()

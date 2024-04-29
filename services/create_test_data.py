@@ -13,6 +13,7 @@ def create_user(test_user: TestUser) -> m.User:
         id=test_user.id,
         email=test_user.email,
         password=test_user.password,
+        is_verified=True,
     )
 
     return user
@@ -37,7 +38,7 @@ def create_store(test_store: s.StoreOut) -> m.Store:
     return store
 
 
-def create_item(test_item: s.ItemOut) -> m.Item:
+def create_item(test_item: s.ItemOut, city_id: int) -> m.Item:
     """Create test item"""
     item = m.Item(
         uuid=test_item.uuid,
@@ -54,6 +55,7 @@ def create_item(test_item: s.ItemOut) -> m.Item:
         type=test_item.type,
         store_id=test_item.store_id,
         realtor_id=test_item.realtor_id,
+        city_id=city_id,
     )
     return item
 
