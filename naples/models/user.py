@@ -69,7 +69,10 @@ class User(db.Model, ModelMixin):
         user = session.scalar(query)
         if not user:
             log(log.WARNING, "user:[%s] not found", user_id)
-        elif hash_verify(user.password, password):
+        elif hash_verify(
+            password,
+            user.password,
+        ):
             return user
         return None
 

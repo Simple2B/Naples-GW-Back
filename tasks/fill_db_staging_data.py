@@ -35,16 +35,15 @@ def create_user_with_store():
     test_data = TestData.model_validate_json(file.read())
 
     with db.begin() as session:
-        test_user_data = test_data.test_users[0]
+        # test_user_data = test_data.test_users[0]
 
-        test_user: m.User = m.User(**test_user_data.model_dump())
-
-        user: m.User = session.query(m.User).filter(m.User.email == test_user.email).first()
-        if not user:
-            user = create_user(test_user)
-            session.add(user)
-            log(log.INFO, "User [%s] created", test_user.email)
-            session.flush()
+        for user in test_data.test_users:
+            new_user: m.User = session.query(m.User).filter(m.User.email == user.email).first()
+            if not new_user:
+                new_user = create_user(user)
+                session.add(new_user)
+                log(log.INFO, "User [%s] created", new_user.email)
+                session.flush()
 
         test_store_data = test_data.test_stores[0]
         test_store: m.Store = m.Store(**test_store_data.model_dump())
