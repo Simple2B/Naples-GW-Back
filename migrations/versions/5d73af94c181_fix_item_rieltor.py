@@ -1,4 +1,4 @@
-"""fix item - rieltor
+"""fix item - realtor
 
 Revision ID: 5d73af94c181
 Revises: cb3a2d0dbd8b
