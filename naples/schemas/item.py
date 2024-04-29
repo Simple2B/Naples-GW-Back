@@ -92,7 +92,15 @@ class Items(BaseModel):
     )
 
 
-class ItemsFilterData(BaseModel):
+class ItemsFilterDataIn(BaseModel):
+    city_uuid: str | None = None
+    category: str | None = None
+    type: str | None = None
+    price_max: int | None = None
+    price_min: int | None = None
+
+
+class ItemsFilterDataOut(BaseModel):
     categories: list[ItemCategories]
     types: list[ItemTypes]
     price_max: int
