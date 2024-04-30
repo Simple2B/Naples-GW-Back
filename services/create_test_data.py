@@ -1,8 +1,10 @@
+import sys
 from naples import models as m
 from naples import schemas as s
 
+sys.path = ["", ".."] + sys.path[1:]
 
-from tests.test_data import TestUser
+from tests.test_data import TestUser  # noqa: E402
 
 
 def create_user(test_user: TestUser) -> m.User:
