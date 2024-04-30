@@ -8,12 +8,13 @@ from naples import models as m
 
 from naples.config import config
 
-from .test_data import TestData
+from naples import schemas as s
+
 
 CFG = config("testing")
 
 
-def test_get_item(client: TestClient, full_db: Session, headers: dict[str, str], test_data: TestData):
+def test_get_item(client: TestClient, full_db: Session, headers: dict[str, str], test_data: s.TestData):
     store: m.Store | None = full_db.scalar(select(m.Store))
     assert store
 
@@ -25,7 +26,7 @@ def test_get_item(client: TestClient, full_db: Session, headers: dict[str, str],
     assert item.uuid == test_data.test_items[0].uuid
 
 
-def test_create_item(client: TestClient, full_db: Session, headers: dict[str, str], test_data: TestData):
+def test_create_item(client: TestClient, full_db: Session, headers: dict[str, str], test_data: s.TestData):
     city: m.City | None = full_db.scalar(select(m.City))
     assert city
     test_rieltor = s.MemberIn(
@@ -56,12 +57,12 @@ def test_create_item(client: TestClient, full_db: Session, headers: dict[str, st
     assert response.status_code == 201
 
 
-def test_get_filters_data(client: TestClient, headers: dict[str, str], test_data: TestData):
+def test_get_filters_data(client: TestClient, headers: dict[str, str], test_data: s.TestData):
     response = client.get("/api/items/filters/data", headers=headers)
     assert response.status_code == 200
 
 
-def test_get_items(client: TestClient, full_db: Session, headers: dict[str, str], test_data: TestData):
+def test_get_items(client: TestClient, full_db: Session, headers: dict[str, str], test_data: s.TestData):
     store: m.Store | None = full_db.scalar(select(m.Store))
     assert store
 

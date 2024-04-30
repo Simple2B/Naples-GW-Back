@@ -2,10 +2,7 @@ from naples import models as m
 from naples import schemas as s
 
 
-from tests.test_data import TestUser
-
-
-def create_user(test_user: TestUser) -> m.User:
+def create_user(test_user: s.TestUser) -> m.User:
     """Create test user"""
     user = m.User(
         id=test_user.id,

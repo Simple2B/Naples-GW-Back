@@ -6,8 +6,8 @@ from pathlib import Path
 
 sys.path = ["", ".."] + sys.path[1:]
 
-from tests.test_data import TestData  # noqa: E402
 from naples.models import db  # noqa: E402
+from naples import schemas as s  # noqa: E402
 from naples.logger import log  # noqa: E402
 from services.export_usa_locations import export_usa_locations_from_csv_file  # noqa: E402
 
@@ -32,11 +32,9 @@ def create_user_with_store():
     from services.create_test_data import create_item, create_member, create_store, create_user
 
     file = open("data/test_data.json")
-    test_data = TestData.model_validate_json(file.read())
+    test_data = s.TestData.model_validate_json(file.read())
 
     with db.begin() as session:
-        # test_user_data = test_data.test_users[0]
-
         for user in test_data.test_users:
             new_user: m.User = session.query(m.User).filter(m.User.email == user.email).first()
             if not new_user:
