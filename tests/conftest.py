@@ -13,9 +13,7 @@ from sqlalchemy import orm
 
 from naples.main import api
 from naples import models as m
-
-
-from .test_data import TestData
+from naples import schemas as s
 
 
 MODULE_PATH = Path(__file__).parent
@@ -23,7 +21,7 @@ TEST_CSV_FILE = MODULE_PATH / ".." / "data" / "test_uscities.csv"
 
 
 @pytest.fixture
-def db(test_data: TestData) -> Generator[orm.Session, None, None]:
+def db(test_data: s.TestData) -> Generator[orm.Session, None, None]:
     from naples.database import db, get_db
     from services.export_usa_locations import export_usa_locations_from_csv_file
     from services.create_test_data import create_item, create_member, create_store, create_user
@@ -72,16 +70,16 @@ def client(db) -> Generator[TestClient, None, None]:
 
 
 @pytest.fixture
-def test_data() -> Generator[TestData, None, None]:
+def test_data() -> Generator[s.TestData, None, None]:
     """Returns a TestData object"""
     with open("data/test_data.json", "r") as f:
-        yield TestData.model_validate_json(f.read())
+        yield s.TestData.model_validate_json(f.read())
 
 
 @pytest.fixture
 def headers(
     client: TestClient,
-    test_data: TestData,
+    test_data: s.TestData,
 ) -> Generator[dict[str, str], None, None]:
     """Returns an authorized test client for the API"""
     from naples.oauth2 import create_access_token

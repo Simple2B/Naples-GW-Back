@@ -4,19 +4,19 @@
       "id": 1,
       "uuid": "6915ad0f-392e-444d-96b1-f04dba7e751b",
       "email": "testemail1@gmail.com",
-      "password": "1234"
+      "password": "user_1"
     },
     {
       "id": 2,
       "uuid": "f53fecaf-c84a-4ac0-bfed-d6c945d91460",
       "email": "testemail2@gmail.com",
-      "password": "1234"
+      "password": "user_2"
     },
     {
       "id": 3,
       "uuid": "3037b1d3-a5a9-4a06-97e4-a77eca1825c7",
       "email": "testemail3@gmail.com",
-      "password": "1234"
+      "password": "user_3"
     }
   ],
   "test_stores": [
@@ -64,10 +64,10 @@
       "stage": "active",
       "category": "rent",
       "type": "house",
-      "latitude": "40.7128",
-      "longitude": "74.0060",
+      "latitude": "40.8448",
+      "longitude": "73.8648",
       "realtor_id": 1,
-      "city_id": 1
+      "city_id": 4
     },
     {
       "uuid": "f53fecaf-c84a-4ac0-bfed-d6c945d91460",
@@ -83,8 +83,8 @@
       "stage": "active",
       "category": "rent",
       "type": "house",
-      "latitude": "40.7128",
-      "longitude": "74.0060",
+      "latitude": "40.6782",
+      "longitude": "73.9442",
       "realtor_id": 1,
       "city_id": 2
     },
@@ -102,8 +102,46 @@
       "stage": "active",
       "category": "rent",
       "type": "house",
-      "latitude": "40.7128",
-      "longitude": "74.0060",
+      "latitude": "40.7831",
+      "longitude": "73.9712",
+      "realtor_id": 1,
+      "city_id": 3
+    },
+    {
+      "uuid": "ce350447f5564b3b9350b15570734e82",
+      "name": "test_item4",
+      "description": "test_description4",
+      "price": 299,
+      "store_id": 1,
+      "bedrooms_count": 4,
+      "bathrooms_count": 2,
+      "created_at": "2024-04-01T00:00:00Z",
+      "address": "test_address4",
+      "size": 1500,
+      "stage": "active",
+      "category": "rent",
+      "type": "house",
+      "latitude": "40.7282",
+      "longitude": "73.7949",
+      "realtor_id": 1,
+      "city_id": 1
+    },
+    {
+      "uuid": "ce350447f5564b3b9350b15570734e82",
+      "name": "test_item5",
+      "description": "test_description5",
+      "price": 299,
+      "store_id": 1,
+      "bedrooms_count": 4,
+      "bathrooms_count": 2,
+      "created_at": "2024-04-01T00:00:00Z",
+      "address": "test_address5",
+      "size": 1500,
+      "stage": "active",
+      "category": "rent",
+      "type": "house",
+      "latitude": "40.5795",
+      "longitude": "74.1502",
       "realtor_id": 1,
       "city_id": 3
     }
@@ -111,8 +149,8 @@
   "test_members": [
     {
       "uuid": "6915ad0f-392e-444d-96b1-f04dba7e751b",
-      "name": "rieltor_1",
-      "email": "rieltor_1@email.com",
+      "name": "realtor_1",
+      "email": "realtor_1@email.com",
       "phone": "123456789",
       "store_id": 1,
       "instagram_url": "test_instagram_url1",

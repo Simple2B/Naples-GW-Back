@@ -8,12 +8,11 @@ from naples import models as m
 
 from naples.config import config
 
-from .test_data import TestData
 
 CFG = config("testing")
 
 
-def test_get_item(client: TestClient, full_db: Session, headers: dict[str, str], test_data: TestData):
+def test_get_item(client: TestClient, full_db: Session, headers: dict[str, str], test_data: s.TestData):
     store: m.Store | None = full_db.scalar(select(m.Store))
     assert store
 
@@ -25,7 +24,7 @@ def test_get_item(client: TestClient, full_db: Session, headers: dict[str, str],
     assert item.uuid == test_data.test_items[0].uuid
 
 
-def test_create_item(client: TestClient, full_db: Session, headers: dict[str, str], test_data: TestData):
+def test_create_item(client: TestClient, full_db: Session, headers: dict[str, str], test_data: s.TestData):
     city: m.City | None = full_db.scalar(select(m.City))
     assert city
     test_rieltor = s.MemberIn(
@@ -56,22 +55,30 @@ def test_create_item(client: TestClient, full_db: Session, headers: dict[str, st
     assert response.status_code == 201
 
 
-def test_get_filters_data(client: TestClient, headers: dict[str, str], test_data: TestData):
+def test_get_filters_data(client: TestClient, headers: dict[str, str], test_data: s.TestData):
     response = client.get("/api/items/filters/data", headers=headers)
     assert response.status_code == 200
 
 
-def test_get_items(client: TestClient, full_db: Session, headers: dict[str, str], test_data: TestData):
+def test_get_items(client: TestClient, full_db: Session, headers: dict[str, str], test_data: s.TestData):
     store: m.Store | None = full_db.scalar(select(m.Store))
     assert store
 
     store_url: str = store.url
-    response = client.get(f"/api/items?store_url={store_url}", headers=headers)
+    size = 4
+    response = client.get(f"/api/items?store_url={store_url}&page={1}&size={size}", headers=headers)
     assert response.status_code == 200
 
     items: Sequence[s.ItemOut] = s.Items.model_validate(response.json()).items
     assert items
-    assert len(items) == len(test_data.test_items)
+    assert len(items) == size
+
+    response = client.get(f"/api/items?store_url={store_url}&page={2}&size={size}", headers=headers)
+    assert response.status_code == 200
+
+    res_items: Sequence[s.ItemOut] = s.Items.model_validate(response.json()).items
+    assert res_items
+    # assert len(res_items) == size
 
     city: m.City | None = full_db.scalar(select(m.City))
     assert city

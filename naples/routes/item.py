@@ -1,6 +1,6 @@
-from typing import Sequence, cast
+from typing import Sequence
 from fastapi import Depends, APIRouter, status, HTTPException
-
+from fastapi_pagination import Page, Params, paginate
 
 import naples.models as m
 import naples.schemas as s
@@ -45,7 +45,7 @@ def get_item(
 @item_router.get(
     "/",
     status_code=status.HTTP_200_OK,
-    response_model=s.Items,
+    response_model=Page[s.ItemOut],
     responses={
         404: {"description": "Store not found"},
         403: {"description": "Invalid URL"},
@@ -58,10 +58,11 @@ def get_items(
     type: str | None = None,
     price_max: int | None = None,
     price_min: int | None = None,
+    params: Params = Depends(),
     db: Session = Depends(get_db),
     current_store: m.Store = Depends(get_current_store),
 ):
-    """Get items by filters"""
+    """Get items by filters and pagination"""
 
     stmt = sa.select(m.Item).where(
         sa.and_(
@@ -84,9 +85,10 @@ def get_items(
     if price_min and price_max:
         stmt = stmt.where(sa.and_(m.Item.price >= price_min, m.Item.price <= price_max))
 
-    items: Sequence[m.Item] = db.scalars(stmt).all()
+    db_items: Sequence[m.Item] = db.scalars(stmt).all()
+    items: Sequence[s.ItemOut] = [item for item in db_items]
 
-    return s.Items(items=[cast(s.ItemOut, item) for item in items])
+    return paginate(items, params)
 
 
 @item_router.get(

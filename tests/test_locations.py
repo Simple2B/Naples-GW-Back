@@ -6,12 +6,13 @@ import sqlalchemy as sa
 from naples.config import config
 import naples.models as m
 
-from .test_data import TestData
+from naples import schemas as s
+
 
 CFG = config("testing")
 
 
-def test_get_locations(client: TestClient, full_db: Session, headers: dict[str, str], test_data: TestData):
+def test_get_locations(client: TestClient, full_db: Session, headers: dict[str, str], test_data: s.TestData):
     db = full_db
     states: Sequence[m.State] = db.scalars(sa.select(m.State)).all()
     assert states[0].name == "New York"

@@ -4,12 +4,11 @@ from naples import schemas as s
 from sqlalchemy.orm import Session
 from naples.config import config
 
-from .test_data import TestData
 
 CFG = config("testing")
 
 
-def test_get_me(client: TestClient, headers: dict[str, str], test_data: TestData):
+def test_get_me(client: TestClient, headers: dict[str, str], test_data: s.TestData):
     response = client.get("/api/users/me", headers=headers)
     assert response.status_code == 200
     user = s.User.model_validate(response.json())
@@ -20,7 +19,7 @@ def test_get_users(
     client: TestClient,
     db: Session,
     headers: dict[str, str],
-    test_data: TestData,
+    test_data: s.TestData,
 ):
     response = client.get(
         "/api/users/",
