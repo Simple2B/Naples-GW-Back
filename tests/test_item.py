@@ -66,12 +66,20 @@ def test_get_items(client: TestClient, full_db: Session, headers: dict[str, str]
     assert store
 
     store_url: str = store.url
-    response = client.get(f"/api/items?store_url={store_url}&limit={4}", headers=headers)
+    size = 4
+    response = client.get(f"/api/items?store_url={store_url}&page={1}&size={size}", headers=headers)
     assert response.status_code == 200
 
     items: Sequence[s.ItemOut] = s.Items.model_validate(response.json()).items
     assert items
-    assert len(items) == len(test_data.test_items)
+    assert len(items) == size
+
+    response = client.get(f"/api/items?store_url={store_url}&page={2}&size={size}", headers=headers)
+    assert response.status_code == 200
+
+    res_items: Sequence[s.ItemOut] = s.Items.model_validate(response.json()).items
+    assert res_items
+    # assert len(res_items) == size
 
     city: m.City | None = full_db.scalar(select(m.City))
     assert city

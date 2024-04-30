@@ -1,7 +1,7 @@
 from typing import Sequence, cast
 from fastapi import Depends, APIRouter, status, HTTPException
-from fastapi_pagination import LimitOffsetPage
-from fastapi_pagination.ext.sqlalchemy import paginate
+from fastapi_pagination import Page, Params, paginate
+# from fastapi_pagination.ext.sqlalchemy import paginate
 
 
 import naples.models as m
@@ -47,7 +47,7 @@ def get_item(
 @item_router.get(
     "/",
     status_code=status.HTTP_200_OK,
-    response_model=LimitOffsetPage[s.ItemOut],
+    response_model=Page[s.ItemOut],
     responses={
         404: {"description": "Store not found"},
         403: {"description": "Invalid URL"},
@@ -60,8 +60,7 @@ def get_items(
     type: str | None = None,
     price_max: int | None = None,
     price_min: int | None = None,
-    limit: int = 4,
-    offset: int = 0,
+    params: Params = Depends(),
     db: Session = Depends(get_db),
     current_store: m.Store = Depends(get_current_store),
 ):
@@ -91,15 +90,7 @@ def get_items(
     db_items: Sequence[m.Item] = db.scalars(stmt).all()
     items: Sequence[s.ItemOut] = [cast(s.ItemOut, item) for item in db_items]
 
-    size: int = 4
-
-    if not items:
-        return paginate([], query={})
-
-    # pages: int = math.ceil(len(items) / 4)
-    # total: int = len(items)
-    # TODO: add limit and offset
-    return paginate(items, query="", limit=limit, offset=offset)
+    return paginate(items, params)
 
 
 @item_router.get(
