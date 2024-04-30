@@ -4,8 +4,6 @@ from naples import schemas as s
 
 from naples.config import config
 
-from naples import schemas as s
-
 
 CFG = config("testing")
 

@@ -1,8 +1,6 @@
-from typing import Sequence, cast
+from typing import Sequence
 from fastapi import Depends, APIRouter, status, HTTPException
 from fastapi_pagination import Page, Params, paginate
-# from fastapi_pagination.ext.sqlalchemy import paginate
-
 
 import naples.models as m
 import naples.schemas as s
@@ -88,7 +86,7 @@ def get_items(
         stmt = stmt.where(sa.and_(m.Item.price >= price_min, m.Item.price <= price_max))
 
     db_items: Sequence[m.Item] = db.scalars(stmt).all()
-    items: Sequence[s.ItemOut] = [cast(s.ItemOut, item) for item in db_items]
+    items: Sequence[s.ItemOut] = [item for item in db_items]
 
     return paginate(items, params)
 
