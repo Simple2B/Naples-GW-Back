@@ -1,6 +1,7 @@
 from typing import Sequence, cast
 from fastapi import Depends, APIRouter, status, HTTPException
-from fastapi_pagination import Page, paginate, LimitOffsetPage
+from fastapi_pagination import LimitOffsetPage
+from fastapi_pagination.ext.sqlalchemy import paginate
 
 
 import naples.models as m
@@ -93,12 +94,12 @@ def get_items(
     size: int = 4
 
     if not items:
-        return paginate([])
+        return paginate([], query={})
 
     # pages: int = math.ceil(len(items) / 4)
     # total: int = len(items)
     # TODO: add limit and offset
-    return paginate(items)
+    return paginate(items, query="", limit=limit, offset=offset)
 
 
 @item_router.get(
