@@ -1,7 +1,10 @@
+import json
 from typing import Sequence
-from fastapi import Depends, APIRouter, status, HTTPException
+from botocore.exceptions import ClientError
+from fastapi import Depends, APIRouter, Form, status, HTTPException, UploadFile, File
 from fastapi_pagination import Page, Params, paginate
 
+from naples.dependency import get_s3_connect
 import naples.models as m
 import naples.schemas as s
 from naples.logger import log
@@ -11,6 +14,10 @@ from sqlalchemy.orm import Session
 
 from naples.dependency import get_current_user, get_current_store
 from naples.database import get_db
+
+from naples.config import config
+
+CFG = config()
 
 
 item_router = APIRouter(prefix="/items", tags=["Items"])
@@ -130,50 +137,85 @@ def get_filters_data(
     },
 )
 def create_item(
-    data: s.ItemRieltorIn,
+    json_item: str = Form(...),
+    json_realtor: str = Form(...),
+    file: UploadFile = File(None),
     db: Session = Depends(get_db),
     current_user: m.User = Depends(get_current_user),
+    s3=Depends(get_s3_connect),
 ):
     """Create a new item"""
+
     store: m.Store | None = db.scalar(sa.select(m.Store).where(m.Store.user_id == current_user.id))
 
     if not store:
         log(log.ERROR, "User [%s] has no store", current_user.email)
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User has no store")
 
-    if data.realtor:
+    item: s.ItemIn = s.ItemIn.model_validate(json.loads(json_item))
+    realtor: s.MemberIn | None = s.MemberIn.model_validate(json.loads(json_realtor))
+
+    if realtor:
         new_member: m.Member = m.Member(
-            **data.realtor.model_dump(),
+            **realtor.model_dump(),
             store_id=store.id,
         )
         db.add(new_member)
         db.flush()
 
-    city: m.City | None = db.scalar(sa.select(m.City).where(m.City.uuid == data.item.city_uuid))
+    city: m.City | None = db.scalar(sa.select(m.City).where(m.City.uuid == item.city_uuid))
 
     if not city:
-        log(log.ERROR, "City [%s] not found", data.item.city_uuid)
+        log(log.ERROR, "City [%s] not found", item.city_uuid)
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="City not found")
 
     new_item: m.Item = m.Item(
-        name=data.item.name,
-        description=data.item.description,
-        latitude=data.item.latitude,
-        longitude=data.item.longitude,
-        address=data.item.address,
-        size=data.item.size,
-        price=data.item.price,
-        bedrooms_count=data.item.bedrooms_count,
-        bathrooms_count=data.item.bathrooms_count,
-        stage=data.item.stage,
-        category=data.item.category,
-        type=data.item.type,
-        store_id=store.id,
+        name=item.name,
+        description=item.description,
+        latitude=item.latitude,
+        longitude=item.longitude,
+        address=item.address,
+        size=item.size,
+        price=item.price,
+        bedrooms_count=item.bedrooms_count,
+        bathrooms_count=item.bathrooms_count,
+        stage=item.stage,
+        category=item.category,
+        type=item.type,
         realtor_id=new_member.id,
+        store_id=store.id,
         city_id=city.id,
     )
 
     db.add(new_item)
+    db.flush()
+
+    if file or not file.filename:
+        try:
+            file.file.seek(0)
+            s3.upload_fileobj(
+                file.file,
+                CFG.AWS_S3_BUCKET_NAME,
+                f"naples/type=item/user={current_user.uuid}/{store.uuid}/{file.filename}",
+            )
+        except ClientError as e:
+            log(log.ERROR, "Error uploading file to S3 - [%s]", e)
+            raise HTTPException(status_code=500, detail="Something went wrong")
+        finally:
+            file.file.close()
+
+        # save to db
+        new_file: m.File = m.File(
+            name=file.filename,
+            original_name=file.filename,
+            type=file.content_type,
+            owner_type=s.OwnerType.ITEM.value,
+            owner_id=new_item.id,
+            url=f"{CFG.AWS_S3_BUCKET_URL}naples/type=item/user={current_user.uuid}/store={store.uuid}/{file.filename}",
+        )
+        db.add(new_file)
+        log(log.INFO, "Created file [%s] for item [%s]", file.filename, new_item.name)
+
     db.commit()
 
     log(log.INFO, "Created item [%s] for store [%s]", new_item.name, new_item.store_id)

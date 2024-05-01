@@ -1,7 +1,9 @@
 import enum
 from pydantic import BaseModel, ConfigDict
+from typing import Optional
 from datetime import datetime
-from .member import MemberIn
+
+from naples.schemas.member import MemberIn
 
 
 class ItemTypes(enum.Enum):
@@ -69,15 +71,6 @@ class ItemIn(BaseModel):
     )
 
 
-class ItemRieltorIn(BaseModel):
-    item: ItemIn
-    realtor: MemberIn | None = None
-
-    model_config = ConfigDict(
-        from_attributes=True,
-    )
-
-
 class ItemOut(Item):
     uuid: str
 
@@ -107,3 +100,8 @@ class ItemsFilterDataOut(BaseModel):
     types: list[ItemTypes]
     price_max: int
     price_min: int
+
+
+class ItemDataIn(BaseModel):
+    item: ItemIn
+    realtor: Optional[MemberIn]

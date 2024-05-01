@@ -3,6 +3,7 @@ from naples.schemas.item import ItemOut
 from naples.schemas.store import StoreOut
 
 from naples.schemas.member import MemberOut
+from naples.schemas.file import FileOut
 
 
 class TestUser(BaseModel):
@@ -20,3 +21,4 @@ class TestData(BaseModel):
     test_stores: list[StoreOut]
     test_items: list[TestItem]
     test_members: list[MemberOut]
+    test_files: list[FileOut]
