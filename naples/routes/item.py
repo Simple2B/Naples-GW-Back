@@ -1,10 +1,9 @@
-import json
 from typing import Sequence
 from botocore.exceptions import ClientError
 from fastapi import Depends, APIRouter, Form, status, HTTPException, UploadFile, File
 from fastapi_pagination import Page, Params, paginate
 
-from naples.dependency import get_s3_connect
+from naples.dependency import get_s3_connect, get_realtor, get_item
 import naples.models as m
 import naples.schemas as s
 from naples.logger import log
@@ -31,7 +30,7 @@ item_router = APIRouter(prefix="/items", tags=["Items"])
         404: {"description": "Item not found"},
     },
 )
-def get_item(
+def get_item_by_uuid(
     item_uuid: str,
     db: Session = Depends(get_db),
     current_store: m.Store = Depends(get_current_store),
@@ -136,10 +135,13 @@ def get_filters_data(
         404: {"description": "Store not found"},
     },
 )
+
+# ItemDataIn
 def create_item(
-    json_item: str = Form(...),
-    json_realtor: str = Form(...),
-    file: UploadFile = File(None),
+    data: s.ItemDataIn,
+    # realtor: s.MemberIn = Depends(get_realtor),
+    # item: s.ItemIn = Depends(get_item),
+    files: list[UploadFile] = File(None),
     db: Session = Depends(get_db),
     current_user: m.User = Depends(get_current_user),
     s3=Depends(get_s3_connect),
@@ -152,8 +154,8 @@ def create_item(
         log(log.ERROR, "User [%s] has no store", current_user.email)
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User has no store")
 
-    item: s.ItemIn = s.ItemIn.model_validate(json.loads(json_item))
-    realtor: s.MemberIn | None = s.MemberIn.model_validate(json.loads(json_realtor))
+    item: s.ItemIn = data.item
+    realtor: s.MemberIn | None = data.realtor
 
     if realtor:
         new_member: m.Member = m.Member(
@@ -170,18 +172,7 @@ def create_item(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="City not found")
 
     new_item: m.Item = m.Item(
-        name=item.name,
-        description=item.description,
-        latitude=item.latitude,
-        longitude=item.longitude,
-        address=item.address,
-        size=item.size,
-        price=item.price,
-        bedrooms_count=item.bedrooms_count,
-        bathrooms_count=item.bathrooms_count,
-        stage=item.stage,
-        category=item.category,
-        type=item.type,
+        **item.model_dump(),
         realtor_id=new_member.id,
         store_id=store.id,
         city_id=city.id,
@@ -190,7 +181,10 @@ def create_item(
     db.add(new_item)
     db.flush()
 
-    if file or not file.filename:
+    for file in files:
+        if not file:
+            log(log.ERROR, "No file provided")
+            continue
         try:
             file.file.seek(0)
             s3.upload_fileobj(

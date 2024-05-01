@@ -32,7 +32,7 @@ def test_create_item(client: TestClient, full_db: Session, headers: dict[str, st
     city: m.City | None = full_db.scalar(select(m.City))
     assert city
 
-    test_item = dict(
+    test_item = s.ItemIn(
         name="Test Item",
         description="Test Description",
         latitude=0.0,
@@ -48,7 +48,7 @@ def test_create_item(client: TestClient, full_db: Session, headers: dict[str, st
         city_uuid=city.uuid,
     )
 
-    test_realtor = dict(
+    test_realtor = s.MemberIn(
         name="Test Member",
         email="tets@email.com",
         phone="000000000",

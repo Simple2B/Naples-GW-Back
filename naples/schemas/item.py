@@ -44,6 +44,7 @@ class Item(BaseModel):
     type: str = ItemTypes.HOUSE.value
 
     realtor_id: int | None = None
+    city_id: int
 
     model_config = ConfigDict(
         from_attributes=True,
