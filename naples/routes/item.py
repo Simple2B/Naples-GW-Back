@@ -1,6 +1,7 @@
 from typing import Sequence
+
 # from botocore.exceptions import ClientError
-from fastapi import Depends, APIRouter,  status, HTTPException #,UploadFile, File
+from fastapi import Depends, APIRouter, status, HTTPException  # ,UploadFile, File
 from fastapi_pagination import Page, Params, paginate
 
 # from naples.dependency import get_s3_connect
@@ -156,7 +157,6 @@ def create_item(
     if not realtor or realtor.store_id != store.id:
         log(log.ERROR, "Realtor [%s] not found", new_item.realtor_uuid)
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Realtor not found")
-
 
     city: m.City | None = db.scalar(sa.select(m.City).where(m.City.uuid == new_item.city_uuid))
 
