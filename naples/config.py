@@ -79,8 +79,11 @@ class ProductionConfig(BaseConfig):
     WTF_CSRF_ENABLED: bool = False
 
 
+MergedConfig = DevelopmentConfig | TestingConfig | ProductionConfig
+
+
 @lru_cache
-def config(name: str = APP_ENV) -> DevelopmentConfig | TestingConfig | ProductionConfig:
+def config(name: str = APP_ENV) -> MergedConfig:
     CONF_MAP = dict(
         development=DevelopmentConfig,
         testing=TestingConfig,
