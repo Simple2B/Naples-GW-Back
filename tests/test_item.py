@@ -1,12 +1,15 @@
+import json
 from typing import Sequence
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 from sqlalchemy import select
+from moto import mock_aws
 
 from naples import schemas as s
 from naples import models as m
 
 from naples.config import config
+from naples.dependency import get_s3_connect
 
 
 CFG = config("testing")
@@ -24,18 +27,12 @@ def test_get_item(client: TestClient, full_db: Session, headers: dict[str, str],
     assert item.uuid == test_data.test_items[0].uuid
 
 
+@mock_aws
 def test_create_item(client: TestClient, full_db: Session, headers: dict[str, str], test_data: s.TestData):
     city: m.City | None = full_db.scalar(select(m.City))
     assert city
-    test_rieltor = s.MemberIn(
-        name="Test Member",
-        email="tets@email.com",
-        phone="000000000",
-        instagram_url="instagram_url",
-        messenger_url="messenger_url",
-        avatar_url="avatar_url",
-    )
-    test_item = s.ItemIn(
+
+    test_item = dict(
         name="Test Item",
         description="Test Description",
         latitude=0.0,
@@ -50,8 +47,33 @@ def test_create_item(client: TestClient, full_db: Session, headers: dict[str, st
         price=1000,
         city_uuid=city.uuid,
     )
-    data = s.ItemRieltorIn(item=test_item, realtor=test_rieltor)
-    response = client.post("/api/items/", headers=headers, json=data.model_dump())
+
+    test_realtor = dict(
+        name="Test Member",
+        email="tets@email.com",
+        phone="000000000",
+        instagram_url="instagram_url",
+        messenger_url="messenger_url",
+        avatar_url="avatar_url",
+    )
+
+    # creating a bucket
+    s3 = get_s3_connect(CFG)
+    s3.create_bucket(Bucket=CFG.AWS_S3_BUCKET_NAME)
+
+    merge_data = {
+        "json_item": json.dumps(test_item),
+        "json_realtor": json.dumps(test_realtor),
+    }
+
+    response = client.post(
+        "/api/items/",
+        data=merge_data,
+        files={
+            "file": open("tests/house_example.png", "rb"),
+        },
+        headers=headers,
+    )
     assert response.status_code == 201
 
 
