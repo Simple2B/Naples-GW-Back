@@ -7,6 +7,7 @@ from .auth import router as auth_router
 from .store import store_router
 from .locations import location_router
 from .item import item_router
+from .member import member_router
 
 # from .notify import notification_test_router
 
@@ -18,6 +19,7 @@ router.include_router(auth_router)
 router.include_router(store_router)
 router.include_router(location_router)
 router.include_router(item_router)
+router.include_router(member_router)
 
 
 @router.get("/list-endpoints/")
