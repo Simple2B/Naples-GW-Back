@@ -32,3 +32,4 @@ from .locations import (
     Cities,
 )
 from .fee import FeeIn, FeeOut
+from .rate import RateIn, RateOut
