@@ -67,7 +67,9 @@
       "latitude": "40.8448",
       "longitude": "73.8648",
       "realtor_id": 1,
-      "city_id": 4
+      "city_id": 4,
+      "amenities":[ "test_amenities1"],
+      "imageUrl": ""
     },
     {
       "uuid": "f53fecaf-c84a-4ac0-bfed-d6c945d91460",
@@ -86,7 +88,9 @@
       "latitude": "40.6782",
       "longitude": "73.9442",
       "realtor_id": 1,
-      "city_id": 2
+      "city_id": 2,
+      "amenities":[ "test_amenities1"],
+      "imageUrl": ""
     },
     {
       "uuid": "f55fecaf-c84a-4ac0-bfed-d6c100d91465",
@@ -105,7 +109,9 @@
       "latitude": "40.7831",
       "longitude": "73.9712",
       "realtor_id": 1,
-      "city_id": 3
+      "city_id": 3,
+      "amenities":[ "test_amenities1"],
+      "imageUrl": ""
     },
     {
       "uuid": "ce350447f5564b3b9350b15570734e82",
@@ -124,7 +130,9 @@
       "latitude": "40.7282",
       "longitude": "73.7949",
       "realtor_id": 1,
-      "city_id": 1
+      "city_id": 1,
+      "amenities":[ "test_amenities1"],
+      "imageUrl": ""
     },
     {
       "uuid": "ce350447f5564b3b9350b15570734e82",
@@ -143,7 +151,9 @@
       "latitude": "40.5795",
       "longitude": "74.1502",
       "realtor_id": 1,
-      "city_id": 3
+      "city_id": 3,
+      "amenities":[ "test_amenities1"],
+      "imageUrl": ""
     }
   ],
   "test_members": [

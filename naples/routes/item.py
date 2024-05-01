@@ -44,7 +44,7 @@ def get_item_by_uuid(
         log(log.ERROR, "Item [%s] not found for store [%s]", item_uuid, current_store.url)
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
 
-    return item
+    return s.ItemOut.model_validate(item)
 
 
 @item_router.get(
@@ -91,7 +91,7 @@ def get_items(
         stmt = stmt.where(sa.and_(m.Item.price >= price_min, m.Item.price <= price_max))
 
     db_items: Sequence[m.Item] = db.scalars(stmt).all()
-    items: Sequence[s.ItemOut] = [item for item in db_items]
+    items: Sequence[s.ItemOut] = [s.ItemOut.model_validate(item) for item in db_items]
 
     return paginate(items, params)
 
@@ -140,7 +140,6 @@ def create_item(
     new_item: s.ItemIn,
     db: Session = Depends(get_db),
     current_user: m.User = Depends(get_current_user),
-    # s3=Depends(get_s3_connect),
 ):
     """Create a new item"""
 
@@ -172,38 +171,7 @@ def create_item(
     db.add(new_item_model)
     db.flush()
 
-    # TODO: To be extracted into a separate router logic
-
-    # for file in files:
-    #     if not file:
-    #         log(log.ERROR, "No file provided")
-    #         continue
-    #     try:
-    #         file.file.seek(0)
-    #         s3.upload_fileobj(
-    #             file.file,
-    #             CFG.AWS_S3_BUCKET_NAME,
-    #             f"naples/type=item/user={current_user.uuid}/{store.uuid}/{file.filename}",
-    #         )
-    #     except ClientError as e:
-    #         log(log.ERROR, "Error uploading file to S3 - [%s]", e)
-    #         raise HTTPException(status_code=500, detail="Something went wrong")
-    #     finally:
-    #         file.file.close()
-
-    #     # save to db
-    #     new_file: m.File = m.File(
-    #         name=file.filename,
-    #         original_name=file.filename,
-    #         type=file.content_type,
-    #         owner_type=s.OwnerType.ITEM.value,
-    #         owner_id=new_item.id,
-    #         url=f"{CFG.AWS_S3_BUCKET_URL}naples/type=item/user={current_user.uuid}/store={store.uuid}/{file.filename}",
-    #     )
-    #     db.add(new_file)
-    #     log(log.INFO, "Created file [%s] for item [%s]", file.filename, new_item.name)
-
     db.commit()
 
     log(log.INFO, "Created item [%s] for store [%s]", new_item.name, new_item_model.store_id)
-    return new_item_model
+    return s.ItemOut.model_validate(new_item_model)
