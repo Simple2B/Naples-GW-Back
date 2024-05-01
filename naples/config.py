@@ -40,6 +40,15 @@ class BaseConfig(BaseSettings):
     JWT_SECRET: str
     ACCESS_TOKEN_EXPIRE_MINUTES: int
 
+    # AWS
+    AWS_SECRET_KEY: str | None
+    AWS_ACCESS_KEY: str | None
+    AWS_S3_BUCKET_NAME: str = "naples-gateway"
+    AWS_REGION: str | None
+    AWS_S3_BUCKET_URL: str
+    # TODO: Add more AWS configurations
+    # DEFAULT_IMAGE_URL: str
+
     model_config = SettingsConfigDict(
         extra="allow",
         env_file=("project.env", ".env.dev", ".env"),
