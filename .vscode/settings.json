@@ -7,14 +7,10 @@
     "realtor",
     "SQLALCHEMY"
   ],
-  "python.testing.unittestArgs": [
-    "-v",
-    "-s",
-    "./tests",
-    "-p",
-    "test*.py"
-  ],
+  "python.testing.unittestArgs": ["-v", "-s", "./tests", "-p", "test*.py"],
   "python.testing.unittestEnabled": false,
   "python.testing.pytestEnabled": false,
-  "pythonTestExplorer.testFramework": "pytest"
+  "pythonTestExplorer.testFramework": "pytest",
+  "editor.defaultFormatter": "charliermarsh.ruff",
+  "editor.formatOnSave": true
 }

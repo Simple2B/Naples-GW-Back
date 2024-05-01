@@ -1,7 +1,10 @@
 from typing import Sequence
-from fastapi import Depends, APIRouter, status, HTTPException
+
+# from botocore.exceptions import ClientError
+from fastapi import Depends, APIRouter, status, HTTPException  # ,UploadFile, File
 from fastapi_pagination import Page, Params, paginate
 
+# from naples.dependency import get_s3_connect
 import naples.models as m
 import naples.schemas as s
 from naples.logger import log
@@ -11,6 +14,10 @@ from sqlalchemy.orm import Session
 
 from naples.dependency import get_current_user, get_current_store
 from naples.database import get_db
+
+from naples.config import config
+
+CFG = config()
 
 
 item_router = APIRouter(prefix="/items", tags=["Items"])
@@ -24,7 +31,7 @@ item_router = APIRouter(prefix="/items", tags=["Items"])
         404: {"description": "Item not found"},
     },
 )
-def get_item(
+def get_item_by_uuid(
     item_uuid: str,
     db: Session = Depends(get_db),
     current_store: m.Store = Depends(get_current_store),
@@ -129,52 +136,76 @@ def get_filters_data(
         404: {"description": "Store not found"},
     },
 )
+
+# ItemDataIn
 def create_item(
-    data: s.ItemRieltorIn,
+    new_item: s.ItemIn,
     db: Session = Depends(get_db),
     current_user: m.User = Depends(get_current_user),
+    # s3=Depends(get_s3_connect),
 ):
     """Create a new item"""
+
     store: m.Store | None = db.scalar(sa.select(m.Store).where(m.Store.user_id == current_user.id))
 
     if not store:
         log(log.ERROR, "User [%s] has no store", current_user.email)
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User has no store")
 
-    if data.realtor:
-        new_member: m.Member = m.Member(
-            **data.realtor.model_dump(),
-            store_id=store.id,
-        )
-        db.add(new_member)
-        db.flush()
+    realtor: m.Member | None = db.scalar(sa.select(m.Member).where(m.Member.uuid == new_item.realtor_uuid))
 
-    city: m.City | None = db.scalar(sa.select(m.City).where(m.City.uuid == data.item.city_uuid))
+    if not realtor or realtor.store_id != store.id:
+        log(log.ERROR, "Realtor [%s] not found", new_item.realtor_uuid)
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Realtor not found")
+
+    city: m.City | None = db.scalar(sa.select(m.City).where(m.City.uuid == new_item.city_uuid))
 
     if not city:
-        log(log.ERROR, "City [%s] not found", data.item.city_uuid)
+        log(log.ERROR, "City [%s] not found", new_item.city_uuid)
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="City not found")
 
-    new_item: m.Item = m.Item(
-        name=data.item.name,
-        description=data.item.description,
-        latitude=data.item.latitude,
-        longitude=data.item.longitude,
-        address=data.item.address,
-        size=data.item.size,
-        price=data.item.price,
-        bedrooms_count=data.item.bedrooms_count,
-        bathrooms_count=data.item.bathrooms_count,
-        stage=data.item.stage,
-        category=data.item.category,
-        type=data.item.type,
+    new_item_model: m.Item = m.Item(
+        **new_item.model_dump(exclude={"realtor_uuid", "city_uuid"}),
+        realtor_id=realtor.id,
         store_id=store.id,
-        realtor_id=new_member.id,
         city_id=city.id,
     )
 
-    db.add(new_item)
+    db.add(new_item_model)
+    db.flush()
+
+    # TODO: To be extracted into a separate router logic
+
+    # for file in files:
+    #     if not file:
+    #         log(log.ERROR, "No file provided")
+    #         continue
+    #     try:
+    #         file.file.seek(0)
+    #         s3.upload_fileobj(
+    #             file.file,
+    #             CFG.AWS_S3_BUCKET_NAME,
+    #             f"naples/type=item/user={current_user.uuid}/{store.uuid}/{file.filename}",
+    #         )
+    #     except ClientError as e:
+    #         log(log.ERROR, "Error uploading file to S3 - [%s]", e)
+    #         raise HTTPException(status_code=500, detail="Something went wrong")
+    #     finally:
+    #         file.file.close()
+
+    #     # save to db
+    #     new_file: m.File = m.File(
+    #         name=file.filename,
+    #         original_name=file.filename,
+    #         type=file.content_type,
+    #         owner_type=s.OwnerType.ITEM.value,
+    #         owner_id=new_item.id,
+    #         url=f"{CFG.AWS_S3_BUCKET_URL}naples/type=item/user={current_user.uuid}/store={store.uuid}/{file.filename}",
+    #     )
+    #     db.add(new_file)
+    #     log(log.INFO, "Created file [%s] for item [%s]", file.filename, new_item.name)
+
     db.commit()
 
-    log(log.INFO, "Created item [%s] for store [%s]", new_item.name, new_item.store_id)
-    return new_item
+    log(log.INFO, "Created item [%s] for store [%s]", new_item.name, new_item_model.store_id)
+    return new_item_model

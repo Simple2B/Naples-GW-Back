@@ -2,6 +2,7 @@ from typing import Sequence
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 from sqlalchemy import select
+from moto import mock_aws
 
 from naples import schemas as s
 from naples import models as m
@@ -24,17 +25,14 @@ def test_get_item(client: TestClient, full_db: Session, headers: dict[str, str],
     assert item.uuid == test_data.test_items[0].uuid
 
 
+@mock_aws
 def test_create_item(client: TestClient, full_db: Session, headers: dict[str, str], test_data: s.TestData):
     city: m.City | None = full_db.scalar(select(m.City))
     assert city
-    test_rieltor = s.MemberIn(
-        name="Test Member",
-        email="tets@email.com",
-        phone="000000000",
-        instagram_url="instagram_url",
-        messenger_url="messenger_url",
-        avatar_url="avatar_url",
-    )
+    test_realtor = full_db.scalar(select(m.Member))
+
+    assert test_realtor
+
     test_item = s.ItemIn(
         name="Test Item",
         description="Test Description",
@@ -49,9 +47,14 @@ def test_create_item(client: TestClient, full_db: Session, headers: dict[str, st
         type=s.ItemTypes.HOUSE.value,
         price=1000,
         city_uuid=city.uuid,
+        realtor_uuid=test_realtor.uuid,
     )
-    data = s.ItemRieltorIn(item=test_item, realtor=test_rieltor)
-    response = client.post("/api/items/", headers=headers, json=data.model_dump())
+
+    response = client.post(
+        "/api/items/",
+        json=test_item.model_dump(),
+        headers=headers,
+    )
     assert response.status_code == 201
 
 

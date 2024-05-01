@@ -1,7 +1,6 @@
 import enum
 from pydantic import BaseModel, ConfigDict
 from datetime import datetime
-from .member import MemberIn
 
 
 class ItemTypes(enum.Enum):
@@ -42,6 +41,7 @@ class Item(BaseModel):
     type: str = ItemTypes.HOUSE.value
 
     realtor_id: int | None = None
+    city_id: int
 
     model_config = ConfigDict(
         from_attributes=True,
@@ -59,19 +59,11 @@ class ItemIn(BaseModel):
     bedrooms_count: int = 0
     bathrooms_count: int = 0
     city_uuid: str
+    realtor_uuid: str
 
     stage: str = ItemStage.DRAFT.value
     category: str = ItemCategories.BUY.value
     type: str = ItemTypes.HOUSE.value
-
-    model_config = ConfigDict(
-        from_attributes=True,
-    )
-
-
-class ItemRieltorIn(BaseModel):
-    item: ItemIn
-    realtor: MemberIn | None = None
 
     model_config = ConfigDict(
         from_attributes=True,
@@ -107,3 +99,7 @@ class ItemsFilterDataOut(BaseModel):
     types: list[ItemTypes]
     price_max: int
     price_min: int
+
+
+class ItemDataIn(BaseModel):
+    item: ItemIn
