@@ -2,7 +2,6 @@ from typing import Sequence
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 from sqlalchemy import select
-from moto import mock_aws
 
 from naples import schemas as s
 from naples import models as m
@@ -25,7 +24,6 @@ def test_get_item(client: TestClient, full_db: Session, headers: dict[str, str],
     assert item.uuid == test_data.test_items[0].uuid
 
 
-@mock_aws
 def test_create_item(client: TestClient, full_db: Session, headers: dict[str, str], test_data: s.TestData):
     city: m.City | None = full_db.scalar(select(m.City))
     assert city

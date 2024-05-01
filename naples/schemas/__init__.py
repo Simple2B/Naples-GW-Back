@@ -33,3 +33,4 @@ from .locations import (
 )
 from .fee import FeeIn, FeeOut
 from .rate import RateIn, RateOut
+from .floor_plan import FlorPlanMarkerIn, FloorPlanMarkerOut, FloorPlanIn, FloorPlanOut

@@ -1,5 +1,5 @@
 import enum
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 from datetime import datetime
 
 
@@ -72,6 +72,8 @@ class ItemIn(BaseModel):
 
 class ItemOut(Item):
     uuid: str
+    image_url: str = Field("", alias="imageUrl")
+    amenities: list[str]
 
     model_config = ConfigDict(
         from_attributes=True,
