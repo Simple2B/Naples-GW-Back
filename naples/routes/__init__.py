@@ -1,4 +1,4 @@
-# flake8: noqa F401
+# ruff: noqa: F401
 from fastapi import APIRouter, Request
 
 from .user import user_router
@@ -8,8 +8,6 @@ from .store import store_router
 from .locations import location_router
 from .item import item_router
 from .member import member_router
-
-# from .notify import notification_test_router
 
 
 router = APIRouter(prefix="/api", tags=["API"])

@@ -16,7 +16,7 @@ from .item import (
     ItemDataIn,
 )
 from .member import Member, MemberIn, MemberOut
-from .file import FileType, File, FileOut, OwnerType, Files
+from .file import FileType, File, FileOut, OwnerType, Files, FileIn
 from .amenity import Amenity, AmenityOut
 from .locations import (
     State,

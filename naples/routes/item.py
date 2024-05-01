@@ -1,10 +1,8 @@
 from typing import Sequence
 
-# from botocore.exceptions import ClientError
-from fastapi import Depends, APIRouter, status, HTTPException  # ,UploadFile, File
+from fastapi import Depends, APIRouter, status, HTTPException
 from fastapi_pagination import Page, Params, paginate
 
-# from naples.dependency import get_s3_connect
 import naples.models as m
 import naples.schemas as s
 from naples.logger import log

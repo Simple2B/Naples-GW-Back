@@ -1,5 +1,6 @@
 {
   "cSpell.words": [
+    "botocore",
     "dotenv",
     "fastapi",
     "passlib",
