@@ -1,9 +1,9 @@
 from typing import Sequence
-from botocore.exceptions import ClientError
-from fastapi import Depends, APIRouter, Form, status, HTTPException, UploadFile, File
+# from botocore.exceptions import ClientError
+from fastapi import Depends, APIRouter,  status, HTTPException #,UploadFile, File
 from fastapi_pagination import Page, Params, paginate
 
-from naples.dependency import get_s3_connect, get_realtor, get_item
+# from naples.dependency import get_s3_connect
 import naples.models as m
 import naples.schemas as s
 from naples.logger import log
@@ -138,13 +138,10 @@ def get_filters_data(
 
 # ItemDataIn
 def create_item(
-    data: s.ItemDataIn,
-    # realtor: s.MemberIn = Depends(get_realtor),
-    # item: s.ItemIn = Depends(get_item),
-    files: list[UploadFile] = File(None),
+    new_item: s.ItemIn,
     db: Session = Depends(get_db),
     current_user: m.User = Depends(get_current_user),
-    s3=Depends(get_s3_connect),
+    # s3=Depends(get_s3_connect),
 ):
     """Create a new item"""
 
@@ -154,26 +151,22 @@ def create_item(
         log(log.ERROR, "User [%s] has no store", current_user.email)
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User has no store")
 
-    item: s.ItemIn = data.item
-    realtor: s.MemberIn | None = data.realtor
+    realtor: m.Member | None = db.scalar(sa.select(m.Member).where(m.Member.uuid == new_item.realtor_uuid))
 
-    if realtor:
-        new_member: m.Member = m.Member(
-            **realtor.model_dump(),
-            store_id=store.id,
-        )
-        db.add(new_member)
-        db.flush()
+    if not realtor or realtor.store_id != store.id:
+        log(log.ERROR, "Realtor [%s] not found", new_item.realtor_uuid)
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Realtor not found")
 
-    city: m.City | None = db.scalar(sa.select(m.City).where(m.City.uuid == item.city_uuid))
+
+    city: m.City | None = db.scalar(sa.select(m.City).where(m.City.uuid == new_item.city_uuid))
 
     if not city:
-        log(log.ERROR, "City [%s] not found", item.city_uuid)
+        log(log.ERROR, "City [%s] not found", new_item.city_uuid)
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="City not found")
 
     new_item: m.Item = m.Item(
-        **item.model_dump(),
-        realtor_id=new_member.id,
+        **new_item.model_dump(exclude={"realtor_uuid", "city_uuid"}),
+        realtor_id=realtor.id,
         store_id=store.id,
         city_id=city.id,
     )
@@ -181,34 +174,36 @@ def create_item(
     db.add(new_item)
     db.flush()
 
-    for file in files:
-        if not file:
-            log(log.ERROR, "No file provided")
-            continue
-        try:
-            file.file.seek(0)
-            s3.upload_fileobj(
-                file.file,
-                CFG.AWS_S3_BUCKET_NAME,
-                f"naples/type=item/user={current_user.uuid}/{store.uuid}/{file.filename}",
-            )
-        except ClientError as e:
-            log(log.ERROR, "Error uploading file to S3 - [%s]", e)
-            raise HTTPException(status_code=500, detail="Something went wrong")
-        finally:
-            file.file.close()
+    # TODO: To be extracted into a separate router logic
 
-        # save to db
-        new_file: m.File = m.File(
-            name=file.filename,
-            original_name=file.filename,
-            type=file.content_type,
-            owner_type=s.OwnerType.ITEM.value,
-            owner_id=new_item.id,
-            url=f"{CFG.AWS_S3_BUCKET_URL}naples/type=item/user={current_user.uuid}/store={store.uuid}/{file.filename}",
-        )
-        db.add(new_file)
-        log(log.INFO, "Created file [%s] for item [%s]", file.filename, new_item.name)
+    # for file in files:
+    #     if not file:
+    #         log(log.ERROR, "No file provided")
+    #         continue
+    #     try:
+    #         file.file.seek(0)
+    #         s3.upload_fileobj(
+    #             file.file,
+    #             CFG.AWS_S3_BUCKET_NAME,
+    #             f"naples/type=item/user={current_user.uuid}/{store.uuid}/{file.filename}",
+    #         )
+    #     except ClientError as e:
+    #         log(log.ERROR, "Error uploading file to S3 - [%s]", e)
+    #         raise HTTPException(status_code=500, detail="Something went wrong")
+    #     finally:
+    #         file.file.close()
+
+    #     # save to db
+    #     new_file: m.File = m.File(
+    #         name=file.filename,
+    #         original_name=file.filename,
+    #         type=file.content_type,
+    #         owner_type=s.OwnerType.ITEM.value,
+    #         owner_id=new_item.id,
+    #         url=f"{CFG.AWS_S3_BUCKET_URL}naples/type=item/user={current_user.uuid}/store={store.uuid}/{file.filename}",
+    #     )
+    #     db.add(new_file)
+    #     log(log.INFO, "Created file [%s] for item [%s]", file.filename, new_item.name)
 
     db.commit()
 

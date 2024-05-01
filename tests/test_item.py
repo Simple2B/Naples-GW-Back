@@ -1,4 +1,3 @@
-import json
 from typing import Sequence
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
@@ -31,6 +30,7 @@ def test_get_item(client: TestClient, full_db: Session, headers: dict[str, str],
 def test_create_item(client: TestClient, full_db: Session, headers: dict[str, str], test_data: s.TestData):
     city: m.City | None = full_db.scalar(select(m.City))
     assert city
+    test_realtor = full_db.scalar(select(m.Member))
 
     test_item = s.ItemIn(
         name="Test Item",
@@ -46,32 +46,20 @@ def test_create_item(client: TestClient, full_db: Session, headers: dict[str, st
         type=s.ItemTypes.HOUSE.value,
         price=1000,
         city_uuid=city.uuid,
+        realtor_uuid=test_realtor.uuid,
     )
 
-    test_realtor = s.MemberIn(
-        name="Test Member",
-        email="tets@email.com",
-        phone="000000000",
-        instagram_url="instagram_url",
-        messenger_url="messenger_url",
-        avatar_url="avatar_url",
-    )
+
+
 
     # creating a bucket
     s3 = get_s3_connect(CFG)
     s3.create_bucket(Bucket=CFG.AWS_S3_BUCKET_NAME)
 
-    merge_data = {
-        "json_item": json.dumps(test_item),
-        "json_realtor": json.dumps(test_realtor),
-    }
 
     response = client.post(
         "/api/items/",
-        data=merge_data,
-        files={
-            "file": open("tests/house_example.png", "rb"),
-        },
+        json=test_item.model_dump(),
         headers=headers,
     )
     assert response.status_code == 201
