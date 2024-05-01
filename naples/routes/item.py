@@ -164,14 +164,14 @@ def create_item(
         log(log.ERROR, "City [%s] not found", new_item.city_uuid)
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="City not found")
 
-    new_item: m.Item = m.Item(
+    new_item_model: m.Item = m.Item(
         **new_item.model_dump(exclude={"realtor_uuid", "city_uuid"}),
         realtor_id=realtor.id,
         store_id=store.id,
         city_id=city.id,
     )
 
-    db.add(new_item)
+    db.add(new_item_model)
     db.flush()
 
     # TODO: To be extracted into a separate router logic
@@ -207,5 +207,5 @@ def create_item(
 
     db.commit()
 
-    log(log.INFO, "Created item [%s] for store [%s]", new_item.name, new_item.store_id)
-    return new_item
+    log(log.INFO, "Created item [%s] for store [%s]", new_item.name, new_item_model.store_id)
+    return new_item_model

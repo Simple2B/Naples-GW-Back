@@ -32,6 +32,9 @@ def test_create_item(client: TestClient, full_db: Session, headers: dict[str, st
     assert city
     test_realtor = full_db.scalar(select(m.Member))
 
+
+    assert test_realtor
+
     test_item = s.ItemIn(
         name="Test Item",
         description="Test Description",
