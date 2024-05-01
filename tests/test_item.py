@@ -8,7 +8,6 @@ from naples import schemas as s
 from naples import models as m
 
 from naples.config import config
-from naples.dependency import get_s3_connect
 
 
 CFG = config("testing")
@@ -50,10 +49,6 @@ def test_create_item(client: TestClient, full_db: Session, headers: dict[str, st
         city_uuid=city.uuid,
         realtor_uuid=test_realtor.uuid,
     )
-
-    # creating a bucket
-    s3 = get_s3_connect(CFG)
-    s3.create_bucket(Bucket=CFG.AWS_S3_BUCKET_NAME)
 
     response = client.post(
         "/api/items/",
