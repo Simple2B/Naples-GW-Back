@@ -10,3 +10,4 @@ from .amenity import Amenity
 from .state import State
 from .county import County
 from .city import City
+from .fee import Fee

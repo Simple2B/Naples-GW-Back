@@ -1,5 +1,8 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.orm import Session
 
+from naples.database import get_db
+from naples.dependency import get_current_user_store
 from naples.dependency.store import get_current_store
 from naples.logger import log
 from naples import schemas as s, models as m
@@ -19,9 +22,26 @@ async def get_fees_for_item(item_uuid: str, current_store: m.Store = Depends(get
 
 
 @fee_router.post("/", response_model=s.FeeOut, status_code=201)
-async def create_fee(data: s.FeeIn, current_user: m.User = Depends(get_current_user)):
-    log(log.INFO, f"Creating fee {data} for user {current_user}")
-    raise NotImplementedError()
+async def create_fee(
+    data: s.FeeIn, user_store: m.Store = Depends(get_current_user_store), db: Session = Depends(get_db)
+):
+    log(log.INFO, "Creating fee {%s} for store {%s}", data, user_store)
+
+    item = user_store.get_item_by_uuid(data.item_uuid)
+
+    if not item:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
+
+    new_fee = m.Fee(
+        name=data.name,
+        amount=data.amount,
+        item_id=item.id,
+        visible=data.visible,
+    )
+    db.add(new_fee)
+    db.commit()
+
+    return s.FeeOut.model_validate(new_fee)
 
 
 @fee_router.put("/{fee_uuid}", response_model=s.FeeOut)
