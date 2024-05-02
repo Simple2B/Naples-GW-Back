@@ -98,3 +98,17 @@ def test_get_items(client: TestClient, full_db: Session, headers: dict[str, str]
         f"/api/items?type={type}&price_min={price_min}&price_max={price_max}&store_url={store_url}", headers=headers
     )
     assert response.status_code == 200
+
+
+def test_delete_item(client: TestClient, full_db: Session, headers: dict[str, str]):
+    item = full_db.scalar(select(m.Item))
+    assert item
+
+    response = client.delete(f"/api/items/{item.uuid}", headers=headers)
+    assert response.status_code == 204
+
+    response = client.get(f"/api/items/{item.uuid}", headers=headers, params={"store_url": item.store.url})
+    assert response.status_code == 404
+
+    item_model = full_db.scalar(select(m.Item).where(m.Item.uuid == item.uuid))
+    assert item_model and item_model.is_deleted

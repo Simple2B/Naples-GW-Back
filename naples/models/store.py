@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from .user import User
     from .item import Item
+    from .member import Member
 
 
 class Store(db.Model, ModelMixin):
@@ -48,13 +49,19 @@ class Store(db.Model, ModelMixin):
 
     user_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey("users.id"))
 
+    created_at: orm.Mapped[datetime] = orm.mapped_column(
+        default=datetime_utc,
+    )
+
     user: orm.Mapped["User"] = orm.relationship(back_populates="store")
 
     items: orm.Mapped[list["Item"]] = orm.relationship()
 
-    created_at: orm.Mapped[datetime] = orm.mapped_column(
-        default=datetime_utc,
-    )
+    _members: orm.Mapped[list["Member"]] = orm.relationship(back_populates="store", viewonly=True)
+
+    @property
+    def members(self):
+        return [member for member in self._members if not member.is_deleted]
 
     def get_item_by_uuid(self, item_uuid: str):
         for item in self.items:

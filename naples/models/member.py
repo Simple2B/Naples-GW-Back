@@ -1,9 +1,11 @@
 import sqlalchemy as sa
+
+from datetime import datetime
 from sqlalchemy import orm
+from typing import TYPE_CHECKING
 
 from naples.database import db
 from .utils import ModelMixin, create_uuid
-from typing import TYPE_CHECKING
 
 
 if TYPE_CHECKING:
@@ -36,9 +38,19 @@ class Member(db.Model, ModelMixin):
 
     messenger_url: orm.Mapped[str] = orm.mapped_column(sa.String(256), default="")
 
-    avatar_url: orm.Mapped[str] = orm.mapped_column(sa.String(512), default="")
+    avatar_url: orm.Mapped[str] = orm.mapped_column(sa.String(512), default="")  # //TODO: reafactor to @property
 
-    items: orm.Mapped[list["Item"]] = orm.relationship("Item", viewonly=True)
+    _items: orm.Mapped[list["Item"]] = orm.relationship("Item", viewonly=True)
+
+    is_deleted: orm.Mapped[bool] = orm.mapped_column(sa.Boolean, default=False)
+
+    @property
+    def items(self):
+        return [item for item in self._items if not item.is_deleted]
+
+    def mark_as_deleted(self):
+        self.is_deleted = True
+        self.email = f"{self.email}-deleted-{datetime.now().timestamp()}"
 
     def __repr__(self):
         return f"<{self.uuid}:{self.name} >"

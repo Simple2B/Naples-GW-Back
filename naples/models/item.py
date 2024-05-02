@@ -92,5 +92,9 @@ class Item(db.Model, ModelMixin):
     def get_fee_by_uuid(self, fee_uuid: str):
         return next((f for f in self.fees if f.uuid == fee_uuid), None)
 
+    def mark_as_deleted(self):
+        self.is_deleted = True
+        self.deleted_at = datetime_utc()
+
     def __repr__(self):
         return f"<{self.uuid}:{self.name} >"
