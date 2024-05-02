@@ -10,7 +10,7 @@ from naples.logger import log
 import sqlalchemy as sa
 from sqlalchemy.orm import Session
 
-from naples.dependency import get_current_user, get_current_store
+from naples.dependency import get_current_user, get_current_store, get_current_user_store
 from naples.database import get_db
 
 from naples.config import config
@@ -40,7 +40,7 @@ def get_item_by_uuid(
         sa.select(m.Item).where(m.Item.uuid == item_uuid, m.Item.store_id == current_store.id)
     )
 
-    if not item:
+    if not item or item.is_deleted:
         log(log.ERROR, "Item [%s] not found for store [%s]", item_uuid, current_store.url)
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
 
@@ -175,3 +175,31 @@ def create_item(
 
     log(log.INFO, "Created item [%s] for store [%s]", new_item.name, new_item_model.store_id)
     return s.ItemOut.model_validate(new_item_model)
+
+
+@item_router.delete(
+    "/{item_uuid}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    responses={
+        404: {"description": "Item not found"},
+    },
+)
+def delete_item(
+    item_uuid: str,
+    db: Session = Depends(get_db),
+    current_store: m.Store = Depends(get_current_user_store),
+):
+    """Delete item by UUID"""
+
+    item = db.scalar(sa.select(m.Item).where(m.Item.uuid == item_uuid, m.Item.store_id == current_store.id))
+
+    if not item:
+        log(log.ERROR, "Item [%s] not found for store [%s]", item_uuid, current_store.url)
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
+
+    item.mark_as_deleted()
+    db.commit()
+    db.refresh(item)
+
+    log(log.INFO, "Deleted item [%s] for store [%s]", item_uuid, current_store.url)
+    return None

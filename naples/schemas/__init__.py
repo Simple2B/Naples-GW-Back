@@ -15,7 +15,7 @@ from .item import (
     ItemsFilterDataOut,
     ItemDataIn,
 )
-from .member import Member, MemberIn, MemberOut
+from .member import Member, MemberIn, MemberOut, MemberListOut
 from .file import FileType, File, FileOut, OwnerType, Files, FileIn
 from .amenity import Amenity, AmenityOut
 from .locations import (
