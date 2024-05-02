@@ -14,6 +14,7 @@ if TYPE_CHECKING:
     from .member import Member
     from .city import City
     from .amenity import Amenity
+    from .fee import Fee
 
 
 class Item(db.Model, ModelMixin):
@@ -69,13 +70,22 @@ class Item(db.Model, ModelMixin):
 
     _amenities: orm.Mapped[list["Amenity"]] = orm.relationship(secondary="amenities_items")
 
+    _fees: orm.Mapped[list["Fee"]] = orm.relationship()
+
     @property
     def amenities(self) -> list[str]:
         return [a.value for a in self._amenities if not a.is_deleted]
 
     @property
+    def fees(self) -> list["Fee"]:
+        return [f for f in self._fees if not f.is_deleted]
+
+    @property
     def image_url(self) -> str:
         return ""
+
+    def get_fee_by_uuid(self, fee_uuid: str):
+        return next((f for f in self.fees if f.uuid == fee_uuid), None)
 
     def __repr__(self):
         return f"<{self.uuid}:{self.name} >"

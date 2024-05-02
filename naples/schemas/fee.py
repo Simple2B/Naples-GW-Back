@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 class FeeIn(BaseModel):
@@ -12,3 +12,16 @@ class FeeOut(BaseModel):
     uuid: str
     name: str
     amount: float
+    visible: bool
+
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
+
+
+class FeeListOut(BaseModel):
+    items: list[FeeOut]
+
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
