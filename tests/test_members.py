@@ -1,4 +1,3 @@
-from datetime import datetime, UTC
 from sqlalchemy.orm import Session
 from sqlalchemy import select
 from fastapi.testclient import TestClient
