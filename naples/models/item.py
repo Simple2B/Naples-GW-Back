@@ -15,6 +15,7 @@ if TYPE_CHECKING:
     from .city import City
     from .amenity import Amenity
     from .fee import Fee
+    from .rate import Rate
 
 
 class Item(db.Model, ModelMixin):
@@ -69,8 +70,8 @@ class Item(db.Model, ModelMixin):
     realtor: orm.Mapped["Member"] = orm.relationship()
 
     _amenities: orm.Mapped[list["Amenity"]] = orm.relationship(secondary="amenities_items")
-
     _fees: orm.Mapped[list["Fee"]] = orm.relationship()
+    _rates: orm.Mapped[list["Rate"]] = orm.relationship()
 
     @property
     def amenities(self) -> list[str]:
@@ -79,6 +80,10 @@ class Item(db.Model, ModelMixin):
     @property
     def fees(self) -> list["Fee"]:
         return [f for f in self._fees if not f.is_deleted]
+
+    @property
+    def rates(self) -> list["Rate"]:
+        return [r for r in self._rates if not r.is_deleted]
 
     @property
     def image_url(self) -> str:
