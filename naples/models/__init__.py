@@ -12,3 +12,5 @@ from .county import County
 from .city import City
 from .fee import Fee
 from .rate import Rate
+from .floor_plan import FloorPlan
+from .floor_plan_marker import FloorPlanMarker

@@ -6,7 +6,8 @@
     "passlib",
     "pydantic",
     "realtor",
-    "SQLALCHEMY"
+    "SQLALCHEMY",
+    "viewonly"
   ],
   "python.testing.unittestArgs": ["-v", "-s", "./tests", "-p", "test*.py"],
   "python.testing.unittestEnabled": false,

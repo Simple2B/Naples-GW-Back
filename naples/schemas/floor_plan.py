@@ -1,11 +1,10 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
-class FlorPlanMarkerIn(BaseModel):
+class FloorPlanMarkerIn(BaseModel):
     x: float
     y: float
     floor_plan_uuid: str
-    image_uuids: list[str]
 
 
 class FloorPlanMarkerOut(BaseModel):
@@ -14,9 +13,12 @@ class FloorPlanMarkerOut(BaseModel):
     y: float
     images: list[str]
 
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
+
 
 class FloorPlanIn(BaseModel):
-    img_uuid: str
     item_uuid: str
 
 
@@ -24,3 +26,15 @@ class FloorPlanOut(BaseModel):
     uuid: str
     img_url: str
     markers: list[FloorPlanMarkerOut]
+
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
+
+
+class FloorPlanListOut(BaseModel):
+    items: list[FloorPlanOut]
+
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
