@@ -18,7 +18,7 @@ class File(db.Model, ModelMixin):
 
     type: orm.Mapped[str] = orm.mapped_column(sa.String(64))
 
-    url: orm.Mapped[str] = orm.mapped_column(sa.String(256), default="")
+    url: orm.Mapped[str] = orm.mapped_column(sa.String(256), unique=True)
 
     owner_type: orm.Mapped[str] = orm.mapped_column()
 
