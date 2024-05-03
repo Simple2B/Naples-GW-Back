@@ -24,7 +24,7 @@ class Item(db.Model, ModelMixin):
 
     id: orm.Mapped[int] = orm.mapped_column(primary_key=True)
 
-    uuid: orm.Mapped[str] = orm.mapped_column(sa.String(36), default=lambda: create_uuid())
+    uuid: orm.Mapped[str] = orm.mapped_column(sa.String(32), default=create_uuid, unique=True)
 
     name: orm.Mapped[str] = orm.mapped_column(
         sa.String(128),
