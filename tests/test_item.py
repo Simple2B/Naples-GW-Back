@@ -17,11 +17,11 @@ def test_get_item(client: TestClient, full_db: Session, headers: dict[str, str],
     assert store
 
     store_url: str = store.url
-    item_uuid = test_data.test_items[0].uuid
+    item_uuid = store.items[0].uuid
     response = client.get(f"/api/items/{item_uuid}?store_url={store_url}", headers=headers)
     assert response.status_code == 200
     item = s.ItemOut.model_validate(response.json())
-    assert item.uuid == test_data.test_items[0].uuid
+    assert item.uuid == store.items[0].uuid
 
 
 def test_create_item(client: TestClient, full_db: Session, headers: dict[str, str], test_data: s.TestData):
@@ -41,9 +41,6 @@ def test_create_item(client: TestClient, full_db: Session, headers: dict[str, st
         bedrooms_count=2,
         bathrooms_count=1,
         stage=s.ItemStage.DRAFT.value,
-        category=s.ItemCategories.BUY.value,
-        type=s.ItemTypes.HOUSE.value,
-        price=1000,
         city_uuid=city.uuid,
         realtor_uuid=test_realtor.uuid,
     )
@@ -85,12 +82,10 @@ def test_get_items(client: TestClient, full_db: Session, headers: dict[str, str]
     assert city
 
     city_uuid = city.uuid
-    category = s.ItemCategories.BUY.value
 
-    response = client.get(f"/api/items?city_uuid={city_uuid}&category={category}&store_url=", headers=headers)
+    response = client.get(f"/api/items?city_uuid={city_uuid}&store_url=", headers=headers)
     assert response.status_code == 403
 
-    type = s.ItemTypes.HOUSE.value
     price_min = 0
     price_max = 10000
 

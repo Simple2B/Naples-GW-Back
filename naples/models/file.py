@@ -10,7 +10,7 @@ class File(db.Model, ModelMixin):
 
     id: orm.Mapped[int] = orm.mapped_column(primary_key=True)
 
-    uuid: orm.Mapped[str] = orm.mapped_column(sa.String(36), default=lambda: create_uuid())
+    uuid: orm.Mapped[str] = orm.mapped_column(sa.String(32), default=create_uuid, unique=True)
 
     name: orm.Mapped[str] = orm.mapped_column(sa.String(128))
 
@@ -19,10 +19,6 @@ class File(db.Model, ModelMixin):
     type: orm.Mapped[str] = orm.mapped_column(sa.String(64))
 
     url: orm.Mapped[str] = orm.mapped_column(sa.String(256), unique=True)
-
-    owner_type: orm.Mapped[str] = orm.mapped_column()
-
-    owner_id: orm.Mapped[int] = orm.mapped_column()
 
     def __repr__(self):
         return f"<{self.uuid}:{self.name} >"

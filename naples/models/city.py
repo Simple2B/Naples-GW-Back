@@ -1,11 +1,10 @@
 from typing import TYPE_CHECKING
-from uuid import uuid4
 
 import sqlalchemy as sa
 from sqlalchemy import orm
 
 from naples.database import db
-from .utils import ModelMixin
+from .utils import ModelMixin, create_uuid
 
 if TYPE_CHECKING:
     from .county import County
@@ -16,7 +15,7 @@ class City(db.Model, ModelMixin):
 
     id: orm.Mapped[int] = orm.mapped_column(primary_key=True)
 
-    uuid: orm.Mapped[str] = orm.mapped_column(sa.String(36), default=lambda: str(uuid4()))
+    uuid: orm.Mapped[str] = orm.mapped_column(sa.String(32), default=create_uuid, unique=True)
 
     name: orm.Mapped[str] = orm.mapped_column(sa.String(128))
 

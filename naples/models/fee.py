@@ -14,7 +14,7 @@ class Fee(db.Model):
     __tablename__ = "fees"
 
     id: orm.Mapped[int] = orm.mapped_column(primary_key=True)
-    uuid: orm.Mapped[str] = orm.mapped_column(sa.String(36), default=lambda: create_uuid())
+    uuid: orm.Mapped[str] = orm.mapped_column(sa.String(32), default=create_uuid, unique=True)
     name: orm.Mapped[str] = orm.mapped_column(sa.String(128))
     amount: orm.Mapped[float] = orm.mapped_column()
     is_deleted: orm.Mapped[bool] = orm.mapped_column(default=False)

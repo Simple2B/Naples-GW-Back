@@ -61,5 +61,5 @@ def create_stote(
     )
     db.add(new_store)
     db.commit()
-    log(log.INFO, "Created store [%s] for user [%s]", new_store.name, new_store.user_id)
+    log(log.INFO, "Created store [%s] for user [%s]", new_store.url, new_store.user_id)
     return new_store
