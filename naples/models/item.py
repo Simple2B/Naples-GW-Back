@@ -17,6 +17,7 @@ if TYPE_CHECKING:
     from .fee import Fee
     from .rate import Rate
     from .floor_plan import FloorPlan
+    from .file import File
 
 
 class Item(db.Model, ModelMixin):
@@ -57,14 +58,14 @@ class Item(db.Model, ModelMixin):
     address: orm.Mapped[str] = orm.mapped_column(sa.String(256), default="")
 
     stage: orm.Mapped[str] = orm.mapped_column(default=s.ItemStage.DRAFT.value)
-    category: orm.Mapped[str] = orm.mapped_column(default=s.ItemCategories.BUY.value)
-    type: orm.Mapped[str] = orm.mapped_column(default=s.ItemTypes.HOUSE.value)
 
     size: orm.Mapped[int] = orm.mapped_column(default=0)
     bedrooms_count: orm.Mapped[int] = orm.mapped_column(default=0)
     bathrooms_count: orm.Mapped[int] = orm.mapped_column(default=0)
 
-    price: orm.Mapped[int] = orm.mapped_column()
+    airbnb_url: orm.Mapped[str] = orm.mapped_column(sa.String(256), default="")
+    vrbo_url: orm.Mapped[str] = orm.mapped_column(sa.String(256), default="")
+    expedia_url: orm.Mapped[str] = orm.mapped_column(sa.String(256), default="")
 
     realtor_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey("members.id"))
 
@@ -74,6 +75,14 @@ class Item(db.Model, ModelMixin):
     _fees: orm.Mapped[list["Fee"]] = orm.relationship()
     _rates: orm.Mapped[list["Rate"]] = orm.relationship()
     _floor_plans: orm.Mapped[list["FloorPlan"]] = orm.relationship(viewonly=True)
+
+    image_id: orm.Mapped[int | None] = orm.mapped_column(sa.ForeignKey("files.id"))
+
+    image: orm.Mapped["File"] = orm.relationship(foreign_keys=[image_id])
+
+    video_id: orm.Mapped[int | None] = orm.mapped_column(sa.ForeignKey("files.id"))
+
+    video: orm.Mapped["File"] = orm.relationship(foreign_keys=[video_id])
 
     @property
     def amenities(self) -> list[str]:
@@ -92,8 +101,24 @@ class Item(db.Model, ModelMixin):
         return [f for f in self._floor_plans if not f.is_deleted]
 
     @property
+    def logo_url(self) -> str:
+        return self.store.logo_url
+
+    @property
     def image_url(self) -> str:
-        return ""
+        return self.image.url if self.image else ""
+
+    @property
+    def video_url(self) -> str:
+        return self.video.url if self.video else ""
+
+    @property
+    def min_price(self) -> float:
+        return min([r.night for r in self.rates]) if self.rates else 0
+
+    @property
+    def max_price(self) -> float:
+        return max([r.month for r in self.rates]) if self.rates else 0
 
     def get_fee_by_uuid(self, fee_uuid: str):
         return next((f for f in self.fees if f.uuid == fee_uuid), None)

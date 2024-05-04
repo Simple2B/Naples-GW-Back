@@ -24,7 +24,7 @@ item_router = APIRouter(prefix="/items", tags=["Items"])
 @item_router.get(
     "/{item_uuid}",
     status_code=status.HTTP_200_OK,
-    response_model=s.ItemOut,
+    response_model=s.ItemDetailsOut,
     responses={
         404: {"description": "Item not found"},
     },
@@ -44,7 +44,7 @@ def get_item_by_uuid(
         log(log.ERROR, "Item [%s] not found for store [%s]", item_uuid, current_store.url)
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
 
-    return s.ItemOut.model_validate(item)
+    return s.ItemDetailsOut.model_validate(item)
 
 
 @item_router.get(
@@ -59,8 +59,6 @@ def get_item_by_uuid(
 )
 def get_items(
     city_uuid: str | None = None,
-    category: str | None = None,
-    type: str | None = None,
     price_max: int | None = None,
     price_min: int | None = None,
     params: Params = Depends(),
@@ -81,14 +79,9 @@ def get_items(
     if city:
         stmt = stmt.where(m.Item.city_id == city.id)
 
-    if category:
-        stmt = stmt.where(m.Item.category == category)
-
-    if type:
-        stmt = stmt.where(m.Item.type == type)
-
-    if price_min and price_max:
-        stmt = stmt.where(sa.and_(m.Item.price >= price_min, m.Item.price <= price_max))
+    # TODO: Refactor this filter
+    # if price_min and price_max:
+    #     stmt = stmt.where(sa.and_(m.Item.min_price >= price_min, m.Item.max_price <= price_max))
 
     db_items: Sequence[m.Item] = db.scalars(stmt).all()
     items: Sequence[s.ItemOut] = [s.ItemOut.model_validate(item) for item in db_items]
@@ -115,12 +108,10 @@ def get_filters_data(
 
     items: Sequence[m.Item] = db.scalars(sa.select(m.Item).where(m.Item.store_id == store.id)).all()
 
-    price_min: int = min(item.price for item in items)
-    price_max: int = max(item.price for item in items)
+    price_min: int = min(int(item.min_price) for item in items)
+    price_max: int = max(int(item.max_price) for item in items)
 
     return s.ItemsFilterDataOut(
-        categories=list(s.ItemCategories),
-        types=list(s.ItemTypes),
         price_max=price_max,
         price_min=price_min,
     )

@@ -1,51 +1,18 @@
 import enum
-from pydantic import BaseModel, ConfigDict, Field
 from datetime import datetime
+from pydantic import BaseModel, ConfigDict, Field, AliasChoices
 
 
-class ItemTypes(enum.Enum):
-    HOUSE = "house"
-    APARTMENT = "apartment"
-    LAND = "land"
-    COMMERCIAL = "commercial"
-
-
-class ItemCategories(enum.Enum):
-    BUY = "BUY"
-    RENT = "RENT"
+from .member import MemberOut
+from .fee import FeeOut
+from .rate import RateOut
+from .floor_plan import FloorPlanOut
 
 
 class ItemStage(enum.Enum):
     DRAFT = "draft"
     ACTIVE = "active"
     ARCHIVE = "archive"
-
-
-class Item(BaseModel):
-    name: str
-    description: str = ""
-    latitude: float = 0.0
-    longitude: float = 0.0
-    store_id: int
-    is_deleted: bool = False
-    created_at: datetime
-    deleted_at: datetime | None = None
-    address: str = ""
-    size: int = 0
-    price: int
-    bedrooms_count: int = 0
-    bathrooms_count: int = 0
-
-    stage: str = ItemStage.DRAFT.value
-    category: str = ItemCategories.BUY.value
-    type: str = ItemTypes.HOUSE.value
-
-    realtor_id: int | None = None
-    city_id: int
-
-    model_config = ConfigDict(
-        from_attributes=True,
-    )
 
 
 class ItemIn(BaseModel):
@@ -55,29 +22,66 @@ class ItemIn(BaseModel):
     longitude: float = 0.0
     address: str = ""
     size: int = 0
-    price: int
     bedrooms_count: int = 0
     bathrooms_count: int = 0
     city_uuid: str
     realtor_uuid: str
+    airbnb_url: str = ""
+    vrbo_url: str = ""
+    expedia_url: str = ""
 
     stage: str = ItemStage.DRAFT.value
-    category: str = ItemCategories.BUY.value
-    type: str = ItemTypes.HOUSE.value
 
     model_config = ConfigDict(
         from_attributes=True,
     )
 
 
-class ItemOut(Item):
+class ItemOut(BaseModel):
     uuid: str
+    name: str
+    bedrooms_count: int = Field(
+        validation_alias=AliasChoices("bedrooms_count", "bedroomsCount"), serialization_alias="bedroomsCount"
+    )
+    bathroom_count: int = Field(
+        validation_alias=AliasChoices("bathrooms_count", "bathroomsCount"), serialization_alias="bathroomsCount"
+    )
+    size: int
+    longitude: float
+    latitude: float
+
     image_url: str = Field("", alias="imageUrl")
-    amenities: list[str]
+
+    stage: str
 
     model_config = ConfigDict(
         from_attributes=True,
     )
+
+
+class ItemDetailsOut(ItemOut):
+    logo_url: str
+    image_url: str
+    video_url: str
+    realtor: MemberOut
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
+    fees: list[FeeOut]
+    rates: list[RateOut]
+    airbnb_url: str
+    vrbo_url: str
+    expedia_url: str
+
+    floor_plans: list[FloorPlanOut]
+
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
+
+    images: list[str] = []
+
+    booked_dates: list[datetime] = []
 
 
 class Items(BaseModel):
@@ -97,8 +101,6 @@ class ItemsFilterDataIn(BaseModel):
 
 
 class ItemsFilterDataOut(BaseModel):
-    categories: list[ItemCategories]
-    types: list[ItemTypes]
     price_max: int
     price_min: int
 

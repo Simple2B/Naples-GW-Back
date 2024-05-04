@@ -20,9 +20,5 @@ class File(db.Model, ModelMixin):
 
     url: orm.Mapped[str] = orm.mapped_column(sa.String(256), unique=True)
 
-    owner_type: orm.Mapped[str] = orm.mapped_column()
-
-    owner_id: orm.Mapped[int] = orm.mapped_column()
-
     def __repr__(self):
         return f"<{self.uuid}:{self.name} >"

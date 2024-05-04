@@ -11,6 +11,7 @@ if TYPE_CHECKING:
     from .user import User
     from .item import Item
     from .member import Member
+    from .file import File
 
 
 class Store(db.Model, ModelMixin):
@@ -20,12 +21,6 @@ class Store(db.Model, ModelMixin):
 
     uuid: orm.Mapped[str] = orm.mapped_column(sa.String(32), default=create_uuid, unique=True)
 
-    name: orm.Mapped[str] = orm.mapped_column(
-        sa.String(128),
-        unique=True,
-        nullable=False,
-    )
-
     header: orm.Mapped[str] = orm.mapped_column(sa.String(256), default="")
 
     sub_header: orm.Mapped[str] = orm.mapped_column(sa.String(256), default="")
@@ -33,8 +28,6 @@ class Store(db.Model, ModelMixin):
     url: orm.Mapped[str] = orm.mapped_column(sa.String(256), unique=True, default="")
 
     logo_url: orm.Mapped[str] = orm.mapped_column(sa.String(256), default="")
-
-    about_us: orm.Mapped[str] = orm.mapped_column(sa.Text, default="")
 
     email: orm.Mapped[str] = orm.mapped_column(
         sa.String(128),
@@ -55,13 +48,33 @@ class Store(db.Model, ModelMixin):
 
     user: orm.Mapped["User"] = orm.relationship(back_populates="store")
 
-    items: orm.Mapped[list["Item"]] = orm.relationship()
+    _items: orm.Mapped[list["Item"]] = orm.relationship(viewonly=True)
 
     _members: orm.Mapped[list["Member"]] = orm.relationship(back_populates="store", viewonly=True)
+
+    image_id: orm.Mapped[int | None] = orm.mapped_column(sa.ForeignKey("files.id"))
+
+    video_id: orm.Mapped[int | None] = orm.mapped_column(sa.ForeignKey("files.id"))
+
+    image: orm.Mapped["File"] = orm.relationship(viewonly=True, foreign_keys=[image_id])
+
+    video: orm.Mapped["File"] = orm.relationship(viewonly=True, foreign_keys=[video_id])
 
     @property
     def members(self):
         return [member for member in self._members if not member.is_deleted]
+
+    @property
+    def items(self):
+        return [item for item in self._items if not item.is_deleted]
+
+    @property
+    def image_url(self):
+        return self.image.url if self.image else ""
+
+    @property
+    def video_url(self):
+        return self.video.url if self.video else ""
 
     def get_item_by_uuid(self, item_uuid: str):
         for item in self.items:
@@ -71,4 +84,4 @@ class Store(db.Model, ModelMixin):
             return None
 
     def __repr__(self):
-        return f"<{self.id}:{self.name} >"
+        return f"<{self.id}:{self.url} >"

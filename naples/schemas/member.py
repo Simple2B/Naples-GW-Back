@@ -5,7 +5,6 @@ class Member(BaseModel):
     name: str
     email: str
     phone: str = ""
-    store_id: int
     instagram_url: str = ""
     messenger_url: str = ""
     avatar_url: str = ""
