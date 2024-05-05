@@ -23,13 +23,13 @@ TEST_CSV_FILE = MODULE_PATH / ".." / "data" / "test_uscities.csv"
 def db(test_data: s.TestData) -> Generator[orm.Session, None, None]:
     from naples.database import db, get_db
     from services.export_usa_locations import export_usa_locations_from_csv_file
-    from services.create_test_data import create_item, create_member, create_store, create_user
+    from services.create_test_data import create_item, create_member, create_store, create_test_user
 
     with db.Session() as session:
         db.Model.metadata.drop_all(bind=session.bind)
         db.Model.metadata.create_all(bind=session.bind)
         for test_user in test_data.test_users:
-            user = create_user(test_user)
+            user = create_test_user(test_user)
             session.add(user)
 
         for test_store in test_data.test_stores:
@@ -68,7 +68,7 @@ def client(db) -> Generator[TestClient, None, None]:
         yield c
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def test_data() -> Generator[s.TestData, None, None]:
     """Returns a TestData object"""
     with open("data/test_data.json", "r") as f:

@@ -14,6 +14,18 @@ def create_user(test_user: s.TestUser) -> m.User:
     return user
 
 
+def create_test_user(test_user: s.TestUser) -> m.User:
+    """Create test user"""
+    user = m.User(
+        id=test_user.id,
+        email=test_user.email,
+        password_hash=test_user.password,
+        is_verified=True,
+    )
+
+    return user
+
+
 def create_store(test_store: s.TestStore) -> m.Store:
     """Create test store"""
     store = m.Store(
