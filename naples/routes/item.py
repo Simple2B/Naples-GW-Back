@@ -205,6 +205,7 @@ def delete_item(
     },
 )
 def upload_item_main_image(
+    item_uuid: str,
     image: s.FileIn,
     db: Session = Depends(get_db),
     current_store: m.User = Depends(get_current_user_store),
@@ -221,6 +222,7 @@ def upload_item_main_image(
     },
 )
 def upload_item_main_video(
+    item_uuid: str,
     video: s.FileIn,
     db: Session = Depends(get_db),
     current_store: m.User = Depends(get_current_user_store),
@@ -237,7 +239,7 @@ def upload_item_main_video(
     },
 )
 def delete_item_main_image(
-    image_uuid: str,
+    item_uuid: str,
     db: Session = Depends(get_db),
     current_store: m.User = Depends(get_current_user_store),
 ):
@@ -253,7 +255,7 @@ def delete_item_main_image(
     },
 )
 def delete_item_video(
-    video_uuid: str,
+    item_uuid: str,
     db: Session = Depends(get_db),
     current_store: m.User = Depends(get_current_user_store),
 ):
