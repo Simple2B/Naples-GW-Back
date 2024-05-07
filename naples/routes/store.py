@@ -73,12 +73,12 @@ def create_stote(
 def upload_store_image(
     image: UploadFile,
     db: Session = Depends(get_db),
-    current_store: m.Store = Depends(get_current_user_store),
+    # current_store: m.Store = Depends(get_current_user_store),
 ):
-    log(log.INFO, "Uploading image [%s] for store [%s]", image.filename, current_store.url)
-    log(log.INFO, "THIS IS A TEST ROUTE. TO BE IMPLEMENTED")
+    # log(log.INFO, "Uploading image [%s] for store [%s]", image.filename, current_store.url)
+    log(log.INFO, f"THIS IS A TEST ROUTE. TO BE IMPLEMENTED: {image.filename}")
 
-    return current_store
+    # return current_store
 
 
 @store_router.post(
