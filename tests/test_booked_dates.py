@@ -40,7 +40,7 @@ def test_get_booked_dates(client: TestClient, full_db: Session, headers: dict[st
 
     booked_date_one = m.BookedDate(date=datetime.now(), item_id=item.id)
     booked_date_two = m.BookedDate(date=datetime.now(), item_id=item.id)
-    full_db.add([booked_date_one, booked_date_two])
+    full_db.add_all([booked_date_one, booked_date_two])
     full_db.commit()
 
     res = client.get(f"/api/booked_dates/{item.uuid}", headers=headers)
@@ -53,4 +53,35 @@ def test_get_booked_dates(client: TestClient, full_db: Session, headers: dict[st
 
 
 def test_delete_booked_dates(client: TestClient, full_db: Session, headers: dict[str, str]):
-    pass
+    item = full_db.scalar(select(m.Item))
+    assert item
+
+    booked_date_one = m.BookedDate(date=datetime.now(), item_id=item.id)
+    booked_date_two = m.BookedDate(date=datetime.now(), item_id=item.id)
+    full_db.add_all([booked_date_one, booked_date_two])
+    full_db.commit()
+    full_db.refresh(item)
+
+    req_payload = s.BookedDateDeleteBatchIn(item_uuid=item.uuid, dates_uuids=[booked_date_one.uuid])
+
+    res = client.put("/api/booked_dates/delete", content=req_payload.model_dump_json(), headers=headers)
+
+    assert res.status_code == 204
+
+    item_res = client.get(f"/api/items/{item.uuid}")
+
+    assert item_res.status_code == 200
+
+    item_data = s.ItemDetailsOut.model_validate(item_res.json())
+
+    assert len(item_data.booked_dates) == 1
+    assert item_data.booked_dates[0] == booked_date_two.date
+
+    dates_list_res = client.get(f"/api/booked_dates/{item.uuid}", headers=headers)
+
+    assert dates_list_res.status_code == 200
+
+    booked_dates = s.BookedDateListOut.model_validate(dates_list_res.json())
+    assert len(booked_dates.items) == 1
+
+    assert booked_dates.items[0].date == booked_date_two.date

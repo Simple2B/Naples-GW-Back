@@ -7,6 +7,11 @@ class BookedDatesBatchIn(BaseModel):
     dates: list[datetime]
 
 
+class BookedDateDeleteBatchIn(BaseModel):
+    item_uuid: str
+    dates_uuids: list[str]
+
+
 class BookedDateOut(BaseModel):
     uuid: str
     date: datetime
