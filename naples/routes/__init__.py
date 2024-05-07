@@ -12,6 +12,7 @@ from .fee import fee_router
 from .rate import rates_router
 from .floor_plan import floor_plan_router
 from .floor_plan_marker import floor_plan_marker_router
+from .booked_date import booked_date_router
 
 
 router = APIRouter(prefix="/api", tags=["API"])
@@ -26,6 +27,7 @@ router.include_router(fee_router)
 router.include_router(rates_router)
 router.include_router(floor_plan_router)
 router.include_router(floor_plan_marker_router)
+router.include_router(booked_date_router)
 
 
 @router.get("/list-endpoints/")

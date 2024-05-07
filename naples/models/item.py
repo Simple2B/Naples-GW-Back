@@ -18,6 +18,7 @@ if TYPE_CHECKING:
     from .rate import Rate
     from .floor_plan import FloorPlan
     from .file import File
+    from .booked_date import BookedDate
 
 
 class Item(db.Model, ModelMixin):
@@ -75,6 +76,7 @@ class Item(db.Model, ModelMixin):
     _fees: orm.Mapped[list["Fee"]] = orm.relationship()
     _rates: orm.Mapped[list["Rate"]] = orm.relationship()
     _floor_plans: orm.Mapped[list["FloorPlan"]] = orm.relationship(viewonly=True)
+    _booked_dates: orm.Mapped[list["BookedDate"]] = orm.relationship(viewonly=True)
 
     image_id: orm.Mapped[int | None] = orm.mapped_column(sa.ForeignKey("files.id"))
 
@@ -119,6 +121,10 @@ class Item(db.Model, ModelMixin):
     @property
     def max_price(self) -> float:
         return max([r.month for r in self.rates]) if self.rates else 0
+
+    @property
+    def booked_dates(self) -> list[datetime]:
+        return [b.date for b in self._booked_dates if not b.is_deleted]
 
     def get_fee_by_uuid(self, fee_uuid: str):
         return next((f for f in self.fees if f.uuid == fee_uuid), None)
