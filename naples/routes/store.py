@@ -65,7 +65,7 @@ def create_stote(
 @store_router.post(
     "/image",
     status_code=status.HTTP_201_CREATED,
-    response_model=s.StoreOut,
+    # response_model=s.StoreOut,
     responses={
         404: {"description": "Store not found"},
     },
