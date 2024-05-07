@@ -11,6 +11,7 @@ from .utils import ModelMixin, create_uuid
 if TYPE_CHECKING:
     from .store import Store
     from .item import Item
+    from .file import File
 
 
 class Member(db.Model, ModelMixin):
@@ -38,7 +39,9 @@ class Member(db.Model, ModelMixin):
 
     messenger_url: orm.Mapped[str] = orm.mapped_column(sa.String(256), default="")
 
-    avatar_url: orm.Mapped[str] = orm.mapped_column(sa.String(512), default="")  # //TODO: reafactor to @property
+    avatar_id: orm.Mapped[int | None] = orm.mapped_column(sa.ForeignKey("files.id"))
+
+    avatar: orm.Mapped["File"] = orm.relationship()
 
     _items: orm.Mapped[list["Item"]] = orm.relationship("Item", viewonly=True)
 
@@ -47,6 +50,10 @@ class Member(db.Model, ModelMixin):
     @property
     def items(self):
         return [item for item in self._items if not item.is_deleted]
+
+    @property
+    def avatar_url(self):
+        return self.avatar.url if self.avatar and not self.avatar.is_deleted else ""
 
     def mark_as_deleted(self):
         self.is_deleted = True

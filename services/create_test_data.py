@@ -70,7 +70,6 @@ def create_member(member: s.TestMember) -> m.Member:
         phone=member.phone,
         instagram_url=member.instagram_url,
         messenger_url=member.messenger_url,
-        avatar_url=member.avatar_url,
         store_id=member.store_id,
     )
     return member

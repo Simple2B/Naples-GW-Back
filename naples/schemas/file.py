@@ -29,8 +29,6 @@ class File(BaseModel):
 class FileIn(BaseModel):
     name: str
     file_base64: str
-    owner_type: str = OwnerType.STORE.value
-    owner_uuid: int
     type: str = FileType.IMAGE.value
 
     model_config = ConfigDict(

@@ -8,6 +8,8 @@ from naples.config import config
 
 CFG = config("testing")
 
+DUMMY_FILE_BASE_64 = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD/4QA6RXhpZgAATU0AKgAAAAgAA1IBAAABAAEA"
+
 
 def test_get_store(client: TestClient, headers: dict[str, str], test_data: s.TestData, full_db: Session):
     store_model = full_db.scalar(sa.select(m.Store))
@@ -38,3 +40,35 @@ def test_create_store(
     )
     response = client.post("/api/stores/", headers=headers, json=test_store.model_dump())
     assert response.status_code == 201
+
+
+def test_upload_image(client: TestClient, headers: dict[str, str], full_db: Session):
+    # TODO: TO BE IMPLEMENTED
+    # store_model = full_db.scalar(sa.select(m.Store))
+    # assert store_model
+
+    # image_payload = s.FileIn(name="test.jpg", file_base64=DUMMY_FILE_BASE_64, type=s.FileType.IMAGE.value)
+
+    # response = client.post(
+    #     "/api/stores/image",
+    #     headers=headers,
+    #     content=image_payload.model_dump_json(),
+    # )
+    # assert response.status_code == 201
+    pass
+
+
+def test_update_image(client: TestClient, headers: dict[str, str], full_db: Session):
+    # TODO: TO BE IMPLEMENTED
+    # store_model = full_db.scalar(sa.select(m.Store))
+    # assert store_model
+
+    # image_payload = s.FileIn(name="test.jpg", file_base64=DUMMY_FILE_BASE_64, type=s.FileType.IMAGE.value)
+
+    # response = client.put(
+    #     f"/api/stores/image/{store_model.uuid}",
+    #     headers=headers,
+    #     content=image_payload.model_dump_json(),
+    # )
+    # assert response.status_code == 201
+    pass

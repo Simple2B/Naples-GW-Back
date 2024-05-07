@@ -44,9 +44,6 @@ async def upload_file(
         settings=CFG,
         s3_client=s3_client,
         extension=file_type.extension,
-        type=file.type,
-        owner_type=file.owner_type,
-        owner_uuid=file.owner_uuid,
     )
     return s.FileOut.model_validate(file_model)
 
