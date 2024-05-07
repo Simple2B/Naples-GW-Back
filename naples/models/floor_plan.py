@@ -9,6 +9,7 @@ from .utils import create_uuid
 if TYPE_CHECKING:
     from .item import Item
     from .floor_plan_marker import FloorPlanMarker
+    from .file import File
 
 
 class FloorPlan(db.Model):
@@ -22,11 +23,15 @@ class FloorPlan(db.Model):
 
     item: orm.Mapped["Item"] = orm.relationship()
 
+    image_id: orm.Mapped[int | None] = orm.mapped_column(sa.ForeignKey("files.id"))
+
+    image: orm.Mapped["File"] = orm.relationship("File")
+
     _markers: orm.Mapped[list["FloorPlanMarker"]] = orm.relationship("FloorPlanMarker", back_populates="floor_plan")
 
     @property
     def img_url(self):
-        return ""
+        return self.image.url if self.image and not self.image.is_deleted else ""
 
     @property
     def markers(self):

@@ -174,8 +174,7 @@
       "phone": "123456789",
       "store_id": 1,
       "instagram_url": "test_instagram_url1",
-      "messenger_url": "test_messenger_url1",
-      "avatar_url": "test_avatar_url1"
+      "messenger_url": "test_messenger_url1"
     }
   ],
   "test_files": [

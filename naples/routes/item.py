@@ -194,3 +194,135 @@ def delete_item(
 
     log(log.INFO, "Deleted item [%s] for store [%s]", item_uuid, current_store.url)
     return None
+
+
+@item_router.post(
+    "{item_uuid}/main_image",
+    status_code=status.HTTP_200_OK,
+    response_model=s.StoreOut,
+    responses={
+        404: {"description": "Store not found"},
+    },
+)
+def upload_item_main_image(
+    image: s.FileIn,
+    db: Session = Depends(get_db),
+    current_store: m.User = Depends(get_current_user_store),
+):
+    raise NotImplementedError("Not implemented")
+
+
+@item_router.post(
+    "{item_uuid}/main_video",
+    status_code=status.HTTP_200_OK,
+    response_model=s.StoreOut,
+    responses={
+        404: {"description": "Store not found"},
+    },
+)
+def upload_item_main_video(
+    video: s.FileIn,
+    db: Session = Depends(get_db),
+    current_store: m.User = Depends(get_current_user_store),
+):
+    raise NotImplementedError("Not implemented")
+
+
+@item_router.delete(
+    "{item_uuid}/main_image",
+    status_code=status.HTTP_200_OK,
+    response_model=s.StoreOut,
+    responses={
+        404: {"description": "Store not found"},
+    },
+)
+def delete_item_main_image(
+    image_uuid: str,
+    db: Session = Depends(get_db),
+    current_store: m.User = Depends(get_current_user_store),
+):
+    raise NotImplementedError("Not implemented")
+
+
+@item_router.delete(
+    "{item_uuid}/main_video",
+    status_code=status.HTTP_200_OK,
+    response_model=s.StoreOut,
+    responses={
+        404: {"description": "Store not found"},
+    },
+)
+def delete_item_video(
+    video_uuid: str,
+    db: Session = Depends(get_db),
+    current_store: m.User = Depends(get_current_user_store),
+):
+    raise NotImplementedError("Not implemented")
+
+
+@item_router.post(
+    "/{item_uuid}/image",
+    status_code=status.HTTP_200_OK,
+    response_model=s.ItemOut,
+    responses={
+        404: {"description": "Item not found"},
+    },
+)
+def upload_item_image(
+    image: Sequence[s.FileIn],
+    item_uuid: str,
+    db: Session = Depends(get_db),
+    current_store: m.User = Depends(get_current_user_store),
+):
+    raise NotImplementedError("Not implemented")
+
+
+@item_router.delete(
+    "/{item_uuid}/image/{image_uuid}",
+    status_code=status.HTTP_200_OK,
+    response_model=s.ItemOut,
+    responses={
+        404: {"description": "Item not found"},
+    },
+)
+def delete_item_image(
+    item_uuid: str,
+    image_uuid: str,
+    db: Session = Depends(get_db),
+    current_store: m.User = Depends(get_current_user_store),
+):
+    raise NotImplementedError("Not implemented")
+
+
+@item_router.post(
+    "/{item_uuid}/document",
+    status_code=status.HTTP_200_OK,
+    response_model=s.ItemOut,
+    responses={
+        404: {"description": "Item not found"},
+    },
+)
+def upload_item_document(
+    document: s.FileIn,
+    item_uuid: str,
+    db: Session = Depends(get_db),
+    current_store: m.User = Depends(get_current_user_store),
+):
+    raise NotImplementedError("Not implemented")
+
+
+@item_router.delete(
+    "/{item_uuid}/document/{document_uuid}",
+    status_code=status.HTTP_200_OK,
+    response_model=s.ItemOut,
+    responses={
+        404: {"description": "Item not found"},
+    },
+)
+def delete_item_document(
+    item_uuid: str,
+    document_uuid: str,
+    db: Session = Depends(get_db),
+    current_store: m.User = Depends(get_current_user_store),
+):
+    raise NotImplementedError("Not implemented")

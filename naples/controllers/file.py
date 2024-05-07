@@ -18,9 +18,6 @@ def create_file(
     settings: MergedConfig,
     s3_client,
     extension: str,
-    type: str,
-    owner_type: str,
-    owner_uuid: int,
 ) -> m.File:
     try:
         file_uuid = create_uuid()
@@ -46,8 +43,6 @@ def create_file(
 
     file = m.File(
         type=type,
-        owner_type=owner_type,
-        owner_uuid=owner_uuid,
         uuid=file_uuid,
         url=f"{settings.AWS_S3_BUCKET_URL}/{key}",
         original_name=name,

@@ -65,3 +65,20 @@ def delete_floor_plan(
     db.commit()
 
     log(log.INFO, "Deleted floor plan uuid {%s} in store {%s}", floor_plan_uuid, current_store.uuid)
+
+
+@floor_plan_router.post("/{floor_plan_uuid}/image", status_code=status.HTTP_201_CREATED)
+def upload_floor_plan_image(
+    floor_plan_uuid: str,
+    image: s.FileIn,
+    current_store: m.Store = Depends(get_current_user_store),
+    db: Session = Depends(get_db),
+):
+    raise NotImplementedError("Not implemented")
+
+
+@floor_plan_router.delete("/{floor_plan_uuid}/image", status_code=status.HTTP_204_NO_CONTENT)
+def delete_floor_plan_image(
+    floor_plan_uuid: str, current_store: m.Store = Depends(get_current_user_store), db: Session = Depends(get_db)
+):
+    raise NotImplementedError("Not implemented")

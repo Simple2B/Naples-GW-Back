@@ -108,3 +108,36 @@ def delete_member(
 
     member.mark_as_deleted()
     db.commit()
+
+
+@member_router.post(
+    "{member_uuid}/avatar",
+    response_model=s.MemberOut,
+    status_code=status.HTTP_200_OK,
+    responses={
+        404: {"description": "Member not found"},
+    },
+)
+def upload_member_avatar(
+    member_uuid: str,
+    image: s.FileIn,
+    current_store: m.User = Depends(get_current_user_store),
+    db: Session = Depends(get_db),
+):
+    raise NotImplementedError("Not implemented")
+
+
+@member_router.delete(
+    "{member_uuid}/avatar",
+    response_model=s.MemberOut,
+    status_code=status.HTTP_200_OK,
+    responses={
+        404: {"description": "Member not found"},
+    },
+)
+def delete_member_avatar(
+    member_uuid: str,
+    current_store: m.User = Depends(get_current_user_store),
+    db: Session = Depends(get_db),
+):
+    raise NotImplementedError("Not implemented")
