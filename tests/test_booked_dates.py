@@ -1,4 +1,4 @@
-from datetime import datetime, UTC
+from datetime import datetime
 
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
@@ -68,7 +68,7 @@ def test_delete_booked_dates(client: TestClient, full_db: Session, headers: dict
 
     assert res.status_code == 204
 
-    item_res = client.get(f"/api/items/{item.uuid}")
+    item_res = client.get(f"/api/items/{item.uuid}", params={"store_url": item.store.url})
 
     assert item_res.status_code == 200
 

@@ -36,7 +36,11 @@ async def get_booked_dates_for_item(item_uuid: str, store: m.Store = Depends(get
     if not item:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
     return s.BookedDateListOut(
-        items=[s.BookedDateOut(date=booked_date.date, uuid=booked_date.uuid) for booked_date in item._booked_dates]
+        items=[
+            s.BookedDateOut(date=booked_date.date, uuid=booked_date.uuid)
+            for booked_date in item._booked_dates
+            if not booked_date.is_deleted
+        ]
     )
 
 
