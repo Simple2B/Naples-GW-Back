@@ -111,7 +111,7 @@ def delete_member(
 
 
 @member_router.post(
-    "{member_uuid}/avatar",
+    "/{member_uuid}/avatar",
     response_model=s.MemberOut,
     status_code=status.HTTP_200_OK,
     responses={
@@ -128,7 +128,7 @@ def upload_member_avatar(
 
 
 @member_router.delete(
-    "{member_uuid}/avatar",
+    "/{member_uuid}/avatar",
     response_model=s.MemberOut,
     status_code=status.HTTP_200_OK,
     responses={

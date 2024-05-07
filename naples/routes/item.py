@@ -229,7 +229,7 @@ def upload_item_main_video(
 
 
 @item_router.delete(
-    "{item_uuid}/main_image",
+    "/{item_uuid}/main_image",
     status_code=status.HTTP_200_OK,
     response_model=s.StoreOut,
     responses={
@@ -245,7 +245,7 @@ def delete_item_main_image(
 
 
 @item_router.delete(
-    "{item_uuid}/main_video",
+    "/{item_uuid}/main_video",
     status_code=status.HTTP_200_OK,
     response_model=s.StoreOut,
     responses={
