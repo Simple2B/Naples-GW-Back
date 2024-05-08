@@ -15,3 +15,4 @@ from .rate import Rate
 from .floor_plan import FloorPlan
 from .floor_plan_marker import FloorPlanMarker
 from .booked_date import BookedDate
+from .floor_plan_markers_image import FloorPlanMarkerImage
