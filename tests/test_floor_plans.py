@@ -1,4 +1,5 @@
 from fastapi.testclient import TestClient
+from mypy_boto3_s3 import S3Client
 from sqlalchemy.orm import Session
 from sqlalchemy import select
 
@@ -127,3 +128,61 @@ def test_delete_floor_plan(client: TestClient, full_db: Session, headers: dict[s
     plans = s.FloorPlanListOut.model_validate(plan_res.json())
 
     assert not plans.items
+
+
+def test_upload_floor_plan_image(client: TestClient, full_db: Session, headers: dict[str, str], s3_client: S3Client):
+    item = full_db.scalar(select(m.Item))
+    assert item
+
+    plan_payload = s.FloorPlanIn(
+        item_uuid=item.uuid,
+    )
+
+    res = client.post("/api/floor_plans/", content=plan_payload.model_dump_json(), headers=headers)
+
+    plan_data = s.FloorPlanOut.model_validate(res.json())
+
+    with open("tests/house_example.png", "rb") as image_file:
+        res = client.post(
+            f"/api/floor_plans/{plan_data.uuid}/image",
+            files={"image": ("test_image", image_file, "image/jpeg")},
+            headers=headers,
+        )
+        assert res.status_code == 201
+
+        floor_plan = s.FloorPlanOut.model_validate(res.json())
+        assert floor_plan.img_url
+
+
+def test_update_floor_plan_image(client: TestClient, full_db: Session, headers: dict[str, str], s3_client: S3Client):
+    item = full_db.scalar(select(m.Item))
+    assert item
+
+    plan_payload = s.FloorPlanIn(
+        item_uuid=item.uuid,
+    )
+
+    res = client.post("/api/floor_plans/", content=plan_payload.model_dump_json(), headers=headers)
+
+    plan_data = s.FloorPlanOut.model_validate(res.json())
+
+    with open("tests/house_example.png", "rb") as image_file:
+        res = client.post(
+            f"/api/floor_plans/{plan_data.uuid}/image",
+            files={"image": ("test_image", image_file, "image/jpeg")},
+            headers=headers,
+        )
+        assert res.status_code == 201
+
+        floor_plan = s.FloorPlanOut.model_validate(res.json())
+        assert floor_plan.img_url
+
+        res = client.post(
+            f"/api/floor_plans/{plan_data.uuid}/image",
+            files={"image": ("test_image", image_file, "image/jpeg")},
+            headers=headers,
+        )
+        assert res.status_code == 201
+
+        updated_floor_plan = s.FloorPlanOut.model_validate(res.json())
+        assert updated_floor_plan.img_url != floor_plan.img_url

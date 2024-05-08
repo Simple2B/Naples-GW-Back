@@ -1,5 +1,4 @@
 import sqlalchemy as sa
-import filetype
 
 from fastapi import Depends, APIRouter, UploadFile, status, HTTPException
 from mypy_boto3_s3 import S3Client
@@ -12,6 +11,7 @@ from naples import controllers as c, models as m, schemas as s
 from naples.logger import log
 from naples.dependency import get_current_user, get_current_user_store
 from naples.database import get_db
+from naples.utils import get_file_extension
 
 
 store_router = APIRouter(prefix="/stores", tags=["Stores"])
@@ -86,7 +86,7 @@ def upload_store_image(
         current_store.image.mark_as_deleted()
         db.commit()
 
-    extension = filetype.guess_extension(image.file)
+    extension = get_file_extension(image)
 
     if not extension:
         log(log.ERROR, "Extension not found for image [%s]", image.filename)
@@ -132,7 +132,7 @@ def upload_store_video(
         current_store.video.mark_as_deleted()
         db.commit()
 
-    extension = filetype.guess_extension(video.file)
+    extension = get_file_extension(video)
 
     if not extension:
         log(log.ERROR, "Extension not found for video [%s]", video.filename)

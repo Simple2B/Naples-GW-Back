@@ -25,13 +25,17 @@ class FloorPlan(db.Model):
 
     image_id: orm.Mapped[int | None] = orm.mapped_column(sa.ForeignKey("files.id"))
 
-    image: orm.Mapped["File"] = orm.relationship("File")
+    _image: orm.Mapped["File"] = orm.relationship("File")
 
     _markers: orm.Mapped[list["FloorPlanMarker"]] = orm.relationship("FloorPlanMarker", back_populates="floor_plan")
 
     @property
+    def image(self):
+        return self._image if self._image and not self._image.is_deleted else None
+
+    @property
     def img_url(self):
-        return self.image.url if self.image and not self.image.is_deleted else ""
+        return self.image.url if self.image else ""
 
     @property
     def markers(self):

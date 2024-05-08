@@ -1,6 +1,5 @@
 from mypy_boto3_s3 import S3Client
 import sqlalchemy as sa
-import filetype
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, status
 from sqlalchemy.orm import Session
@@ -11,6 +10,7 @@ from naples.dependency import get_current_user_store, get_current_store
 from naples import schemas as s, models as m, controllers as c
 from naples.dependency.s3_client import get_s3_connect
 from naples.logger import log
+from naples.utils import get_file_extension
 
 
 member_router = APIRouter(prefix="/members", tags=["Members"])
@@ -137,11 +137,7 @@ def upload_member_avatar(
         log(log.ERROR, "Member not found")
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Member not found")
 
-    extension = filetype.guess_extension(avatar.file)
-
-    if not extension:
-        log(log.ERROR, "Extension not found for image [%s]", avatar.filename)
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Extension not found")
+    extension = get_file_extension(avatar)
 
     if member.avatar:
         log(log.INFO, "Deleting old avatar for member {%s}", member_uuid)
