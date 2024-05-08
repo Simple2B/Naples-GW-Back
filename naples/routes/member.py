@@ -1,12 +1,15 @@
+from mypy_boto3_s3 import S3Client
 import sqlalchemy as sa
+import filetype
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, status
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 
 from naples.database import get_db
 from naples.dependency import get_current_user_store, get_current_store
-from naples import schemas as s, models as m
+from naples import schemas as s, models as m, controllers as c
+from naples.dependency.s3_client import get_s3_connect
 from naples.logger import log
 
 
@@ -113,24 +116,59 @@ def delete_member(
 @member_router.post(
     "/{member_uuid}/avatar",
     response_model=s.MemberOut,
-    status_code=status.HTTP_200_OK,
+    status_code=status.HTTP_201_CREATED,
     responses={
         404: {"description": "Member not found"},
     },
 )
 def upload_member_avatar(
     member_uuid: str,
-    image: s.FileIn,
-    current_store: m.User = Depends(get_current_user_store),
+    avatar: UploadFile,
+    current_store: m.Store = Depends(get_current_user_store),
     db: Session = Depends(get_db),
+    s3_client: S3Client = Depends(get_s3_connect),
 ):
-    raise NotImplementedError("Not implemented")
+    log(log.INFO, "Uploading avatar for member {%s} in store {%s}", member_uuid, current_store.uuid)
+    member = db.scalar(sa.select(m.Member).where(m.Member.uuid == member_uuid))
+    if not member:
+        log(log.ERROR, "Member not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Member not found")
+    if member.store_id != current_store.id:
+        log(log.ERROR, "Member not found")
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Member not found")
+
+    extension = filetype.guess_extension(avatar.file)
+
+    if not extension:
+        log(log.ERROR, "Extension not found for image [%s]", avatar.filename)
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Extension not found")
+
+    if member.avatar:
+        log(log.INFO, "Deleting old avatar for member {%s}", member_uuid)
+        member.avatar.mark_as_deleted()
+        db.commit()
+
+    log(log.INFO, "Creating new avatar for member {%s}", member_uuid)
+    file_model = c.create_file(
+        file=avatar,
+        db=db,
+        s3_client=s3_client,
+        file_type=s.FileType.AVATAR,
+        store_url=current_store.url,
+        extension=extension,
+    )
+
+    member.avatar_id = file_model.id
+    db.commit()
+    db.refresh(member)
+
+    log(log.INFO, "Avatar uploaded for member {%s}", member_uuid)
+    return s.MemberOut.model_validate(member)
 
 
 @member_router.delete(
     "/{member_uuid}/avatar",
-    response_model=s.MemberOut,
-    status_code=status.HTTP_200_OK,
+    status_code=status.HTTP_204_NO_CONTENT,
     responses={
         404: {"description": "Member not found"},
     },
@@ -140,4 +178,21 @@ def delete_member_avatar(
     current_store: m.User = Depends(get_current_user_store),
     db: Session = Depends(get_db),
 ):
-    raise NotImplementedError("Not implemented")
+    log(log.INFO, "Deleting avatar for member {%s} in store {%s}", member_uuid, current_store.uuid)
+    member = db.scalar(sa.select(m.Member).where(m.Member.uuid == member_uuid))
+    if not member:
+        log(log.ERROR, "Member not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Member not found")
+
+    if member.store_id != current_store.id:
+        log(log.ERROR, "Member not found")
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Member not found")
+
+    if not member.avatar:
+        log(log.ERROR, "Member does not have an avatar")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Member does not have an avatar")
+
+    member.avatar.mark_as_deleted()
+    db.commit()
+
+    log(log.INFO, "Avatar deleted for member {%s}", member_uuid)

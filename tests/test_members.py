@@ -1,3 +1,4 @@
+from mypy_boto3_s3 import S3Client
 from sqlalchemy.orm import Session
 from sqlalchemy import select
 from fastapi.testclient import TestClient
@@ -115,3 +116,82 @@ def test_delete_member(client: TestClient, full_db: Session, headers: dict[str, 
 
     member = full_db.scalar(select(m.Member).where(m.Member.uuid == member.uuid))
     assert member and member.is_deleted
+
+
+def test_upload_member_avatar(client: TestClient, full_db: Session, headers: dict[str, str], s3_client: S3Client):
+    with open("tests/house_example.png", "rb") as f:
+        member_model = full_db.scalar(select(m.Member))
+        assert member_model
+
+        res = client.post(
+            f"/api/members/{member_model.uuid}/avatar",
+            files={"avatar": ("test.jpg", f, "image/jpeg")},
+            headers=headers,
+        )
+
+        assert res.status_code == 201
+
+        member = s.MemberOut.model_validate(res.json())
+        assert member.avatar_url
+
+        assert member_model.avatar_url == member.avatar_url
+
+
+def test_update_member_avatar(client: TestClient, full_db: Session, headers: dict[str, str], s3_client: S3Client):
+    with open("tests/house_example.png", "rb") as f:
+        member_model = full_db.scalar(select(m.Member))
+        assert member_model
+
+        res = client.post(
+            f"/api/members/{member_model.uuid}/avatar",
+            files={"avatar": ("test.jpg", f, "image/jpeg")},
+            headers=headers,
+        )
+
+        assert res.status_code == 201
+
+        member = s.MemberOut.model_validate(res.json())
+        assert member.avatar_url
+
+        assert member_model.avatar_url == member.avatar_url
+
+        update_res = client.post(
+            f"/api/members/{member_model.uuid}/avatar",
+            files={"avatar": ("test_2.jpg", f, "image/jpeg")},
+            headers=headers,
+        )
+
+        assert update_res.status_code == 201
+
+        updated_member = s.MemberOut.model_validate(update_res.json())
+        assert updated_member.avatar_url
+
+        assert updated_member.avatar_url != member.avatar_url
+
+        assert member_model.avatar_url == updated_member.avatar_url
+
+
+def test_delete_avatar(client: TestClient, full_db: Session, headers: dict[str, str], s3_client: S3Client):
+    member_model = full_db.scalar(select(m.Member))
+    assert member_model
+
+    with open("tests/house_example.png", "rb") as f:
+        res = client.post(
+            f"/api/members/{member_model.uuid}/avatar",
+            files={"avatar": ("test.jpg", f, "image/jpeg")},
+            headers=headers,
+        )
+
+        assert res.status_code == 201
+
+        member = s.MemberOut.model_validate(res.json())
+        assert member.avatar_url
+
+        assert member_model.avatar_url == member.avatar_url
+
+        del_res = client.delete(f"/api/members/{member_model.uuid}/avatar", headers=headers)
+        assert del_res.status_code == 204
+
+        full_db.refresh(member_model)
+
+        assert member_model.avatar_url == ""
