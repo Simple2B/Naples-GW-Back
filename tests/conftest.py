@@ -1,15 +1,18 @@
 import pytest
+
 from typing import Generator
 from pathlib import Path
+from mypy_boto3_s3 import S3Client
+from moto import mock_aws
+
 
 from dotenv import load_dotenv
 
 load_dotenv("tests/test.env")
 
 # ruff: noqa: F401 E402
-from fastapi.testclient import TestClient
 from sqlalchemy import orm
-
+from fastapi.testclient import TestClient
 from naples.main import api
 from naples import models as m
 from naples import schemas as s
@@ -66,6 +69,25 @@ def client(db) -> Generator[TestClient, None, None]:
     """Returns a non-authorized test client for the API"""
     with TestClient(api) as c:
         yield c
+
+
+@pytest.fixture
+def s3_client() -> Generator[S3Client, None, None]:
+    """Returns a mock S3 client"""
+
+    with mock_aws():
+        from naples.dependency.s3_client import get_s3_connect
+        from naples.config import config
+
+        CFG = config()
+
+        client = get_s3_connect()
+        client.create_bucket(
+            Bucket=CFG.AWS_S3_BUCKET_NAME,
+            CreateBucketConfiguration={"LocationConstraint": CFG.AWS_REGION},
+        )
+
+        yield client
 
 
 @pytest.fixture(scope="session")

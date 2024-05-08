@@ -3,7 +3,11 @@ import sqlalchemy as sa
 from sqlalchemy import orm
 
 from naples.database import db
+
+from naples.config import config
 from .utils import ModelMixin, create_uuid
+
+CFG = config()
 
 
 class File(db.Model, ModelMixin):
@@ -19,9 +23,15 @@ class File(db.Model, ModelMixin):
 
     type: orm.Mapped[str] = orm.mapped_column(sa.String(64))
 
-    url: orm.Mapped[str] = orm.mapped_column(sa.String(512), unique=True)
+    key: orm.Mapped[str] = orm.mapped_column(sa.String(512), unique=True)
 
-    s3_url: orm.Mapped[str] = orm.mapped_column(sa.String(512), unique=True)
+    @property
+    def url(self):
+        return f"{CFG.AWS_S3_BUCKET_URL}/{self.key}"
+
+    @property
+    def s3_url(self):
+        return f"s3://{CFG.AWS_S3_BUCKET_NAME}/{self.key}"
 
     is_deleted: orm.Mapped[bool] = orm.mapped_column(sa.Boolean, default=False)
 
@@ -30,7 +40,7 @@ class File(db.Model, ModelMixin):
         delete_suffix = f"-deleted-{delete_date}"
         self.is_deleted = True
         self.name = f"{self.name}{delete_suffix}"
-        self.url = f"{self.url}{delete_suffix}"
+        self.key = f"{self.key}{delete_suffix}"
 
     def __repr__(self):
         return f"<{self.uuid}:{self.name} >"

@@ -56,9 +56,17 @@ class Store(db.Model, ModelMixin):
 
     video_id: orm.Mapped[int | None] = orm.mapped_column(sa.ForeignKey("files.id"))
 
-    image: orm.Mapped["File"] = orm.relationship(viewonly=True, foreign_keys=[image_id])
+    _image: orm.Mapped["File"] = orm.relationship(viewonly=True, foreign_keys=[image_id])
 
-    video: orm.Mapped["File"] = orm.relationship(viewonly=True, foreign_keys=[video_id])
+    _video: orm.Mapped["File"] = orm.relationship(viewonly=True, foreign_keys=[video_id])
+
+    @property
+    def image(self):
+        return self._image if self._image and not self._image.is_deleted else None
+
+    @property
+    def video(self):
+        return self._video if self._video and not self._video.is_deleted else None
 
     @property
     def members(self):

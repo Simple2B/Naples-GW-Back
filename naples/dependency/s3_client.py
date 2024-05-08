@@ -1,13 +1,15 @@
-# from functools import lru_cache
+from functools import cache
 
-from fastapi import Depends
 import boto3
+from mypy_boto3_s3 import S3Client
 
-from naples.config import config, BaseConfig
+
+from naples.config import config
 
 
-# @lru_cache
-def get_s3_connect(settings: BaseConfig = Depends(config)):
+@cache
+def get_s3_connect() -> S3Client:
+    settings = config()
     session = boto3.Session(
         aws_access_key_id=settings.AWS_ACCESS_KEY,
         aws_secret_access_key=settings.AWS_SECRET_KEY,

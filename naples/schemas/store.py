@@ -32,7 +32,8 @@ class StoreIn(BaseModel):
 
 
 class StoreOut(Store):
-    main_image_url: str = ""
+    image_url: str = ""
+    video_url: str = ""
 
     model_config = ConfigDict(
         from_attributes=True,

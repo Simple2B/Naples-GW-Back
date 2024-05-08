@@ -1,8 +1,10 @@
 {
   "cSpell.words": [
+    "boto",
     "botocore",
     "dotenv",
     "fastapi",
+    "moto",
     "passlib",
     "pydantic",
     "realtor",
