@@ -1,8 +1,6 @@
 from typing import Literal
 from pydantic import BaseModel, ConfigDict
 
-from .file import FileType
-
 
 class Store(BaseModel):
     # header: str = ""
