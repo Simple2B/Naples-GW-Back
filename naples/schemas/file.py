@@ -6,6 +6,7 @@ class FileType(enum.Enum):
     IMAGE = "image"
     VIDEO = "video"
     ATTACHMENT = "attachment"
+    AVATAR = "avatar"
 
 
 class OwnerType(enum.Enum):

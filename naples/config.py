@@ -68,6 +68,7 @@ class TestingConfig(BaseConfig):
     TESTING: bool = True
     PRESERVE_CONTEXT_ON_EXCEPTION: bool = False
     ALCHEMICAL_DATABASE_URL: str = "sqlite:///" + os.path.join(BASE_DIR, "database-test.sqlite3")
+    AWS_S3_BUCKET_NAME: str = "naples-gateway-test"
 
 
 class ProductionConfig(BaseConfig):
@@ -79,11 +80,8 @@ class ProductionConfig(BaseConfig):
     WTF_CSRF_ENABLED: bool = False
 
 
-MergedConfig = DevelopmentConfig | TestingConfig | ProductionConfig
-
-
 @lru_cache
-def config(name: str = APP_ENV) -> MergedConfig:
+def config(name: str = APP_ENV):
     CONF_MAP = dict(
         development=DevelopmentConfig,
         testing=TestingConfig,

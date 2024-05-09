@@ -8,6 +8,7 @@ from .utils import create_uuid
 
 if TYPE_CHECKING:
     from .floor_plan import FloorPlan
+    from .file import File
 
 
 class FloorPlanMarker(db.Model):
@@ -23,9 +24,11 @@ class FloorPlanMarker(db.Model):
 
     floor_plan: orm.Mapped["FloorPlan"] = orm.relationship()
 
+    _images: orm.Mapped[list["File"]] = orm.relationship("File", secondary="floor_plan_markers_images")
+
     @property
     def images(self) -> list[str]:
-        return []
+        return [img.url for img in self._images if not img.is_deleted]
 
     def __repr__(self):
         return f"<{self.id}: x-[{self.x}] y-[{self.y}]>"
