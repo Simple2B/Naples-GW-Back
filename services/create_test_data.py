@@ -28,8 +28,8 @@ def create_test_user(test_user: s.TestUser) -> m.User:
 def create_store(test_store: s.TestStore) -> m.Store:
     """Create test store"""
     store = m.Store(
-        header=test_store.header,
-        sub_header=test_store.sub_header,
+        # header=test_store.header,
+        # sub_header=test_store.sub_header,
         url=test_store.url,
         logo_url=test_store.logo_url,
         email=test_store.email,

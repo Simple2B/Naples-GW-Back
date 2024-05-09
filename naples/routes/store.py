@@ -18,7 +18,7 @@ store_router = APIRouter(prefix="/stores", tags=["Stores"])
 
 
 @store_router.get(
-    "/{store_uuid}",
+    "/{store_url}",
     status_code=status.HTTP_200_OK,
     response_model=s.StoreOut,
     responses={
@@ -26,14 +26,14 @@ store_router = APIRouter(prefix="/stores", tags=["Stores"])
     },
 )
 def get_store(
-    store_uuid: str,
+    store_url: str,
     db: Session = Depends(get_db),
 ):
     """Returns the store"""
 
-    store: m.Store | None = db.scalar(sa.select(m.Store).where(m.Store.uuid == store_uuid))
+    store: m.Store | None = db.scalar(sa.select(m.Store).where(m.Store.url == store_url))
     if not store:
-        log(log.ERROR, "Store [%s] not found", store_uuid)
+        log(log.ERROR, "Store [%s] not found", store_url)
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Store not found")
     return store
 

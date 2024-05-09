@@ -84,6 +84,15 @@ class Store(db.Model, ModelMixin):
     def video_url(self):
         return self.video.url if self.video else ""
 
+    @property
+    def main_media(self):
+        if self.image:
+            return self.image
+        elif self.video:
+            return self.video
+        else:
+            return None
+
     def get_item_by_uuid(self, item_uuid: str):
         for item in self.items:
             if item.uuid == item_uuid and not item.is_deleted:
