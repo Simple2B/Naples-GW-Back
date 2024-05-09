@@ -49,7 +49,7 @@ def create_user_with_store():
         if not store:
             store = create_store(test_store)
             session.add(store)
-            log(log.INFO, "Store [%s] created", test_store.name)
+            log(log.INFO, "Store [%s] created", test_store.url)
             session.flush()
 
         test_members_data = test_data.test_members
