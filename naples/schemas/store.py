@@ -1,11 +1,14 @@
+from typing import Literal
 from pydantic import BaseModel, ConfigDict
+
+from .file import FileType
 
 
 class Store(BaseModel):
-    header: str = ""
-    sub_header: str = ""
+    # header: str = ""
+    # sub_header: str = ""
     logo_url: str = ""
-    about_us: str = ""
+    # about_us: str = ""
     email: str
     phone: str = ""
     instagram_url: str = ""
@@ -17,8 +20,8 @@ class Store(BaseModel):
 
 
 class StoreIn(BaseModel):
-    header: str = ""
-    sub_header: str = ""
+    # header: str = ""
+    # sub_header: str = ""
     url: str = ""
     logo_url: str = ""
     email: str
@@ -31,9 +34,17 @@ class StoreIn(BaseModel):
     )
 
 
+class MainMedia(BaseModel):
+    url: str = ""
+    type: Literal["image", "video"]
+
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
+
+
 class StoreOut(Store):
-    image_url: str = ""
-    video_url: str = ""
+    main_media: MainMedia | None = None
 
     model_config = ConfigDict(
         from_attributes=True,

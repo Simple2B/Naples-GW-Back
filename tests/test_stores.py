@@ -13,8 +13,7 @@ CFG = config("testing")
 def test_get_store(client: TestClient, headers: dict[str, str], test_data: s.TestData, full_db: Session):
     store_model = full_db.scalar(sa.select(m.Store))
     assert store_model
-    store_uuid = store_model.uuid
-    response = client.get(f"/api/stores/{store_uuid}", headers=headers)
+    response = client.get(f"/api/stores/{store_model.url}", headers=headers)
     assert response.status_code == 200
     store = s.StoreOut.model_validate(response.json())
     assert store.email == store_model.email
@@ -29,8 +28,8 @@ def test_create_store(
     assert user
 
     test_store = s.StoreIn(
-        header="Header",
-        sub_header="Sub Header",
+        # header="Header",
+        # sub_header="Sub Header",
         url="test_url",
         logo_url="logo_url",
         email="user@email.com",
@@ -53,11 +52,11 @@ def test_upload_image(client: TestClient, headers: dict[str, str], full_db: Sess
         )
         assert response.status_code == 201
 
-        store_res = client.get(f"/api/stores/{store_model.uuid}")
+        store_res = client.get(f"/api/stores/{store_model.url}")
         assert store_res.status_code == 200
 
         store = s.StoreOut.model_validate(store_res.json())
-        assert store.image_url
+        assert store.main_media and store.main_media.url == store_model.image.url
 
         full_db.refresh(store_model)
 
@@ -121,7 +120,7 @@ def test_delete_image(client: TestClient, headers: dict[str, str], full_db: Sess
 
 
 def test_create_store_video(client: TestClient, headers: dict[str, str], full_db: Session, s3_client: S3Client):
-    with open("tests/house_example.png", "rb") as f:
+    with open("tests/test_video.mp4", "rb") as f:
         store_model = full_db.scalar(sa.select(m.Store))
         assert store_model
 
@@ -138,7 +137,7 @@ def test_create_store_video(client: TestClient, headers: dict[str, str], full_db
 
 
 def test_update_video(client: TestClient, headers: dict[str, str], full_db: Session, s3_client: S3Client):
-    with open("tests/house_example.png", "rb") as f:
+    with open("tests/test_video.mp4", "rb") as f:
         store_model = full_db.scalar(sa.select(m.Store))
         assert store_model
 
@@ -167,7 +166,7 @@ def test_update_video(client: TestClient, headers: dict[str, str], full_db: Sess
 
 
 def test_delete_video(client: TestClient, headers: dict[str, str], full_db: Session, s3_client: S3Client):
-    with open("tests/house_example.png", "rb") as f:
+    with open("tests/test_video.mp4", "rb") as f:
         store_model = full_db.scalar(sa.select(m.Store))
         assert store_model
 

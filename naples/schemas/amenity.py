@@ -1,7 +1,7 @@
 from pydantic import BaseModel, ConfigDict
 
 
-class Amenity(BaseModel):
+class AmenityIn(BaseModel):
     value: str
 
     model_config = ConfigDict(
@@ -9,7 +9,7 @@ class Amenity(BaseModel):
     )
 
 
-class AmenityOut(Amenity):
+class AmenityOut(AmenityIn):
     uuid: str
 
     model_config = ConfigDict(
@@ -17,8 +17,8 @@ class AmenityOut(Amenity):
     )
 
 
-class Amenities(BaseModel):
-    amenities: list[AmenityOut]
+class AmenitiesListOut(BaseModel):
+    items: list[AmenityOut]
 
     model_config = ConfigDict(
         from_attributes=True,

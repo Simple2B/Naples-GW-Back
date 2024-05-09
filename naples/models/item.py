@@ -25,54 +25,41 @@ class Item(db.Model, ModelMixin):
     __tablename__ = "items"
 
     id: orm.Mapped[int] = orm.mapped_column(primary_key=True)
-
     uuid: orm.Mapped[str] = orm.mapped_column(sa.String(32), default=create_uuid, unique=True)
+
+    is_deleted: orm.Mapped[bool] = orm.mapped_column(default=False)
+    deleted_at: orm.Mapped[datetime] = orm.mapped_column(nullable=True)
 
     name: orm.Mapped[str] = orm.mapped_column(
         sa.String(128),
         unique=True,
         nullable=False,
     )
-
     description: orm.Mapped[str] = orm.mapped_column(sa.Text, default="")
-
     latitude: orm.Mapped[float] = orm.mapped_column(default=0.0)
-
     longitude: orm.Mapped[float] = orm.mapped_column(default=0.0)
 
-    store_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey("stores.id"))
-
-    store: orm.Mapped["Store"] = orm.relationship()
-
-    city_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey("cities.id"))
-
-    city: orm.Mapped["City"] = orm.relationship()
-
-    is_deleted: orm.Mapped[bool] = orm.mapped_column(default=False)
-
+    address: orm.Mapped[str] = orm.mapped_column(sa.String(256), default="")
+    stage: orm.Mapped[str] = orm.mapped_column(default=s.ItemStage.DRAFT.value)
     created_at: orm.Mapped[datetime] = orm.mapped_column(
         default=datetime_utc,
     )
-
-    deleted_at: orm.Mapped[datetime] = orm.mapped_column(nullable=True)
-
-    address: orm.Mapped[str] = orm.mapped_column(sa.String(256), default="")
-
-    stage: orm.Mapped[str] = orm.mapped_column(default=s.ItemStage.DRAFT.value)
-
     size: orm.Mapped[int] = orm.mapped_column(default=0)
     bedrooms_count: orm.Mapped[int] = orm.mapped_column(default=0)
     bathrooms_count: orm.Mapped[int] = orm.mapped_column(default=0)
-
     airbnb_url: orm.Mapped[str] = orm.mapped_column(sa.String(256), default="")
     vrbo_url: orm.Mapped[str] = orm.mapped_column(sa.String(256), default="")
     expedia_url: orm.Mapped[str] = orm.mapped_column(sa.String(256), default="")
 
+    store_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey("stores.id"))
+    city_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey("cities.id"))
     realtor_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey("members.id"))
     image_id: orm.Mapped[int | None] = orm.mapped_column(sa.ForeignKey("files.id"))
     video_id: orm.Mapped[int | None] = orm.mapped_column(sa.ForeignKey("files.id"))
 
     realtor: orm.Mapped["Member"] = orm.relationship()
+    store: orm.Mapped["Store"] = orm.relationship()
+    city: orm.Mapped["City"] = orm.relationship()
 
     _amenities: orm.Mapped[list["Amenity"]] = orm.relationship(secondary="amenities_items")
     _fees: orm.Mapped[list["Fee"]] = orm.relationship()
