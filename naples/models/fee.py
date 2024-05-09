@@ -22,7 +22,7 @@ class Fee(db.Model):
 
     item_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey("items.id"))
 
-    item: orm.Mapped["Item"] = orm.relationship()
+    item: orm.Mapped["Item"] = orm.relationship(back_populates="_fees")
 
     def __repr__(self):
         return f"<{self.id}:{self.name} - {self.amount}>"

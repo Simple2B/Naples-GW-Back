@@ -63,7 +63,6 @@ def create_item(test_item: s.TestItem, city_id: int) -> m.Item:
 def create_member(member: s.TestMember) -> m.Member:
     """Create test member"""
     member = m.Member(
-        uuid=member.uuid,
         name=member.name,
         email=member.email,
         phone=member.phone,

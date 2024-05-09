@@ -45,7 +45,7 @@ def create_user_with_store():
 
         test_store_data = test_data.test_stores[0]
         test_store: m.Store = m.Store(**test_store_data.model_dump())
-        store = session.query(m.Store).filter(m.Store.uuid == test_store.uuid).first()
+        store = session.query(m.Store).filter(m.Store.url == test_store.url).first()
         if not store:
             store = create_store(test_store)
             session.add(store)
@@ -64,7 +64,9 @@ def create_user_with_store():
                 session.flush()
 
         test_items_data = test_data.test_items
-        test_items: list[m.Item] = [m.Item(**item.model_dump()) for item in test_items_data]
+        test_items: list[m.Item] = [
+            m.Item(**item.model_dump(exclude={"city_uuid", "realtor_uuid"})) for item in test_items_data
+        ]
         cities: Sequence[m.City] = session.query(m.City).all()
         cities_ids = [city.id for city in cities]
         for test_item in test_items:

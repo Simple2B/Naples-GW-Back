@@ -168,7 +168,6 @@
   ],
   "test_members": [
     {
-      "uuid": "6915ad0f-392e-444d-96b1-f04dba7e751b",
       "name": "realtor_1",
       "email": "realtor_1@email.com",
       "phone": "123456789",

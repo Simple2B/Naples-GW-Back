@@ -1,8 +1,8 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from naples.schemas.item import ItemIn
 from naples.schemas.store import StoreIn
 
-from naples.schemas.member import MemberOut
+from naples.schemas.member import MemberIn, MemberOut
 from naples.schemas.file import FileOut
 
 
@@ -22,7 +22,7 @@ class TestStore(StoreIn):
     user_id: int
 
 
-class TestMember(MemberOut):
+class TestMember(MemberIn):
     store_id: int
 
 

@@ -52,9 +52,9 @@ class Store(db.Model, ModelMixin):
 
     _members: orm.Mapped[list["Member"]] = orm.relationship(back_populates="store", viewonly=True)
 
-    image_id: orm.Mapped[int | None] = orm.mapped_column(sa.ForeignKey("files.id"))
+    image_id: orm.Mapped[int | None] = orm.mapped_column(sa.ForeignKey("files.id"), nullable=True)
 
-    video_id: orm.Mapped[int | None] = orm.mapped_column(sa.ForeignKey("files.id"))
+    video_id: orm.Mapped[int | None] = orm.mapped_column(sa.ForeignKey("files.id"), nullable=True)
 
     _image: orm.Mapped["File"] = orm.relationship(viewonly=True, foreign_keys=[image_id])
 

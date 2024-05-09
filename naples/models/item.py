@@ -63,7 +63,7 @@ class Item(db.Model, ModelMixin):
 
     _amenities: orm.Mapped[list["Amenity"]] = orm.relationship(secondary="amenities_items")
     _fees: orm.Mapped[list["Fee"]] = orm.relationship()
-    _rates: orm.Mapped[list["Rate"]] = orm.relationship()
+    _rates: orm.Mapped[list["Rate"]] = orm.relationship(back_populates="item")
     _floor_plans: orm.Mapped[list["FloorPlan"]] = orm.relationship(viewonly=True)
     _booked_dates: orm.Mapped[list["BookedDate"]] = orm.relationship(viewonly=True)
     _image: orm.Mapped["File"] = orm.relationship(foreign_keys=[image_id])
