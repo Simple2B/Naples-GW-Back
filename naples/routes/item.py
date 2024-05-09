@@ -1,10 +1,13 @@
 from typing import Sequence
 
-from fastapi import Depends, APIRouter, status, HTTPException
+from fastapi import Depends, APIRouter, UploadFile, status, HTTPException
 from fastapi_pagination import Page, Params, paginate
+from mypy_boto3_s3 import S3Client
 
+from naples.dependency.s3_client import get_s3_connect
 import naples.models as m
 import naples.schemas as s
+from naples import controllers as c
 from naples.logger import log
 
 import sqlalchemy as sa
@@ -14,6 +17,7 @@ from naples.dependency import get_current_user, get_current_store, get_current_u
 from naples.database import get_db
 
 from naples.config import config
+from naples.utils import get_file_extension
 
 CFG = config()
 
@@ -198,42 +202,97 @@ def delete_item(
 
 @item_router.post(
     "/{item_uuid}/main_image",
-    status_code=status.HTTP_200_OK,
-    response_model=s.StoreOut,
+    status_code=status.HTTP_201_CREATED,
+    response_model=s.ItemOut,
     responses={
         404: {"description": "Store not found"},
     },
 )
 def upload_item_main_image(
     item_uuid: str,
-    image: s.FileIn,
+    image: UploadFile,
     db: Session = Depends(get_db),
-    current_store: m.User = Depends(get_current_user_store),
+    current_store: m.Store = Depends(get_current_user_store),
+    s3_client: S3Client = Depends(get_s3_connect),
 ):
-    raise NotImplementedError("Not implemented")
+    log(log.INFO, "Uploading main image for item [%s]", item_uuid)
+
+    item = current_store.get_item_by_uuid(item_uuid)
+
+    if item.image:
+        log(log.INFO, "Deleting previous main image for item [%s]", item_uuid)
+        item.image.mark_as_deleted()
+
+    extension = get_file_extension(image)
+
+    item_model = c.create_file(
+        file=image,
+        db=db,
+        s3_client=s3_client,
+        extension=extension,
+        store_url=current_store.url,
+        file_type=s.FileType.IMAGE,
+    )
+
+    item.image_id = item_model.id
+    db.commit()
+    db.refresh(item)
+
+    log(log.INFO, "Main image for item [%s] was uploaded", item_uuid)
+
+    return s.ItemOut.model_validate(item)
 
 
 @item_router.post(
     "/{item_uuid}/main_video",
-    status_code=status.HTTP_200_OK,
-    response_model=s.StoreOut,
+    status_code=status.HTTP_201_CREATED,
+    response_model=s.ItemDetailsOut,
     responses={
         404: {"description": "Store not found"},
     },
 )
 def upload_item_main_video(
     item_uuid: str,
-    video: s.FileIn,
+    video: UploadFile,
     db: Session = Depends(get_db),
-    current_store: m.User = Depends(get_current_user_store),
+    current_store: m.Store = Depends(get_current_user_store),
+    s3_client: S3Client = Depends(get_s3_connect),
 ):
-    raise NotImplementedError("Not implemented")
+    log(log.INFO, "Uploading main video for item [%s]", item_uuid)
+
+    item = current_store.get_item_by_uuid(item_uuid)
+
+    if not item:
+        log(log.ERROR, "Item [%s] not found", item_uuid)
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
+
+    if item.video:
+        log(log.INFO, "Deleting previous main video for item [%s]", item_uuid)
+        item.video.mark_as_deleted()
+
+    extension = get_file_extension(video)
+
+    item_model = c.create_file(
+        file=video,
+        db=db,
+        extension=extension,
+        store_url=current_store.url,
+        file_type=s.FileType.VIDEO,
+        s3_client=s3_client,
+    )
+
+    item.video_id = item_model.id
+    db.commit()
+    db.refresh(item)
+
+    log(log.INFO, "Main video for item [%s] was uploaded", item_uuid)
+
+    return s.ItemDetailsOut.model_validate(item)
 
 
 @item_router.delete(
     "/{item_uuid}/main_image",
-    status_code=status.HTTP_200_OK,
-    response_model=s.StoreOut,
+    status_code=status.HTTP_204_NO_CONTENT,
     responses={
         404: {"description": "Store not found"},
     },
@@ -241,15 +300,30 @@ def upload_item_main_video(
 def delete_item_main_image(
     item_uuid: str,
     db: Session = Depends(get_db),
-    current_store: m.User = Depends(get_current_user_store),
+    current_store: m.Store = Depends(get_current_user_store),
 ):
-    raise NotImplementedError("Not implemented")
+    log(log.INFO, "Deleting main image for item [%s]", item_uuid)
+
+    item = current_store.get_item_by_uuid(item_uuid)
+
+    if not item:
+        log(log.ERROR, "Item [%s] not found", item_uuid)
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
+
+    if not item.image:
+        log(log.ERROR, "Item [%s] has no main image", item_uuid)
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item has no main image")
+
+    item.image.mark_as_deleted()
+    db.commit()
+    db.refresh(item)
+
+    log(log.INFO, "Main image for item [%s] was deleted", item_uuid)
 
 
 @item_router.delete(
     "/{item_uuid}/main_video",
-    status_code=status.HTTP_200_OK,
-    response_model=s.StoreOut,
+    status_code=status.HTTP_204_NO_CONTENT,
     responses={
         404: {"description": "Store not found"},
     },
@@ -257,74 +331,175 @@ def delete_item_main_image(
 def delete_item_video(
     item_uuid: str,
     db: Session = Depends(get_db),
-    current_store: m.User = Depends(get_current_user_store),
+    current_store: m.Store = Depends(get_current_user_store),
 ):
-    raise NotImplementedError("Not implemented")
+    log(log.INFO, "Deleting main video for item [%s]", item_uuid)
+
+    item = current_store.get_item_by_uuid(item_uuid)
+
+    if not item:
+        log(log.ERROR, "Item [%s] not found", item_uuid)
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
+
+    if not item.video:
+        log(log.ERROR, "Item [%s] has no main video", item_uuid)
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item has no main video")
+
+    item.video.mark_as_deleted()
+    db.commit()
+    db.refresh(item)
+
+    log(log.INFO, "Main video for item [%s] was deleted", item_uuid)
 
 
 @item_router.post(
-    "/{item_uuid}/image",
-    status_code=status.HTTP_200_OK,
-    response_model=s.ItemOut,
+    "/{item_uuid}/image/",
+    status_code=status.HTTP_201_CREATED,
+    response_model=s.ItemDetailsOut,
     responses={
         404: {"description": "Item not found"},
     },
 )
 def upload_item_image(
-    image: Sequence[s.FileIn],
+    image: UploadFile,
     item_uuid: str,
     db: Session = Depends(get_db),
-    current_store: m.User = Depends(get_current_user_store),
+    current_store: m.Store = Depends(get_current_user_store),
+    s3_client: S3Client = Depends(get_s3_connect),
 ):
-    raise NotImplementedError("Not implemented")
+    log(log.INFO, "Uploading image for item [%s]", item_uuid)
+
+    item = current_store.get_item_by_uuid(item_uuid)
+
+    if not item:
+        log(log.ERROR, "Item [%s] not found", item_uuid)
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
+
+    extension = get_file_extension(image)
+
+    item_model = c.create_file(
+        file=image,
+        db=db,
+        extension=extension,
+        store_url=current_store.url,
+        file_type=s.FileType.IMAGE,
+        s3_client=s3_client,
+    )
+
+    item._images.append(item_model)
+    db.commit()
+    db.refresh(item)
+
+    log(log.INFO, "Image for item [%s] was uploaded", item_uuid)
+
+    return s.ItemDetailsOut.model_validate(item)
 
 
 @item_router.delete(
-    "/{item_uuid}/image/{image_uuid}",
-    status_code=status.HTTP_200_OK,
-    response_model=s.ItemOut,
+    "/{item_uuid}/image/",
+    status_code=status.HTTP_204_NO_CONTENT,
     responses={
         404: {"description": "Item not found"},
     },
 )
 def delete_item_image(
     item_uuid: str,
-    image_uuid: str,
+    image_url: str,
     db: Session = Depends(get_db),
-    current_store: m.User = Depends(get_current_user_store),
+    current_store: m.Store = Depends(get_current_user_store),
 ):
-    raise NotImplementedError("Not implemented")
+    log(log.INFO, "Deleting image [%s] for item [%s]", image_url, item_uuid)
+
+    item = current_store.get_item_by_uuid(item_uuid)
+
+    if not item:
+        log(log.ERROR, "Item [%s] not found", item_uuid)
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
+
+    image = next((i for i in item._images if i.url == image_url), None)
+
+    if not image:
+        log(log.ERROR, "Image [%s] not found for item [%s]", image_url, item_uuid)
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Image not found")
+
+    image.mark_as_deleted()
+    db.commit()
+    db.refresh(item)
+
+    log(log.INFO, "Image [%s] for item [%s] was deleted", image_url, item_uuid)
 
 
 @item_router.post(
     "/{item_uuid}/document",
-    status_code=status.HTTP_200_OK,
-    response_model=s.ItemOut,
+    status_code=status.HTTP_201_CREATED,
+    response_model=s.ItemDetailsOut,
     responses={
         404: {"description": "Item not found"},
     },
 )
 def upload_item_document(
-    document: s.FileIn,
+    document: UploadFile,
     item_uuid: str,
     db: Session = Depends(get_db),
-    current_store: m.User = Depends(get_current_user_store),
+    current_store: m.Store = Depends(get_current_user_store),
+    s3_client: S3Client = Depends(get_s3_connect),
 ):
-    raise NotImplementedError("Not implemented")
+    log(log.INFO, "Uploading document for item [%s]", item_uuid)
+
+    item = current_store.get_item_by_uuid(item_uuid)
+
+    if not item:
+        log(log.ERROR, "Item [%s] not found", item_uuid)
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
+
+    extension = get_file_extension(document)
+
+    document_model = c.create_file(
+        file=document,
+        db=db,
+        extension=extension,
+        store_url=current_store.url,
+        file_type=s.FileType.ATTACHMENT,
+        s3_client=s3_client,
+    )
+
+    item._documents.append(document_model)
+    db.commit()
+    db.refresh(item)
+
+    log(log.INFO, "Document for item [%s] was uploaded", item_uuid)
+
+    return s.ItemDetailsOut.model_validate(item)
 
 
 @item_router.delete(
-    "/{item_uuid}/document/{document_uuid}",
-    status_code=status.HTTP_200_OK,
-    response_model=s.ItemOut,
+    "/{item_uuid}/document",
+    status_code=status.HTTP_204_NO_CONTENT,
     responses={
         404: {"description": "Item not found"},
     },
 )
 def delete_item_document(
     item_uuid: str,
-    document_uuid: str,
+    document_url: str,
     db: Session = Depends(get_db),
-    current_store: m.User = Depends(get_current_user_store),
+    current_store: m.Store = Depends(get_current_user_store),
 ):
-    raise NotImplementedError("Not implemented")
+    log(log.INFO, "Deleting document [%s] for item [%s]", document_url, item_uuid)
+
+    item = current_store.get_item_by_uuid(item_uuid)
+
+    if not item:
+        log(log.ERROR, "Item [%s] not found", item_uuid)
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
+
+    document = next((d for d in item.documents if d.url == document_url), None)
+
+    if not document:
+        log(log.ERROR, "Document [%s] not found for item [%s]", document_url, item_uuid)
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Document not found")
+
+    document.mark_as_deleted()
+    db.commit()
+
+    log(log.INFO, "Document [%s] for item [%s] was deleted", document_url, item_uuid)

@@ -1,5 +1,6 @@
 from typing import Sequence
 from fastapi.testclient import TestClient
+from mypy_boto3_s3 import S3Client
 from sqlalchemy.orm import Session
 from sqlalchemy import select
 
@@ -107,3 +108,273 @@ def test_delete_item(client: TestClient, full_db: Session, headers: dict[str, st
 
     item_model = full_db.scalar(select(m.Item).where(m.Item.uuid == item.uuid))
     assert item_model and item_model.is_deleted
+
+
+def test_upload_item_main_image(
+    client: TestClient,
+    full_db: Session,
+    headers: dict[str, str],
+    s3_client: S3Client,
+):
+    item_model = full_db.scalar(select(m.Item))
+    assert item_model
+
+    with open("tests/house_example.png", "rb") as image:
+        response = client.post(
+            f"/api/items/{item_model.uuid}/main_image/",
+            headers=headers,
+            files={"image": ("test.png", image, "image/npg")},
+        )
+        assert response.status_code == 201
+
+        item = s.ItemOut.model_validate(response.json())
+        assert item.image_url
+
+
+def test_update_item_main_image(
+    client: TestClient,
+    full_db: Session,
+    headers: dict[str, str],
+    s3_client: S3Client,
+):
+    item_model = full_db.scalar(select(m.Item))
+    assert item_model
+
+    with open("tests/house_example.png", "rb") as image:
+        response = client.post(
+            f"/api/items/{item_model.uuid}/main_image/",
+            headers=headers,
+            files={"image": ("test.png", image, "image/npg")},
+        )
+        assert response.status_code == 201
+
+        item = s.ItemOut.model_validate(response.json())
+        assert item.image_url
+
+        update_response = client.post(
+            f"/api/items/{item_model.uuid}/main_image/",
+            headers=headers,
+            files={"image": ("test_2.png", image, "image/npg")},
+        )
+
+        assert update_response.status_code == 201
+
+        updated_item = s.ItemOut.model_validate(update_response.json())
+
+        assert updated_item.image_url != item.image_url
+
+        full_db.refresh(item_model)
+
+        assert item_model.image_url == updated_item.image_url
+
+
+def test_delete_main_image(
+    client: TestClient,
+    full_db: Session,
+    headers: dict[str, str],
+    s3_client: S3Client,
+):
+    item_model = full_db.scalar(select(m.Item))
+    assert item_model
+
+    with open("tests/house_example.png", "rb") as image:
+        response = client.post(
+            f"/api/items/{item_model.uuid}/main_image/",
+            headers=headers,
+            files={"image": ("test.png", image, "image/npg")},
+        )
+        assert response.status_code == 201
+
+        item = s.ItemOut.model_validate(response.json())
+        assert item.image_url
+
+        delete_response = client.delete(f"/api/items/{item.uuid}/main_image/", headers=headers)
+        assert delete_response.status_code == 204
+
+        full_db.refresh(item_model)
+        assert not item_model.image_url
+
+
+def test_create_main_item_video(
+    client: TestClient,
+    full_db: Session,
+    headers: dict[str, str],
+    s3_client: S3Client,
+):
+    item_model = full_db.scalar(select(m.Item))
+    assert item_model
+
+    with open("tests/house_example.png", "rb") as video:
+        response = client.post(
+            f"/api/items/{item_model.uuid}/main_video/",
+            headers=headers,
+            files={"video": ("test.mp4", video, "video/mp4")},
+        )
+        assert response.status_code == 201
+
+        item = s.ItemDetailsOut.model_validate(response.json())
+        assert item.video_url
+
+
+def test_update_main_item_video(
+    client: TestClient,
+    full_db: Session,
+    headers: dict[str, str],
+    s3_client: S3Client,
+):
+    item_model = full_db.scalar(select(m.Item))
+    assert item_model
+
+    with open("tests/house_example.png", "rb") as video:
+        response = client.post(
+            f"/api/items/{item_model.uuid}/main_video/",
+            headers=headers,
+            files={"video": ("test.mp4", video, "video/mp4")},
+        )
+        assert response.status_code == 201
+
+        item = s.ItemDetailsOut.model_validate(response.json())
+        assert item.video_url
+
+        update_response = client.post(
+            f"/api/items/{item_model.uuid}/main_video/",
+            headers=headers,
+            files={"video": ("test_2.mp4", video, "video/mp4")},
+        )
+
+        assert update_response.status_code == 201
+
+        updated_item = s.ItemDetailsOut.model_validate(update_response.json())
+
+        assert updated_item.video_url != item.video_url
+
+        full_db.refresh(item_model)
+
+        assert item_model.video_url == updated_item.video_url
+
+
+def test_delete_main_item_video(
+    client: TestClient,
+    full_db: Session,
+    headers: dict[str, str],
+    s3_client: S3Client,
+):
+    item_model = full_db.scalar(select(m.Item))
+    assert item_model
+
+    with open("tests/house_example.png", "rb") as video:
+        response = client.post(
+            f"/api/items/{item_model.uuid}/main_video/",
+            headers=headers,
+            files={"video": ("test.mp4", video, "video/mp4")},
+        )
+        assert response.status_code == 201
+
+        item = s.ItemDetailsOut.model_validate(response.json())
+        assert item.video_url
+
+        delete_response = client.delete(f"/api/items/{item.uuid}/main_video/", headers=headers)
+        assert delete_response.status_code == 204
+
+        full_db.refresh(item_model)
+        assert not item_model.video_url
+
+
+def test_create_item_image(
+    client: TestClient,
+    full_db: Session,
+    headers: dict[str, str],
+    s3_client: S3Client,
+):
+    item_model = full_db.scalar(select(m.Item))
+    assert item_model
+
+    with open("tests/house_example.png", "rb") as image:
+        response = client.post(
+            f"/api/items/{item_model.uuid}/image/",
+            headers=headers,
+            files={"image": ("test.png", image, "image/npg")},
+        )
+        assert response.status_code == 201
+
+        item = s.ItemDetailsOut.model_validate(response.json())
+        assert item.images_urls
+
+
+def test_delete_item_image(
+    client: TestClient,
+    full_db: Session,
+    headers: dict[str, str],
+    s3_client: S3Client,
+):
+    item_model = full_db.scalar(select(m.Item))
+    assert item_model
+
+    with open("tests/house_example.png", "rb") as image:
+        response = client.post(
+            f"/api/items/{item_model.uuid}/image/",
+            headers=headers,
+            files={"image": ("test.png", image, "image/npg")},
+        )
+        assert response.status_code == 201
+
+        item = s.ItemDetailsOut.model_validate(response.json())
+        assert item.images_urls
+
+        delete_response = client.delete(
+            f"/api/items/{item.uuid}/image/", headers=headers, params={"image_url": item.images_urls[0]}
+        )
+        assert delete_response.status_code == 204
+
+        full_db.refresh(item_model)
+        assert not item_model.images_urls
+
+
+def test_upload_item_document(
+    client: TestClient,
+    full_db: Session,
+    headers: dict[str, str],
+    s3_client: S3Client,
+):
+    item_model = full_db.scalar(select(m.Item))
+    assert item_model
+
+    with open("tests/house_example.png", "rb") as document:
+        response = client.post(
+            f"/api/items/{item_model.uuid}/document/",
+            headers=headers,
+            files={"document": ("test.pdf", document, "application/pdf")},
+        )
+        assert response.status_code == 201
+
+        item = s.ItemDetailsOut.model_validate(response.json())
+        assert item.documents_urls
+
+
+def test_delete_item_document(
+    client: TestClient,
+    full_db: Session,
+    headers: dict[str, str],
+    s3_client: S3Client,
+):
+    item_model = full_db.scalar(select(m.Item))
+    assert item_model
+
+    with open("tests/house_example.png", "rb") as document:
+        response = client.post(
+            f"/api/items/{item_model.uuid}/document/",
+            headers=headers,
+            files={"document": ("test.pdf", document, "application/pdf")},
+        )
+        assert response.status_code == 201
+
+        item = s.ItemDetailsOut.model_validate(response.json())
+        assert item.documents_urls
+
+        delete_response = client.delete(
+            f"/api/items/{item.uuid}/document", headers=headers, params={"document_url": item.documents_urls[0]}
+        )
+        assert delete_response.status_code == 204
+
+        full_db.refresh(item_model)
+        assert not item_model.documents_urls

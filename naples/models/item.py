@@ -69,6 +69,8 @@ class Item(db.Model, ModelMixin):
     expedia_url: orm.Mapped[str] = orm.mapped_column(sa.String(256), default="")
 
     realtor_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey("members.id"))
+    image_id: orm.Mapped[int | None] = orm.mapped_column(sa.ForeignKey("files.id"))
+    video_id: orm.Mapped[int | None] = orm.mapped_column(sa.ForeignKey("files.id"))
 
     realtor: orm.Mapped["Member"] = orm.relationship()
 
@@ -77,14 +79,10 @@ class Item(db.Model, ModelMixin):
     _rates: orm.Mapped[list["Rate"]] = orm.relationship()
     _floor_plans: orm.Mapped[list["FloorPlan"]] = orm.relationship(viewonly=True)
     _booked_dates: orm.Mapped[list["BookedDate"]] = orm.relationship(viewonly=True)
-
-    image_id: orm.Mapped[int | None] = orm.mapped_column(sa.ForeignKey("files.id"))
-
-    image: orm.Mapped["File"] = orm.relationship(foreign_keys=[image_id])
-
-    video_id: orm.Mapped[int | None] = orm.mapped_column(sa.ForeignKey("files.id"))
-
-    video: orm.Mapped["File"] = orm.relationship(foreign_keys=[video_id])
+    _image: orm.Mapped["File"] = orm.relationship(foreign_keys=[image_id])
+    _video: orm.Mapped["File"] = orm.relationship(foreign_keys=[video_id])
+    _images: orm.Mapped[list["File"]] = orm.relationship(secondary="items_images")
+    _documents: orm.Mapped[list["File"]] = orm.relationship(secondary="items_documents")
 
     @property
     def amenities(self) -> list[str]:
@@ -101,6 +99,30 @@ class Item(db.Model, ModelMixin):
     @property
     def floor_plans(self) -> list["FloorPlan"]:
         return [f for f in self._floor_plans if not f.is_deleted]
+
+    @property
+    def image(self):
+        return self._image if self._image and not self._image.is_deleted else None
+
+    @property
+    def video(self):
+        return self._video if self._video and not self._video.is_deleted else None
+
+    @property
+    def images(self):
+        return [i for i in self._images if not i.is_deleted]
+
+    @property
+    def images_urls(self) -> list[str]:
+        return [i.url for i in self.images]
+
+    @property
+    def documents(self):
+        return [d for d in self._documents if not d.is_deleted]
+
+    @property
+    def documents_urls(self) -> list[str]:
+        return [d.url for d in self.documents]
 
     @property
     def logo_url(self) -> str:

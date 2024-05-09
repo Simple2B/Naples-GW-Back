@@ -50,7 +50,7 @@ class ItemOut(BaseModel):
     longitude: float
     latitude: float
 
-    image_url: str = Field("", alias="imageUrl")
+    image_url: str = Field("", validation_alias=AliasChoices("image_url", "imageUrl"), serialization_alias="imageUrl")
 
     stage: str
 
@@ -79,7 +79,9 @@ class ItemDetailsOut(ItemOut):
         from_attributes=True,
     )
 
-    images: list[str] = []
+    images_urls: list[str] = []
+
+    documents_urls: list[str] = []
 
     booked_dates: list[datetime] = []
 

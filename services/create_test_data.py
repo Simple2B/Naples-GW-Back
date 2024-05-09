@@ -19,7 +19,6 @@ def create_test_user(test_user: s.TestUser) -> m.User:
     user = m.User(
         id=test_user.id,
         email=test_user.email,
-        password_hash=test_user.password,
         is_verified=True,
     )
 
