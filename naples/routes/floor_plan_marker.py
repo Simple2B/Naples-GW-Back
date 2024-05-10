@@ -180,7 +180,7 @@ def delete_floor_plan_marker_image(
             status_code=status.HTTP_403_FORBIDDEN, detail="You can only delete images for your own floor plan markers"
         )
 
-    image_key = image_url.replace(f"{CFG.AWS_S3_BUCKET_URL}/", "")
+    image_key = image_url.replace(f"{CFG.AWS_S3_BUCKET_URL}", "")
 
     image = db.scalar(sa.select(m.File).where(m.File.key == image_key))
     if not image:
