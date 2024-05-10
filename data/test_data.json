@@ -71,7 +71,8 @@
       "amenities":[ "test_amenities1"],
       "imageUrl": "",
       "realtor_uuid": "6915ad0f-392e-444d-96b1-f04dba7e751b",
-      "city_uuid": "f53fecaf-c84a-4ac0-bfed-d6c945d91460"
+      "city_uuid": "f53fecaf-c84a-4ac0-bfed-d6c945d91460",
+      "adults": 2
     },
     {
       "uuid": "f53fecaf-c84a-4ac0-bfed-d6c945d91460",
@@ -94,7 +95,8 @@
       "amenities":[ "test_amenities1"],
       "imageUrl": "",
       "realtor_uuid": "6915ad0f-392e-444d-96b1-f04dba7e751b",
-      "city_uuid": "f53fecaf-c84a-4ac0-bfed-d6c945d91460"
+      "city_uuid": "f53fecaf-c84a-4ac0-bfed-d6c945d91460",
+      "adults": 1
     },
     {
       "uuid": "f55fecaf-c84a-4ac0-bfed-d6c100d91465",
@@ -117,7 +119,8 @@
       "amenities":[ "test_amenities1"],
       "imageUrl": "",
       "realtor_uuid": "6915ad0f-392e-444d-96b1-f04dba7e751b",
-      "city_uuid": "f53fecaf-c84a-4ac0-bfed-d6c945d91460"
+      "city_uuid": "f53fecaf-c84a-4ac0-bfed-d6c945d91460",
+      "adults": 5
     },
     {
       "uuid": "ce350447f5564b3b9350b15570734e82",
@@ -140,7 +143,8 @@
       "amenities":[ "test_amenities1"],
       "imageUrl": "",
       "realtor_uuid": "6915ad0f-392e-444d-96b1-f04dba7e751b",
-      "city_uuid": "f53fecaf-c84a-4ac0-bfed-d6c945d91460"
+      "city_uuid": "f53fecaf-c84a-4ac0-bfed-d6c945d91460",
+      "adults": 3
     },
     {
       "uuid": "ce350447f5564b3b9350b15570734e83",
@@ -163,7 +167,8 @@
       "amenities":[ "test_amenities1"],
       "imageUrl": "",
       "realtor_uuid": "6915ad0f-392e-444d-96b1-f04dba7e751b",
-      "city_uuid": "f53fecaf-c84a-4ac0-bfed-d6c945d91460"
+      "city_uuid": "f53fecaf-c84a-4ac0-bfed-d6c945d91460",
+      "adults": 0
     }
   ],
   "test_members": [

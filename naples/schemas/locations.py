@@ -97,3 +97,12 @@ class States(BaseModel):
     model_config = ConfigDict(
         from_attributes=True,
     )
+
+
+class LocationOut(BaseModel):
+    name: str
+    uuid: str
+
+    model_config = ConfigDict(
+        from_attributes=True,
+    )

@@ -50,7 +50,7 @@ class Item(db.Model, ModelMixin):
     airbnb_url: orm.Mapped[str] = orm.mapped_column(sa.String(256), default="")
     vrbo_url: orm.Mapped[str] = orm.mapped_column(sa.String(256), default="")
     expedia_url: orm.Mapped[str] = orm.mapped_column(sa.String(256), default="")
-    adults: orm.Mapped[int] = orm.mapped_column(default=0)
+    adults: orm.Mapped[int] = orm.mapped_column(default=0, server_default="0")
 
     store_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey("stores.id"))
     city_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey("cities.id"))

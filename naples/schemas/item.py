@@ -2,11 +2,13 @@ import enum
 from datetime import datetime
 from pydantic import BaseModel, ConfigDict, Field, AliasChoices
 
+
 from .main_media import MainMedia
 from .member import MemberOut
 from .fee import FeeOut
 from .rate import RateOut
 from .floor_plan import FloorPlanOut
+from .locations import LocationOut
 
 
 class ItemStage(enum.Enum):
@@ -45,6 +47,7 @@ class ItemIn(BaseModel):
     airbnb_url: str = ""
     vrbo_url: str = ""
     expedia_url: str = ""
+    adults: int
 
     stage: str = ItemStage.DRAFT.value
 
@@ -121,8 +124,8 @@ class ItemsFilterDataIn(BaseModel):
 
 
 class ItemsFilterDataOut(BaseModel):
-    price_max: int
-    price_min: int
+    locations: list[LocationOut]
+    adults: int
 
 
 class ItemDataIn(BaseModel):

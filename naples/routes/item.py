@@ -76,11 +76,10 @@ def get_items(
 
     log(log.INFO, "Getting items for store [%s]", current_store.url)
 
-    stmt = sa.select(m.Item, m.BookedDate).where(
+    stmt = sa.select(m.Item).where(
         sa.and_(
             m.Item.is_deleted.is_(False),
             m.Item.store_id == current_store.id,
-            m.BookedDate.item_id == m.Item.id,
         )
     )
 
@@ -92,15 +91,19 @@ def get_items(
     if adults:
         stmt = stmt.where(m.Item.adults >= adults)
 
-    # TODO: implement rent_type
     # if rent_type:
-    #     stmt = stmt.where(m.Item.type == rent_type)
+    #     if rent_type == s.ItemType.NIGHTLY:
+    #         stmt = stmt.where(m.Item._rates.any(m.Rate. == s.ItemType.NIGHTLY))
 
     if check_in:
-        stmt = stmt.where(m.BookedDate.date >= check_in)
+        stmt = stmt.where(
+            m.Item._booked_dates.any(sa.and_(m.BookedDate.date >= check_in, m.BookedDate.is_deleted.is_(False)))
+        )
 
     if check_out:
-        stmt = stmt.where(m.BookedDate.date <= check_out)
+        stmt = stmt.where(
+            m.Item._booked_dates.any(sa.and_(m.BookedDate.date <= check_out, m.BookedDate.is_deleted.is_(False)))
+        )
 
     db_items: Sequence[m.Item] = db.scalars(stmt).all()
     items: Sequence[s.ItemOut] = [s.ItemOut.model_validate(item) for item in db_items]
@@ -117,25 +120,16 @@ def get_items(
 )
 def get_filters_data(
     db: Session = Depends(get_db),
-    current_user: m.User = Depends(get_current_user),
+    current_user_store: m.Store = Depends(get_current_store),
 ):
     """Get data for filter items"""
 
-    store: m.Store | None = db.scalar(sa.select(m.Store).where(m.Store.user_id == current_user.id))
+    cities_idx = [item.city_id for item in current_user_store.items if not item.is_deleted]
 
-    if not store:
-        log(log.ERROR, "User [%s] has no store", current_user.email)
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User has no store")
+    cities = db.scalars(sa.select(m.City).where(m.City.id.in_(cities_idx))).all()
+    adults = max([item.adults for item in current_user_store.items if not item.is_deleted], default=0)
 
-    items: Sequence[m.Item] = db.scalars(sa.select(m.Item).where(m.Item.store_id == store.id)).all()
-
-    price_min: int = min(int(item.min_price) for item in items)
-    price_max: int = max(int(item.max_price) for item in items)
-
-    return s.ItemsFilterDataOut(
-        price_max=price_max,
-        price_min=price_min,
-    )
+    return s.ItemsFilterDataOut(locations=list(cities), adults=adults)
 
 
 @item_router.post(
