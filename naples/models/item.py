@@ -50,6 +50,7 @@ class Item(db.Model, ModelMixin):
     airbnb_url: orm.Mapped[str] = orm.mapped_column(sa.String(256), default="")
     vrbo_url: orm.Mapped[str] = orm.mapped_column(sa.String(256), default="")
     expedia_url: orm.Mapped[str] = orm.mapped_column(sa.String(256), default="")
+    adults: orm.Mapped[int] = orm.mapped_column(default=0)
 
     store_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey("stores.id"))
     city_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey("cities.id"))
@@ -96,6 +97,10 @@ class Item(db.Model, ModelMixin):
         return self._video if self._video and not self._video.is_deleted else None
 
     @property
+    def main_media(self):
+        return self.image or self.video
+
+    @property
     def images(self):
         return [i for i in self._images if not i.is_deleted]
 
@@ -134,6 +139,14 @@ class Item(db.Model, ModelMixin):
     @property
     def booked_dates(self) -> list[datetime]:
         return [b.date for b in self._booked_dates if not b.is_deleted]
+
+    @property
+    def external_urls(self) -> s.ExternalUrls:
+        return s.ExternalUrls(
+            airbnb_url=self.airbnb_url,
+            vrbo_url=self.vrbo_url,
+            expedia_url=self.expedia_url,
+        )
 
     def get_fee_by_uuid(self, fee_uuid: str):
         return next((f for f in self.fees if f.uuid == fee_uuid), None)

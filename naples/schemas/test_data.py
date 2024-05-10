@@ -1,8 +1,8 @@
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel
 from naples.schemas.item import ItemIn
 from naples.schemas.store import StoreIn
 
-from naples.schemas.member import MemberIn, MemberOut
+from naples.schemas.member import MemberIn
 from naples.schemas.file import FileOut
 
 
