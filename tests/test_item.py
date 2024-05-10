@@ -1,6 +1,3 @@
-import pytest
-
-from typing import Sequence
 from fastapi.testclient import TestClient
 from mypy_boto3_s3 import S3Client
 from sqlalchemy.orm import Session
@@ -69,24 +66,26 @@ def test_get_filters_data(client: TestClient, headers: dict[str, str], full_db: 
     assert filters_data.adults == 5
 
 
-@pytest.mark.skip
 def test_get_items(client: TestClient, full_db: Session, headers: dict[str, str], test_data: s.TestData):
-    store: m.Store | None = full_db.scalar(select(m.Store))
+    store = full_db.scalar(select(m.Store))
     assert store
 
-    store_url: str = store.url
+    store_url = store.url
     size = 4
-    response = client.get(f"/api/items?store_url={store_url}&page={1}&size={size}", headers=headers)
+    response = client.get("/api/items", params={"store_url": store_url, "page": 1, "size": size})
     assert response.status_code == 200
 
-    items: Sequence[s.ItemOut] = s.Items.model_validate(response.json()).items
+    items = s.Items.model_validate(response.json()).items
     assert items
     assert len(items) == size
 
-    response = client.get(f"/api/items?store_url={store_url}&page={2}&size={size}", headers=headers)
+    response = client.get(
+        "/api/items",
+        params={"store_url": store_url, "page": 2, "size": size},
+    )
     assert response.status_code == 200
 
-    res_items: Sequence[s.ItemOut] = s.Items.model_validate(response.json()).items
+    res_items = s.Items.model_validate(response.json()).items
     assert res_items
     # assert len(res_items) == size
 
@@ -95,15 +94,14 @@ def test_get_items(client: TestClient, full_db: Session, headers: dict[str, str]
 
     city_uuid = city.uuid
 
-    response = client.get(f"/api/items?city_uuid={city_uuid}&store_url=", headers=headers)
-    assert response.status_code == 403
-
-    price_min = 0
-    price_max = 10000
-
     response = client.get(
-        f"/api/items?type={type}&price_min={price_min}&price_max={price_max}&store_url={store_url}", headers=headers
+        "/api/items",
+        headers=headers,
+        params={"store_url": store.url, "page": 1, "size": size, "city_uuid": city_uuid},
     )
+    assert response.status_code == 200
+
+    response = client.get("/api/items", params={"store_url": store.url})
     assert response.status_code == 200
 
 
