@@ -31,7 +31,7 @@ class Cities(BaseModel):
 class County(BaseModel):
     name: str
     state_id: int
-    cities: list[City] = []
+    cities: list[CityOut]
 
     model_config = ConfigDict(
         from_attributes=True,
@@ -67,7 +67,7 @@ class Counties(BaseModel):
 class State(BaseModel):
     name: str
     abbreviated_name: str
-    counties: list[County] = []
+    counties: list[CountyOut]
 
     model_config = ConfigDict(
         from_attributes=True,
