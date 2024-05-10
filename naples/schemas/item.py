@@ -2,7 +2,7 @@ import enum
 from datetime import datetime
 from pydantic import BaseModel, ConfigDict, Field, AliasChoices
 
-
+from .main_media import MainMedia
 from .member import MemberOut
 from .fee import FeeOut
 from .rate import RateOut
@@ -13,6 +13,22 @@ class ItemStage(enum.Enum):
     DRAFT = "draft"
     ACTIVE = "active"
     ARCHIVE = "archive"
+
+
+class ItemType(enum.Enum):
+    NIGHTLY = "nightly"
+    MONTHLY = "monthly"
+    ANNUAL = "annual"
+
+
+class ExternalUrls(BaseModel):
+    airbnb_url: str
+    vrbo_url: str
+    expedia_url: str
+
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
 
 
 class ItemIn(BaseModel):
@@ -61,17 +77,16 @@ class ItemOut(BaseModel):
 
 class ItemDetailsOut(ItemOut):
     logo_url: str
-    image_url: str
-    video_url: str
+    main_media: MainMedia | None = None
     realtor: MemberOut
     model_config = ConfigDict(
         from_attributes=True,
     )
     fees: list[FeeOut]
     rates: list[RateOut]
-    airbnb_url: str
-    vrbo_url: str
-    expedia_url: str
+    # airbnb_url: str
+    # vrbo_url: str
+    # expedia_url: str
 
     floor_plans: list[FloorPlanOut]
 
@@ -79,11 +94,14 @@ class ItemDetailsOut(ItemOut):
         from_attributes=True,
     )
 
-    images_urls: list[str] = []
+    images_urls: list[str]
 
-    documents_urls: list[str] = []
+    documents_urls: list[str]
 
-    booked_dates: list[datetime] = []
+    booked_dates: list[datetime]
+    description: str
+    amenities: list[str]
+    external_urls: ExternalUrls
 
 
 class Items(BaseModel):

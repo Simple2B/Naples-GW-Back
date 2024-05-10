@@ -9,7 +9,8 @@
     "pydantic",
     "realtor",
     "SQLALCHEMY",
-    "viewonly"
+    "viewonly",
+    "vrbo"
   ],
   "python.testing.unittestArgs": ["-v", "-s", "./tests", "-p", "test*.py"],
   "python.testing.unittestEnabled": false,

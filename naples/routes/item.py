@@ -1,4 +1,5 @@
 from typing import Sequence
+from datetime import datetime
 
 from fastapi import Depends, APIRouter, UploadFile, status, HTTPException
 from fastapi_pagination import Page, Params, paginate
@@ -63,32 +64,48 @@ def get_item_by_uuid(
 )
 def get_items(
     city_uuid: str | None = None,
-    price_max: int | None = None,
-    price_min: int | None = None,
+    adults: int = 0,
+    rent_type: s.ItemType | None = None,
+    check_in: datetime | None = None,
+    check_out: datetime | None = None,
     params: Params = Depends(),
     db: Session = Depends(get_db),
     current_store: m.Store = Depends(get_current_store),
 ):
     """Get items by filters and pagination"""
 
-    stmt = sa.select(m.Item).where(
+    log(log.INFO, "Getting items for store [%s]", current_store.url)
+
+    stmt = sa.select(m.Item, m.BookedDate).where(
         sa.and_(
             m.Item.is_deleted.is_(False),
             m.Item.store_id == current_store.id,
+            m.BookedDate.item_id == m.Item.id,
         )
     )
 
-    city: m.City | None = db.scalar(sa.select(m.City).where(m.City.uuid == city_uuid))
-
-    if city:
+    if city_uuid:
+        city: m.City | None = db.scalar(sa.select(m.City).where(m.City.uuid == city_uuid))
+        assert city, f"City with UUID [{city_uuid}] not found"
         stmt = stmt.where(m.Item.city_id == city.id)
 
-    # TODO: Refactor this filter
-    # if price_min and price_max:
-    #     stmt = stmt.where(sa.and_(m.Item.min_price >= price_min, m.Item.max_price <= price_max))
+    if adults:
+        stmt = stmt.where(m.Item.adults >= adults)
+
+    # TODO: implement rent_type
+    # if rent_type:
+    #     stmt = stmt.where(m.Item.type == rent_type)
+
+    if check_in:
+        stmt = stmt.where(m.BookedDate.date >= check_in)
+
+    if check_out:
+        stmt = stmt.where(m.BookedDate.date <= check_out)
 
     db_items: Sequence[m.Item] = db.scalars(stmt).all()
     items: Sequence[s.ItemOut] = [s.ItemOut.model_validate(item) for item in db_items]
+
+    log(log.INFO, "Got [%s] items for store [%s]", len(items), current_store.url)
 
     return paginate(items, params)
 
