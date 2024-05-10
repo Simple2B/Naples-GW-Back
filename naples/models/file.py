@@ -27,7 +27,7 @@ class File(db.Model, ModelMixin):
 
     @property
     def url(self):
-        return f"{CFG.AWS_S3_BUCKET_URL}/{self.key}"
+        return f"{CFG.AWS_S3_BUCKET_URL}{self.key}"
 
     @property
     def s3_url(self):
