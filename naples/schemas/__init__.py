@@ -30,6 +30,7 @@ from .locations import (
     City,
     CityOut,
     Cities,
+    LocationOut,
 )
 from .fee import FeeIn, FeeOut, FeeListOut
 from .rate import RateIn, RateOut, RateListOut

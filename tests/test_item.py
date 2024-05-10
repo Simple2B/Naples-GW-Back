@@ -46,6 +46,7 @@ def test_create_item(client: TestClient, full_db: Session, headers: dict[str, st
         stage=s.ItemStage.DRAFT.value,
         city_uuid=city.uuid,
         realtor_uuid=test_realtor.uuid,
+        adults=5,
     )
 
     response = client.post(
@@ -56,9 +57,16 @@ def test_create_item(client: TestClient, full_db: Session, headers: dict[str, st
     assert response.status_code == 201
 
 
-def test_get_filters_data(client: TestClient, headers: dict[str, str], test_data: s.TestData):
-    response = client.get("/api/items/filters/data", headers=headers)
+def test_get_filters_data(client: TestClient, headers: dict[str, str], full_db: Session):
+    store = full_db.scalar(select(m.Store))
+    assert store
+    response = client.get("/api/items/filters/data", params={"store_url": store.url})
     assert response.status_code == 200
+
+    filters_data = s.ItemsFilterDataOut.model_validate(response.json())
+
+    assert filters_data.locations
+    assert filters_data.adults == 5
 
 
 @pytest.mark.skip

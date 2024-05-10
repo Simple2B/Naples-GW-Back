@@ -117,25 +117,16 @@ def get_items(
 )
 def get_filters_data(
     db: Session = Depends(get_db),
-    current_user: m.User = Depends(get_current_user),
+    current_user_store: m.Store = Depends(get_current_store),
 ):
     """Get data for filter items"""
 
-    store: m.Store | None = db.scalar(sa.select(m.Store).where(m.Store.user_id == current_user.id))
+    cities_idx = [item.city_id for item in current_user_store.items if not item.is_deleted]
 
-    if not store:
-        log(log.ERROR, "User [%s] has no store", current_user.email)
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User has no store")
+    cities = db.scalars(sa.select(m.City).where(m.City.id.in_(cities_idx))).all()
+    adults = max([item.adults for item in current_user_store.items if not item.is_deleted], default=0)
 
-    items: Sequence[m.Item] = db.scalars(sa.select(m.Item).where(m.Item.store_id == store.id)).all()
-
-    price_min: int = min(int(item.min_price) for item in items)
-    price_max: int = max(int(item.max_price) for item in items)
-
-    return s.ItemsFilterDataOut(
-        price_max=price_max,
-        price_min=price_min,
-    )
+    return s.ItemsFilterDataOut(locations=list(cities), adults=adults)
 
 
 @item_router.post(
