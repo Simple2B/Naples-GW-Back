@@ -23,3 +23,11 @@ class AmenitiesListOut(BaseModel):
     model_config = ConfigDict(
         from_attributes=True,
     )
+
+
+class ItemAmenitiesIn(BaseModel):
+    amenities_uuids: list[str]
+
+    model_config = ConfigDict(
+        from_attributes=True,
+    )

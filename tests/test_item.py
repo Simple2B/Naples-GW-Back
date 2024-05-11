@@ -389,3 +389,56 @@ def test_delete_item_document(
 
         full_db.refresh(item_model)
         assert not item_model.documents_urls
+
+
+def test_add_amenities_to_item(client: TestClient, full_db: Session, headers: dict[str, str]):
+    item_model = full_db.scalar(select(m.Item))
+    assert item_model
+
+    first_amenity = m.Amenity(value="First Amenity")
+    second_amenity = m.Amenity(value="Second Amenity")
+    full_db.add_all([first_amenity, second_amenity])
+    full_db.commit()
+
+    payload = s.ItemAmenitiesIn(amenities_uuids=[first_amenity.uuid, second_amenity.uuid])
+
+    response = client.post(
+        f"/api/items/{item_model.uuid}/amenities/",
+        headers=headers,
+        content=payload.model_dump_json(),
+    )
+    assert response.status_code == 201
+
+    item = s.ItemDetailsOut.model_validate(response.json())
+    assert item.amenities
+
+
+def test_delete_amenities_from_item(client: TestClient, full_db: Session, headers: dict[str, str]):
+    item_model = full_db.scalar(select(m.Item))
+    assert item_model
+
+    first_amenity = m.Amenity(value="First Amenity")
+    second_amenity = m.Amenity(value="Second Amenity")
+    full_db.add_all([first_amenity, second_amenity])
+    full_db.commit()
+
+    payload = s.ItemAmenitiesIn(amenities_uuids=[first_amenity.uuid, second_amenity.uuid])
+
+    response = client.post(
+        f"/api/items/{item_model.uuid}/amenities/",
+        headers=headers,
+        content=payload.model_dump_json(),
+    )
+    assert response.status_code == 201
+
+    item = s.ItemDetailsOut.model_validate(response.json())
+    assert item.amenities
+
+    response = client.delete(
+        f"/api/items/{item_model.uuid}/amenity/{first_amenity.uuid}",
+        headers=headers,
+    )
+    assert response.status_code == 204
+
+    full_db.refresh(item_model)
+    assert len(item_model.amenities) == 1
