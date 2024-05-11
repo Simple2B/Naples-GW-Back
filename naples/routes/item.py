@@ -516,4 +516,75 @@ def delete_item_document(
     log(log.INFO, "Document [%s] for item [%s] was deleted", document_url, item_uuid)
 
 
+@item_router.post(
+    "/{item_uuid}/amenities/",
+    status_code=status.HTTP_201_CREATED,
+    response_model=s.ItemDetailsOut,
+    responses={
+        404: {"description": "Item not found"},
+    },
+)
+def add_item_amenities(
+    item_uuid: str,
+    amenities: s.ItemAmenitiesIn,
+    db: Session = Depends(get_db),
+    current_store: m.Store = Depends(get_current_user_store),
+):
+    log(log.INFO, "Adding amenities for item [%s]", item_uuid)
+
+    item = current_store.get_item_by_uuid(item_uuid)
+
+    if not item:
+        log(log.ERROR, "Item [%s] not found", item_uuid)
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
+
+    for amenity_uuid in amenities.amenities_uuids:
+        amenity = db.scalar(sa.select(m.Amenity).where(m.Amenity.uuid == amenity_uuid))
+
+        if not amenity:
+            log(log.ERROR, "Amenity [%s] not found", amenity_uuid)
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Amenity not found")
+
+        item._amenities.append(amenity)
+    db.commit()
+    db.refresh(item)
+
+    log(log.INFO, "Amenities for item [%s] were added", item_uuid)
+
+    return s.ItemDetailsOut.model_validate(item)
+
+
+@item_router.delete(
+    "/{item_uuid}/amenity/{amenity_uuid}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    responses={
+        404: {"description": "Item not found"},
+    },
+)
+def delete_item_amenity(
+    item_uuid: str,
+    amenity_uuid: str,
+    db: Session = Depends(get_db),
+    current_store: m.Store = Depends(get_current_user_store),
+):
+    log(log.INFO, "Deleting amenity [%s] for item [%s]", amenity_uuid, item_uuid)
+
+    item = current_store.get_item_by_uuid(item_uuid)
+
+    if not item:
+        log(log.ERROR, "Item [%s] not found", item_uuid)
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
+
+    amenity = next((a for a in item._amenities if a.uuid == amenity_uuid), None)
+
+    if not amenity:
+        log(log.ERROR, "Amenity [%s] not found for item [%s]", amenity_uuid, item_uuid)
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Amenity not found")
+
+    item._amenities.remove(amenity)
+    db.commit()
+
+    log(log.INFO, "Amenity [%s] for item [%s] was deleted", amenity_uuid, item_uuid)
+
+
 # TODO: implement update_item
