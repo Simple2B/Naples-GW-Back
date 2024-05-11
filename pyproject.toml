@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "napples"
-version = "0.2.17"
+version = "0.2.18"
 description = "Backend for Naples Gateway project"
 authors = ["Varvara Shcherbyna <varvarashcherbyna7@gmail.com>"]
 readme = "README.md"
