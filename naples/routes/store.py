@@ -295,6 +295,7 @@ def upload_store_logo(
         extension="svg",
         store_url=current_store.url,
         file_type=s.FileType.LOGO,
+        content_type_override="image/svg+xml",
     )
 
     current_store.logo_id = logo_file_model.id
