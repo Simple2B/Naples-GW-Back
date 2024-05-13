@@ -9,6 +9,7 @@ from .fee import FeeOut
 from .rate import RateOut
 from .floor_plan import FloorPlanOut
 from .locations import LocationOut
+from .file import DocumentOut
 
 
 class ItemStage(enum.Enum):
@@ -99,7 +100,7 @@ class ItemDetailsOut(ItemOut):
 
     images_urls: list[str]
 
-    documents_urls: list[str]
+    documents: list[DocumentOut]
 
     booked_dates: list[datetime]
     description: str

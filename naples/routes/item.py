@@ -1,7 +1,7 @@
-from typing import Sequence
+from typing import Annotated, Sequence
 from datetime import datetime
 
-from fastapi import Depends, APIRouter, UploadFile, status, HTTPException
+from fastapi import Depends, APIRouter, File, Form, UploadFile, status, HTTPException
 from fastapi_pagination import Page, Params, paginate
 from mypy_boto3_s3 import S3Client
 
@@ -449,7 +449,8 @@ def delete_item_image(
     },
 )
 def upload_item_document(
-    document: UploadFile,
+    document: Annotated[UploadFile, File()],
+    title: Annotated[str, Form()],
     item_uuid: str,
     db: Session = Depends(get_db),
     current_store: m.Store = Depends(get_current_user_store),
@@ -473,6 +474,8 @@ def upload_item_document(
         file_type=s.FileType.ATTACHMENT,
         s3_client=s3_client,
     )
+
+    document_model.title = title
 
     item._documents.append(document_model)
     db.commit()

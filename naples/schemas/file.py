@@ -45,6 +45,15 @@ class FileOut(File):
     )
 
 
+class DocumentOut(BaseModel):
+    url: str
+    title: str
+
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
+
+
 class Files(BaseModel):
     files: list[FileOut]
 
