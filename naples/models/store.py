@@ -123,12 +123,7 @@ class Store(db.Model, ModelMixin):
 
     @property
     def main_media(self):
-        if self.image:
-            return self.image
-        elif self.video:
-            return self.video
-        else:
-            return None
+        return self.video or self.image
 
     def get_item_by_uuid(self, item_uuid: str):
         for item in self.items:

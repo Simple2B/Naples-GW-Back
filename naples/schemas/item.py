@@ -72,7 +72,7 @@ class ItemOut(BaseModel):
 
     image_url: str = Field("", validation_alias=AliasChoices("image_url", "imageUrl"), serialization_alias="imageUrl")
 
-    stage: str
+    stage: ItemStage
 
     model_config = ConfigDict(
         from_attributes=True,
