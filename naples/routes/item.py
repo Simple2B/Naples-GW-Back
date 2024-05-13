@@ -68,6 +68,7 @@ def get_items(
     rent_type: s.ItemType | None = None,
     check_in: datetime | None = None,
     check_out: datetime | None = None,
+    name: str | None = None,
     params: Params = Depends(),
     db: Session = Depends(get_db),
     current_store: m.Store = Depends(get_current_store),
@@ -104,6 +105,9 @@ def get_items(
         stmt = stmt.where(
             m.Item._booked_dates.any(sa.and_(m.BookedDate.date <= check_out, m.BookedDate.is_deleted.is_(False)))
         )
+
+    if name:
+        stmt = stmt.where(m.Item.name.ilike(f"%{name}%"))
 
     db_items: Sequence[m.Item] = db.scalars(stmt).all()
     items: Sequence[s.ItemOut] = [s.ItemOut.model_validate(item) for item in db_items]

@@ -445,3 +445,34 @@ def test_delete_amenities_from_item(client: TestClient, full_db: Session, header
 
     full_db.refresh(item_model)
     assert len(item_model.amenities) == 1
+
+
+def test_item_list_with_filter(
+    client: TestClient,
+    full_db: Session,
+    headers: dict[str, str],
+):
+    store = full_db.scalar(select(m.Store))
+    assert store
+
+    store_url = store.url
+    response = client.get(
+        "/api/items",
+        params={
+            "store_url": store_url,
+        },
+    )
+    assert response.status_code == 200
+
+    items = s.Items.model_validate(response.json()).items
+    assert len(items) == 5
+
+    filet_response = client.get(
+        "/api/items",
+        params={"store_url": store_url, "name": "ITEM3"},
+    )
+    assert filet_response.status_code == 200
+
+    filtered_items = s.Items.model_validate(filet_response.json()).items
+    assert len(filtered_items) == 1
+    assert filtered_items[0].name == "test_item3"
