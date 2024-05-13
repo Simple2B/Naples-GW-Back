@@ -35,9 +35,19 @@ def test_create_store(
         email="user@email.com",
         instagram_url="instagram_url",
         messenger_url="messenger_url",
+        title_value="Title",
+        title_color="#000000",
+        title_font_size=24,
+        sub_title_value="Sub Title",
+        sub_title_color="#000000",
+        sub_title_font_size=18,
     )
     response = client.post("/api/stores/", headers=headers, json=test_store.model_dump())
     assert response.status_code == 201
+    store_data = s.StoreOut.model_validate(response.json())
+
+    assert store_data.title.value == test_store.title_value
+    assert store_data.sub_title.color == test_store.sub_title_color
 
 
 def test_upload_image(client: TestClient, headers: dict[str, str], full_db: Session, s3_client: S3Client):

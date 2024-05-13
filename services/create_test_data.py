@@ -28,8 +28,6 @@ def create_test_user(test_user: s.TestUser) -> m.User:
 def create_store(test_store: s.TestStore) -> m.Store:
     """Create test store"""
     store = m.Store(
-        # header=test_store.header,
-        # sub_header=test_store.sub_header,
         url=test_store.url,
         logo_url=test_store.logo_url,
         email=test_store.email,
@@ -37,6 +35,12 @@ def create_store(test_store: s.TestStore) -> m.Store:
         instagram_url=test_store.instagram_url,
         messenger_url=test_store.messenger_url,
         user_id=test_store.user_id,
+        title_value=test_store.title_value,
+        title_color=test_store.title_color,
+        title_font_size=test_store.title_font_size,
+        sub_title_value=test_store.sub_title_value,
+        sub_title_color=test_store.sub_title_color,
+        sub_title_font_size=test_store.sub_title_font_size,
     )
     return store
 
