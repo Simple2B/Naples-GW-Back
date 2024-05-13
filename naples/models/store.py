@@ -36,8 +36,6 @@ class Store(db.Model, ModelMixin):
 
     url: orm.Mapped[str] = orm.mapped_column(sa.String(256), unique=True, default="")
 
-    logo_url: orm.Mapped[str] = orm.mapped_column(sa.String(256), default="")
-
     email: orm.Mapped[str] = orm.mapped_column(
         sa.String(128),
         unique=True,
@@ -65,9 +63,13 @@ class Store(db.Model, ModelMixin):
 
     video_id: orm.Mapped[int | None] = orm.mapped_column(sa.ForeignKey("files.id"), nullable=True)
 
+    logo_id: orm.Mapped[int | None] = orm.mapped_column(sa.ForeignKey("files.id"), nullable=True)
+
     _image: orm.Mapped["File"] = orm.relationship(viewonly=True, foreign_keys=[image_id])
 
     _video: orm.Mapped["File"] = orm.relationship(viewonly=True, foreign_keys=[video_id])
+
+    _logo: orm.Mapped["File"] = orm.relationship(viewonly=True, foreign_keys=[logo_id])
 
     @property
     def image(self):
@@ -76,6 +78,10 @@ class Store(db.Model, ModelMixin):
     @property
     def video(self):
         return self._video if self._video and not self._video.is_deleted else None
+
+    @property
+    def logo(self):
+        return self._logo if self._logo and not self._logo.is_deleted else None
 
     @property
     def members(self):
@@ -92,6 +98,10 @@ class Store(db.Model, ModelMixin):
     @property
     def video_url(self):
         return self.video.url if self.video else ""
+
+    @property
+    def logo_url(self):
+        return self.logo.url if self.logo else ""
 
     @property
     def title(self) -> s.EditableText:

@@ -88,9 +88,6 @@ class ItemDetailsOut(ItemOut):
     )
     fees: list[FeeOut]
     rates: list[RateOut]
-    # airbnb_url: str
-    # vrbo_url: str
-    # expedia_url: str
 
     floor_plans: list[FloorPlanOut]
 

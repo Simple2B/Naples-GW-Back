@@ -19,7 +19,6 @@ class Store(BaseModel):
 
 class StoreIn(BaseModel):
     url: str = ""
-    logo_url: str = ""
     email: str
     instagram_url: str = ""
     messenger_url: str = ""
