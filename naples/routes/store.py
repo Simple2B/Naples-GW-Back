@@ -65,6 +65,72 @@ def create_store(
     return new_store
 
 
+@store_router.patch("/", status_code=status.HTTP_200_OK, response_model=s.StoreOut)
+def update_store(
+    store: s.StoreUpdateIn,
+    db: Session = Depends(get_db),
+    current_store: m.Store = Depends(get_current_user_store),
+):
+    if store.url is not None:
+        log(log.INFO, "Updating url to [%s] for store [%s]", store.url, current_store.url)
+        # TODO: implement update of DNS list for server
+        current_store.url = store.url
+    if store.email is not None:
+        log(log.INFO, "Updating email to [%s] for store [%s]", store.email, current_store.url)
+        current_store.email = store.email
+
+    if store.instagram_url is not None:
+        log(log.INFO, "Updating instagram url to [%s] for store [%s]", store.instagram_url, current_store.url)
+        current_store.instagram_url = str(store.instagram_url)
+
+    if store.messenger_url is not None:
+        log(log.INFO, "Updating messenger url to [%s] for store [%s]", store.messenger_url, current_store.url)
+        current_store.messenger_url = str(store.messenger_url)
+
+    if store.phone is not None:
+        log(log.INFO, "Updating phone to [%s] for store [%s]", store.phone, current_store.url)
+        current_store.phone = store.phone
+
+    if store.title_value is not None:
+        log(log.INFO, "Updating title value to [%s] for store [%s]", store.title_value, current_store.url)
+        current_store.title_value = store.title_value
+
+    if store.title_color is not None:
+        log(log.INFO, "Updating title color to [%s] for store [%s]", store.title_color.as_hex(), current_store.url)
+        current_store.title_color = store.title_color.as_hex()
+
+    if store.title_font_size is not None:
+        log(log.INFO, "Updating title font size to [%s] for store [%s]", store.title_font_size, current_store.url)
+        current_store.title_font_size = store.title_font_size
+
+    if store.sub_title_value is not None:
+        log(log.INFO, "Updating sub title value to [%s] for store [%s]", store.sub_title_value, current_store.url)
+        current_store.sub_title_value = store.sub_title_value
+
+    if store.sub_title_color is not None:
+        log(
+            log.INFO,
+            "Updating sub title color to [%s] for store [%s]",
+            store.sub_title_color.as_hex(),
+            current_store.url,
+        )
+        current_store.sub_title_color = store.sub_title_color.as_hex()
+
+    if store.sub_title_font_size is not None:
+        log(
+            log.INFO,
+            "Updating sub title font size to [%s] for store [%s]",
+            store.sub_title_font_size,
+            current_store.url,
+        )
+        current_store.sub_title_font_size = store.sub_title_font_size
+
+    db.commit()
+    db.refresh(current_store)
+    log(log.INFO, "Updated store [%s]", current_store.url)
+    return current_store
+
+
 @store_router.post(
     "/image",
     status_code=status.HTTP_201_CREATED,

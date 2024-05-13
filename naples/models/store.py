@@ -34,7 +34,9 @@ class Store(db.Model, ModelMixin):
 
     sub_title_font_size: orm.Mapped[int] = orm.mapped_column(sa.Integer, default=16, server_default="16")
 
-    url: orm.Mapped[str] = orm.mapped_column(sa.String(256), unique=True, default="")
+    url: orm.Mapped[str] = orm.mapped_column(
+        sa.String(256), unique=True, default=""
+    )  # TODO: Re implement this to generate a unique url on store creation, may be using UUID, so that users can change the url later
 
     email: orm.Mapped[str] = orm.mapped_column(
         sa.String(128),
