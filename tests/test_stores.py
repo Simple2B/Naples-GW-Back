@@ -28,10 +28,7 @@ def test_create_store(
     assert user
 
     test_store = s.StoreIn(
-        # header="Header",
-        # sub_header="Sub Header",
         url="test_url",
-        logo_url="logo_url",
         email="user@email.com",
         instagram_url="instagram_url",
         messenger_url="messenger_url",
@@ -194,3 +191,70 @@ def test_delete_video(client: TestClient, headers: dict[str, str], full_db: Sess
         full_db.refresh(store_model)
 
         assert not store_model.video
+
+
+def test_create_store_logo(client: TestClient, headers: dict[str, str], full_db: Session, s3_client: S3Client):
+    with open("tests/airbnb.svg", "rb") as f:
+        store_model = full_db.scalar(sa.select(m.Store))
+        assert store_model
+
+        response = client.post(
+            "/api/stores/logo",
+            headers=headers,
+            files={"logo": ("test.svg", f, "image/svg+xml")},
+        )
+        assert response.status_code == 201
+
+        full_db.refresh(store_model)
+
+        assert store_model.logo.original_name == "test.svg"
+
+
+def test_update_store_logo(client: TestClient, headers: dict[str, str], full_db: Session, s3_client: S3Client):
+    with open("tests/airbnb.svg", "rb") as f:
+        store_model = full_db.scalar(sa.select(m.Store))
+        assert store_model
+
+        response = client.post(
+            "/api/stores/logo",
+            headers=headers,
+            files={"logo": ("test.svg", f, "image/svg+xml")},
+        )
+        assert response.status_code == 201
+
+        full_db.refresh(store_model)
+
+        assert store_model.logo.original_name == "test.svg"
+
+        update_response = client.post(
+            "/api/stores/logo",
+            headers=headers,
+            files={"logo": ("test_2.svg", f, "image/svg+xml")},
+        )
+
+        assert update_response.status_code == 201
+
+        full_db.refresh(store_model)
+
+        assert store_model.logo.original_name == "test_2.svg"
+
+
+def test_delete_store_logo(client: TestClient, headers: dict[str, str], full_db: Session, s3_client: S3Client):
+    with open("tests/airbnb.svg", "rb") as f:
+        store_model = full_db.scalar(sa.select(m.Store))
+        assert store_model
+
+        response = client.post(
+            "/api/stores/logo",
+            headers=headers,
+            files={"logo": ("test.svg", f, "image/svg+xml")},
+        )
+        assert response.status_code == 201
+
+        delete_res = client.delete("/api/stores/logo", headers=headers)
+
+        assert delete_res.status_code == 204
+
+        full_db.refresh(store_model)
+
+        assert not store_model.logo

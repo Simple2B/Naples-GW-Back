@@ -198,3 +198,65 @@ def delete_store_video(
     db.commit()
 
     log(log.INFO, "Video deleted for store [%s]", current_store.url)
+
+
+@store_router.post(
+    "/logo",
+    status_code=status.HTTP_201_CREATED,
+    response_model=s.StoreOut,
+)
+def upload_store_logo(
+    logo: UploadFile,
+    db: Session = Depends(get_db),
+    current_store: m.Store = Depends(get_current_user_store),
+    s3_client: S3Client = Depends(get_s3_connect),
+):
+    log(log.INFO, "Uploading logo for store [%s]", current_store.url)
+
+    if current_store.logo and not current_store.logo.is_deleted:
+        log(log.WARNING, "Store [%s] already has a logo. Marking as deleted", current_store.url)
+        current_store.logo.mark_as_deleted()
+        db.commit()
+
+    if not logo.content_type == "image/svg+xml":
+        log(log.ERROR, "Logo must be of type image/svg+xml. Received [%s]", logo.content_type)
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Logo must be of type image/svg+xml")
+
+    logo_file_model = c.create_file(
+        db=db,
+        file=logo,
+        s3_client=s3_client,
+        extension="svg",
+        store_url=current_store.url,
+        file_type=s.FileType.LOGO,
+    )
+
+    current_store.logo_id = logo_file_model.id
+    db.commit()
+    db.refresh(current_store)
+
+    log(log.INFO, "Logo [%s] uploaded for store [%s]", logo_file_model.name, current_store.url)
+
+    return current_store
+
+
+@store_router.delete(
+    "/logo",
+    status_code=status.HTTP_204_NO_CONTENT,
+    responses={
+        404: {"description": "Store not found"},
+    },
+)
+def delete_store_logo(
+    db: Session = Depends(get_db),
+    current_store: m.Store = Depends(get_current_user_store),
+):
+    log(log.INFO, "Deleting logo for store [%s]", current_store.url)
+    if not current_store.logo:
+        log(log.ERROR, "Store [%s] does not have a logo", current_store.url)
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Store does not have a logo")
+
+    current_store.logo.mark_as_deleted()
+    db.commit()
+
+    log(log.INFO, "Logo deleted for store [%s]", current_store.url)
