@@ -3,6 +3,7 @@ from datetime import datetime
 from sqlalchemy import orm
 
 from naples.database import db
+from naples import schemas as s
 from .utils import ModelMixin, create_uuid, datetime_utc
 
 from typing import TYPE_CHECKING
@@ -21,9 +22,17 @@ class Store(db.Model, ModelMixin):
 
     uuid: orm.Mapped[str] = orm.mapped_column(sa.String(32), default=create_uuid, unique=True)
 
-    header: orm.Mapped[str] = orm.mapped_column(sa.String(256), default="")
+    title_value: orm.Mapped[str] = orm.mapped_column(sa.String(256), default="", server_default="")
 
-    sub_header: orm.Mapped[str] = orm.mapped_column(sa.String(256), default="")
+    title_color: orm.Mapped[str] = orm.mapped_column(sa.String(16), default="#000000", server_default="#000000")
+
+    title_font_size: orm.Mapped[int] = orm.mapped_column(sa.Integer, default=24, server_default="24")
+
+    sub_title_value: orm.Mapped[str] = orm.mapped_column(sa.String(256), default="", server_default="")
+
+    sub_title_color: orm.Mapped[str] = orm.mapped_column(sa.String(16), default="#000000", server_default="#000000")
+
+    sub_title_font_size: orm.Mapped[int] = orm.mapped_column(sa.Integer, default=16, server_default="16")
 
     url: orm.Mapped[str] = orm.mapped_column(sa.String(256), unique=True, default="")
 
@@ -83,6 +92,22 @@ class Store(db.Model, ModelMixin):
     @property
     def video_url(self):
         return self.video.url if self.video else ""
+
+    @property
+    def title(self) -> s.EditableText:
+        return s.EditableText(
+            value=self.title_value,
+            color=self.title_color,
+            font_size=self.title_font_size,
+        )
+
+    @property
+    def sub_title(self) -> s.EditableText:
+        return s.EditableText(
+            value=self.sub_title_value,
+            color=self.sub_title_color,
+            font_size=self.sub_title_font_size,
+        )
 
     @property
     def main_media(self):

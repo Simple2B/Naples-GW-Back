@@ -32,7 +32,14 @@
       "phone": "321221231",
       "instagram_url": "test_instagram_url1",
       "messenger_url": "test_messenger_url1",
-      "user_id": 1
+      "user_id": 1,
+      "title_value": "test_title_value1",
+      "title_color": "#000000",
+      "title_font_size": 24,
+      "sub_title_value": "test_sub_title_value1",
+      "sub_title_color": "#000000",
+      "sub_title_font_size": 16
+
     },
     {
       "uuid": "f53fecaf-c84a-4ac0-bfed-d6c945d91460",
@@ -46,7 +53,13 @@
       "phone": "321221231",
       "instagram_url": "test_instagram_url2",
       "messenger_url": "test_messenger_url2",
-      "user_id": 2
+      "user_id": 2,
+      "title_value": "test_title_value2",
+      "title_color": "#000000",
+      "title_font_size": 24,
+      "sub_title_value": "test_sub_title_value2",
+      "sub_title_color": "#000000",
+      "sub_title_font_size": 16
     }
   ],
   "test_items": [

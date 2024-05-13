@@ -36,3 +36,4 @@ from .fee import FeeIn, FeeOut, FeeListOut
 from .rate import RateIn, RateOut, RateListOut
 from .floor_plan import FloorPlanMarkerIn, FloorPlanMarkerOut, FloorPlanIn, FloorPlanOut, FloorPlanListOut
 from .booked_date import BookedDatesBatchIn, BookedDateOut, BookedDateListOut, BookedDateDeleteBatchIn
+from .editable_text import EditableText
