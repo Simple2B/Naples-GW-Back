@@ -23,6 +23,7 @@ def create_file(
     extension: str,
     store_url: str,
     file_type: s.FileType,
+    content_type_override: str | None = None,
 ) -> m.File:
     try:
         file_uuid = create_uuid()
@@ -35,11 +36,18 @@ def create_file(
 
         # Create a BytesIO stream from the file bytes
 
+        extras = {
+            **S3_UPLOAD_EXTRAS,
+        }
+
+        if content_type_override:
+            extras["ContentType"] = content_type_override
+
         s3_client.upload_fileobj(
             file.file,  # Pass the BytesIO stream
             CFG.AWS_S3_BUCKET_NAME,
             key,
-            ExtraArgs=S3_UPLOAD_EXTRAS,
+            ExtraArgs=extras,
         )
 
         file_model = m.File(
