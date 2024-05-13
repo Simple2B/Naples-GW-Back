@@ -187,6 +187,99 @@ def create_item(
     return s.ItemOut.model_validate(new_item_model)
 
 
+@item_router.patch(
+    "/{item_uuid}",
+    status_code=status.HTTP_200_OK,
+    response_model=s.ItemDetailsOut,
+    responses={
+        404: {"description": "Item not found"},
+    },
+)
+def update_item(
+    item_uuid: str,
+    item_data: s.ItemUpdateIn,
+    db: Session = Depends(get_db),
+    current_store: m.Store = Depends(get_current_user_store),
+):
+    """Update item by UUID"""
+
+    item = current_store.get_item_by_uuid(item_uuid)
+
+    if not item:
+        log(log.ERROR, "Item [%s] not found for store [%s]", item_uuid, current_store.url)
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
+
+    if item_data.city_uuid is not None:
+        city = db.scalar(sa.select(m.City).where(m.City.uuid == item_data.city_uuid))
+        if not city:
+            log(log.ERROR, "City [%s] not found", item_data.city_uuid)
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="City not found")
+        log(log.INFO, "City [%s] was updated for item [%s]", city.name, item_uuid)
+        item.city_id = city.id
+
+    if item_data.realtor_uuid is not None:
+        realtor = db.scalar(sa.select(m.Member).where(m.Member.uuid == item_data.realtor_uuid))
+        if not realtor:
+            log(log.ERROR, "Realtor [%s] not found", item_data.realtor_uuid)
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Realtor not found")
+        log(log.INFO, "Realtor [%s] was updated for item [%s]", realtor.email, item_uuid)
+        item.realtor_id = realtor.id
+
+    if item_data.name is not None:
+        log(log.INFO, "Name [%s] was updated for item [%s]", item_data.name, item_uuid)
+        item.name = item_data.name
+
+    if item_data.description is not None:
+        log(log.INFO, "Description [%s] was updated for item [%s]", item_data.description, item_uuid)
+        item.description = item_data.description
+
+    if item_data.latitude is not None:
+        log(log.INFO, "Latitude [%s] was updated for item [%s]", item_data.latitude, item_uuid)
+        item.latitude = item_data.latitude
+
+    if item_data.longitude is not None:
+        log(log.INFO, "Longitude [%s] was updated for item [%s]", item_data.longitude, item_uuid)
+        item.longitude = item_data.longitude
+
+    if item_data.stage is not None:
+        log(log.INFO, "Stage [%s] was updated for item [%s]", item_data.stage, item_uuid)
+        item.stage = item_data.stage.value
+
+    if item_data.size is not None:
+        log(log.INFO, "Size [%s] was updated for item [%s]", item_data.size, item_uuid)
+        item.size = item_data.size
+
+    if item_data.bedrooms_count is not None:
+        log(log.INFO, "Bedrooms count [%s] was updated for item [%s]", item_data.bedrooms_count, item_uuid)
+        item.bedrooms_count = item_data.bedrooms_count
+
+    if item_data.bathrooms_count is not None:
+        log(log.INFO, "Bathrooms count [%s] was updated for item [%s]", item_data.bathrooms_count, item_uuid)
+        item.bathrooms_count = item_data.bathrooms_count
+
+    if item_data.airbnb_url is not None:
+        log(log.INFO, "Airbnb URL [%s] was updated for item [%s]", item_data.airbnb_url, item_uuid)
+        item.airbnb_url = str(item_data.airbnb_url)
+
+    if item_data.vrbo_url is not None:
+        log(log.INFO, "VRBO URL [%s] was updated for item [%s]", item_data.vrbo_url, item_uuid)
+        item.vrbo_url = str(item_data.vrbo_url)
+
+    if item_data.expedia_url is not None:
+        log(log.INFO, "Expedia URL [%s] was updated for item [%s]", item_data.expedia_url, item_uuid)
+        item.expedia_url = str(item_data.expedia_url)
+
+    if item_data.adults is not None:
+        log(log.INFO, "Adults [%s] was updated for item [%s]", item_data.adults, item_uuid)
+        item.adults = item_data.adults
+
+    db.commit()
+    db.refresh(item)
+
+    log(log.INFO, "Updated item [%s] for store [%s]", item_uuid, current_store.url)
+    return item
+
+
 @item_router.delete(
     "/{item_uuid}",
     status_code=status.HTTP_204_NO_CONTENT,
@@ -592,6 +685,3 @@ def delete_item_amenity(
     db.commit()
 
     log(log.INFO, "Amenity [%s] for item [%s] was deleted", amenity_uuid, item_uuid)
-
-
-# TODO: implement update_item
