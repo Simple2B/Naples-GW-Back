@@ -2,6 +2,7 @@ from fastapi.testclient import TestClient
 from mypy_boto3_s3 import S3Client
 from sqlalchemy.orm import Session
 from sqlalchemy import select
+from pydantic import HttpUrl
 
 from naples import schemas as s
 from naples import models as m
@@ -476,3 +477,58 @@ def test_item_list_with_filter(
     filtered_items = s.Items.model_validate(filet_response.json()).items
     assert len(filtered_items) == 1
     assert filtered_items[0].name == "test_item3"
+
+
+def test_update_item(
+    client: TestClient,
+    full_db: Session,
+    headers: dict[str, str],
+):
+    item = full_db.scalar(select(m.Item))
+    assert item
+    city = full_db.scalars(select(m.City)).all()[1]
+
+    assert city
+
+    update_data = s.ItemUpdateIn(
+        name="Updated Item",
+        description="Updated Description",
+        latitude=0.0,
+        longitude=0.0,
+        size=100,
+        bedrooms_count=2,
+        bathrooms_count=1,
+        stage=s.ItemStage.DRAFT,
+        adults=5,
+    )
+
+    response = client.patch(
+        f"/api/items/{item.uuid}",
+        headers=headers,
+        content=update_data.model_dump_json(),
+    )
+    assert response.status_code == 200
+
+    updated_item = s.ItemDetailsOut.model_validate(response.json())
+    assert updated_item.name == "Updated Item"
+    assert updated_item.description == "Updated Description"
+
+    more_update_data = s.ItemUpdateIn(
+        airbnb_url=HttpUrl("https://www.airbnb.com/updated"),
+        vrbo_url=HttpUrl("https://www.vrbo.com/updated"),
+        expedia_url=HttpUrl("https://www.expedia.com/updated"),
+        city_uuid=city.uuid,
+    )
+
+    response = client.patch(
+        f"/api/items/{item.uuid}",
+        headers=headers,
+        content=more_update_data.model_dump_json(),
+    )
+    assert response.status_code == 200
+
+    updated_item = s.ItemDetailsOut.model_validate(response.json())
+    assert updated_item.external_urls.airbnb_url == str(more_update_data.airbnb_url)
+    assert updated_item.external_urls.vrbo_url == str(more_update_data.vrbo_url)
+    assert updated_item.external_urls.expedia_url == str(more_update_data.expedia_url)
+    assert updated_item.city_uuid == city.uuid

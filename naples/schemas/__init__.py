@@ -14,6 +14,7 @@ from .item import (
     ItemDetailsOut,
     ItemType,
     ExternalUrls,
+    ItemUpdateIn,
 )
 from .member import Member, MemberIn, MemberOut, MemberListOut
 from .file import FileType, File, FileOut, OwnerType, Files, FileIn

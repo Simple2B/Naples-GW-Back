@@ -1,6 +1,6 @@
 import enum
 from datetime import datetime
-from pydantic import BaseModel, ConfigDict, Field, AliasChoices
+from pydantic import BaseModel, ConfigDict, Field, AliasChoices, HttpUrl
 
 
 from .main_media import MainMedia
@@ -57,6 +57,27 @@ class ItemIn(BaseModel):
     )
 
 
+class ItemUpdateIn(BaseModel):
+    name: str | None = None
+    description: str | None = None
+    latitude: float | None = None
+    longitude: float | None = None
+    stage: ItemStage | None = None
+    size: int | None = None
+    bedrooms_count: int | None = None
+    bathrooms_count: int | None = None
+    airbnb_url: HttpUrl | None = None
+    vrbo_url: HttpUrl | None = None
+    expedia_url: HttpUrl | None = None
+    adults: int | None = None
+    city_uuid: str | None = None
+    realtor_uuid: str | None = None
+
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
+
+
 class ItemOut(BaseModel):
     uuid: str
     name: str
@@ -103,6 +124,7 @@ class ItemDetailsOut(ItemOut):
     description: str
     amenities: list[str]
     external_urls: ExternalUrls
+    city_uuid: str
 
 
 class Items(BaseModel):
