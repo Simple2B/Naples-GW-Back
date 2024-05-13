@@ -2,6 +2,8 @@ from mypy_boto3_s3 import S3Client
 import sqlalchemy as sa
 from sqlalchemy.orm import Session
 from fastapi.testclient import TestClient
+from pydantic_extra_types.color import Color
+from pydantic.networks import HttpUrl
 
 from naples import schemas as s, models as m
 from naples.config import config
@@ -258,3 +260,49 @@ def test_delete_store_logo(client: TestClient, headers: dict[str, str], full_db:
         full_db.refresh(store_model)
 
         assert not store_model.logo
+
+
+def test_update_store(client: TestClient, headers: dict[str, str], full_db: Session):
+    store_model = full_db.scalar(sa.select(m.Store))
+    assert store_model
+
+    update_data = s.StoreUpdateIn(
+        title_value="New Title",
+        sub_title_value="New Sub Title",
+        title_color=Color("#112233"),
+        title_font_size=24,
+        sub_title_color=Color("#112233"),
+        sub_title_font_size=12,
+    )
+
+    response = client.patch("/api/stores/", headers=headers, content=update_data.model_dump_json())
+    assert response.status_code == 200
+
+    store = s.StoreOut.model_validate(response.json())
+
+    assert update_data.title_color
+    assert update_data.sub_title_color
+
+    assert store.title.value == update_data.title_value
+    assert store.sub_title.value == update_data.sub_title_value
+    assert store.title.color == update_data.title_color.as_hex()
+    assert store.title.font_size == update_data.title_font_size
+    assert store.sub_title.color == update_data.sub_title_color.as_hex()
+    assert store.sub_title.font_size == update_data.sub_title_font_size
+
+    more_update_data = s.StoreUpdateIn(
+        messenger_url=HttpUrl("https://messenger.com"),
+        phone="1234567890",
+        instagram_url=HttpUrl("https://instagram.com"),
+        url="new_url.com",
+    )
+
+    response = client.patch("/api/stores/", headers=headers, content=more_update_data.model_dump_json())
+    assert response.status_code == 200
+
+    store = s.StoreOut.model_validate(response.json())
+
+    assert store.messenger_url == str(more_update_data.messenger_url)
+    assert store.phone == more_update_data.phone
+    assert store.instagram_url == str(more_update_data.instagram_url)
+    assert store.url == more_update_data.url

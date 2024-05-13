@@ -1,5 +1,5 @@
-from pydantic import BaseModel, ConfigDict
-
+from pydantic import BaseModel, ConfigDict, HttpUrl, EmailStr
+from pydantic_extra_types.color import Color
 
 from .main_media import MainMedia
 from .editable_text import EditableText
@@ -26,11 +26,31 @@ class StoreIn(BaseModel):
 
     title_value: str = ""
     title_color: str = ""
-    title_font_size: int = 24
+    title_font_size: int = 0
 
     sub_title_value: str = ""
     sub_title_color: str = ""
-    sub_title_font_size: int = 18
+    sub_title_font_size: int = 0
+
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
+
+
+class StoreUpdateIn(BaseModel):
+    email: EmailStr | None = None
+    instagram_url: HttpUrl | None = None
+    messenger_url: HttpUrl | None = None
+    phone: str | None = None
+
+    title_value: str | None = None
+    title_color: Color | None = None
+    title_font_size: int | None = None
+
+    sub_title_value: str | None = None
+    sub_title_color: Color | None = None
+    sub_title_font_size: int | None = None
+    url: str | None = None
 
     model_config = ConfigDict(
         from_attributes=True,
@@ -38,6 +58,7 @@ class StoreIn(BaseModel):
 
 
 class StoreOut(Store):
+    url: str
     main_media: MainMedia | None = None
 
     title: EditableText

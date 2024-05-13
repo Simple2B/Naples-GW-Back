@@ -2,7 +2,7 @@
 from .test_data import TestUser, TestItem, TestData, TestStore, TestMember
 from .user import UserRole, User, Users
 from .token import Token, TokenData, Auth
-from .store import Store, StoreIn, StoreOut, Stores
+from .store import Store, StoreIn, StoreOut, Stores, StoreUpdateIn
 from .item import (
     ItemStage,
     ItemIn,
