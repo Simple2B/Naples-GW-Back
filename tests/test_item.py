@@ -355,11 +355,13 @@ def test_upload_item_document(
             f"/api/items/{item_model.uuid}/document/",
             headers=headers,
             files={"document": ("test.pdf", document, "application/pdf")},
+            data={"title": "Test Document"},
         )
         assert response.status_code == 201
 
         item = s.ItemDetailsOut.model_validate(response.json())
-        assert item.documents_urls
+        assert item.documents
+        assert item.documents[0].title == "Test Document"
 
 
 def test_delete_item_document(
@@ -376,14 +378,15 @@ def test_delete_item_document(
             f"/api/items/{item_model.uuid}/document/",
             headers=headers,
             files={"document": ("test.pdf", document, "application/pdf")},
+            data={"title": "Test Document"},
         )
         assert response.status_code == 201
 
         item = s.ItemDetailsOut.model_validate(response.json())
-        assert item.documents_urls
+        assert item.documents
 
         delete_response = client.delete(
-            f"/api/items/{item.uuid}/document", headers=headers, params={"document_url": item.documents_urls[0]}
+            f"/api/items/{item.uuid}/document", headers=headers, params={"document_url": item.documents[0].url}
         )
         assert delete_response.status_code == 204
 

@@ -25,6 +25,8 @@ class File(db.Model, ModelMixin):
 
     key: orm.Mapped[str] = orm.mapped_column(sa.String(512), unique=True)
 
+    title: orm.Mapped[str] = orm.mapped_column(sa.String(256), server_default="", default="")
+
     @property
     def url(self):
         return f"{CFG.AWS_S3_BUCKET_URL}{self.key}"
