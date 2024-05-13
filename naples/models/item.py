@@ -98,7 +98,7 @@ class Item(db.Model, ModelMixin):
 
     @property
     def main_media(self):
-        return self.image or self.video
+        return self.video or self.image
 
     @property
     def images(self):
