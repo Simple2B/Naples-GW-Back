@@ -1,4 +1,3 @@
-from typing import Sequence
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 import sqlalchemy as sa
@@ -12,10 +11,31 @@ from naples import schemas as s
 CFG = config("testing")
 
 
-def test_get_locations(client: TestClient, full_db: Session, headers: dict[str, str], test_data: s.TestData):
-    db = full_db
-    states: Sequence[m.State] = db.scalars(sa.select(m.State)).all()
-    assert states[0].name == "New York"
-    response = client.get("/api/locations/", headers=headers)
+def test_get_states(client: TestClient, full_db: Session, headers: dict[str, str]):
+    response = client.get("/api/locations/states", headers=headers)
     assert response.status_code == 200
-    assert len(response.json().get("states")) == len(states)
+    cities = s.LocationsListOut.model_validate(response.json())
+
+    assert cities.items
+
+
+def test_get_counties(client: TestClient, full_db: Session, headers: dict[str, str]):
+    state = full_db.scalar(sa.select(m.State))
+    assert state
+
+    response = client.get(f"/api/locations/counties/{state.uuid}", headers=headers)
+    assert response.status_code == 200
+    counties = s.LocationsListOut.model_validate(response.json())
+
+    assert counties.items
+
+
+def test_get_cities(client: TestClient, full_db: Session, headers: dict[str, str]):
+    county = full_db.scalar(sa.select(m.County))
+    assert county
+
+    response = client.get(f"/api/locations/cities/{county.uuid}", headers=headers)
+    assert response.status_code == 200
+    cities = s.LocationsListOut.model_validate(response.json())
+
+    assert cities.items
