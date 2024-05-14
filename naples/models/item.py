@@ -19,6 +19,7 @@ if TYPE_CHECKING:
     from .floor_plan import FloorPlan
     from .file import File
     from .booked_date import BookedDate
+    from .contact_request import ContactRequest
 
 
 class Item(db.Model, ModelMixin):
@@ -77,6 +78,7 @@ class Item(db.Model, ModelMixin):
     _video: orm.Mapped["File"] = orm.relationship(foreign_keys=[video_id])
     _images: orm.Mapped[list["File"]] = orm.relationship(secondary="items_images")
     _documents: orm.Mapped[list["File"]] = orm.relationship(secondary="items_documents")
+    _contact_requests: orm.Mapped[list["ContactRequest"]] = orm.relationship(viewonly=True)
 
     @property
     def amenities(self) -> list[str]:
@@ -157,6 +159,10 @@ class Item(db.Model, ModelMixin):
     @property
     def city_uuid(self) -> str:
         return self.city.uuid
+
+    @property
+    def contact_requests(self):
+        return [contact_request for contact_request in self._contact_requests if not contact_request.is_deleted]
 
     def get_fee_by_uuid(self, fee_uuid: str):
         return next((f for f in self.fees if f.uuid == fee_uuid), None)
