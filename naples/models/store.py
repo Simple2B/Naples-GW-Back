@@ -13,6 +13,7 @@ if TYPE_CHECKING:
     from .item import Item
     from .member import Member
     from .file import File
+    from .contact_request import ContactRequest
 
 
 class Store(db.Model, ModelMixin):
@@ -60,6 +61,7 @@ class Store(db.Model, ModelMixin):
     _items: orm.Mapped[list["Item"]] = orm.relationship(viewonly=True)
 
     _members: orm.Mapped[list["Member"]] = orm.relationship(back_populates="store", viewonly=True)
+    _contact_requests: orm.Mapped[list["ContactRequest"]] = orm.relationship(back_populates="store", viewonly=True)
 
     image_id: orm.Mapped[int | None] = orm.mapped_column(sa.ForeignKey("files.id"), nullable=True)
 
@@ -124,6 +126,10 @@ class Store(db.Model, ModelMixin):
     @property
     def main_media(self):
         return self.video or self.image
+
+    @property
+    def contact_requests(self):
+        return [contact_request for contact_request in self._contact_requests if not contact_request.is_deleted]
 
     def get_item_by_uuid(self, item_uuid: str):
         for item in self.items:
