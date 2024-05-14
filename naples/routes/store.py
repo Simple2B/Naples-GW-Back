@@ -4,6 +4,7 @@ from fastapi import Depends, APIRouter, UploadFile, status, HTTPException
 from mypy_boto3_s3 import S3Client
 from sqlalchemy.orm import Session
 
+from naples.controllers.file import get_file_type
 from naples.dependency.s3_client import get_s3_connect
 from naples import controllers as c, models as m, schemas as s
 
@@ -132,138 +133,76 @@ def update_store(
 
 
 @store_router.post(
-    "/image",
+    "/main_media",
     status_code=status.HTTP_201_CREATED,
     response_model=s.StoreOut,
     responses={
-        404: {"description": "Store not found"},
+        status.HTTP_404_NOT_FOUND: {"description": "Store not found"},
     },
 )
-def upload_store_image(
-    image: UploadFile,
+def upload_store_main_media(
+    main_media: UploadFile,
     db: Session = Depends(get_db),
     current_store: m.Store = Depends(get_current_user_store),
     s3_client: S3Client = Depends(get_s3_connect),
 ):
-    log(log.INFO, "Uploading image [%s] for store [%s]", image.filename, current_store.url)
+    log(log.INFO, "Uploading main media for store [%s]", current_store.url)
 
-    if current_store.image and not current_store.image.is_deleted:
-        log(log.ERROR, "Store [%s] already has an image. Marking as deleted", current_store.url)
-        current_store.image.mark_as_deleted()
+    if current_store.main_media and not current_store.main_media.is_deleted:
+        log(log.WARNING, "Store [%s] already has a main media. Marking as deleted", current_store.url)
+        current_store.main_media.mark_as_deleted()
         db.commit()
 
-    extension = get_file_extension(image)
+    extension = get_file_extension(main_media)
 
     if not extension:
-        log(log.ERROR, "Extension not found for image [%s]", image.filename)
+        log(log.ERROR, "Extension not found for main media [%s]", main_media.filename)
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Extension not found")
 
-    image_file_model = c.create_file(
+    file_type = get_file_type(extension)
+
+    if file_type == s.FileType.UNKNOWN:
+        log(log.ERROR, "File type not supported for main media [%s]", main_media.filename)
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="File type not supported")
+
+    main_media_file_model = c.create_file(
         db=db,
-        file=image,
+        file=main_media,
         s3_client=s3_client,
         extension=extension,
         store_url=current_store.url,
-        file_type=s.FileType.IMAGE,
+        file_type=file_type,
     )
 
-    current_store.image_id = image_file_model.id
-
+    current_store.main_media_id = main_media_file_model.id
     db.commit()
     db.refresh(current_store)
 
-    log(log.INFO, "Image [%s] uploaded for store [%s]", image_file_model.name, current_store.url)
-
-    return current_store
-
-
-@store_router.post(
-    "/video",
-    status_code=status.HTTP_201_CREATED,
-    response_model=s.StoreOut,
-    responses={
-        404: {"description": "Store not found"},
-    },
-)
-def upload_store_video(
-    video: UploadFile,
-    db: Session = Depends(get_db),
-    current_store: m.Store = Depends(get_current_user_store),
-    s3_client: S3Client = Depends(get_s3_connect),
-):
-    log(log.INFO, "Uploading video for store [%s]", current_store.url)
-
-    if current_store.video and not current_store.video.is_deleted:
-        log(log.ERROR, "Store [%s] already has a video. Marking as deleted", current_store.url)
-        current_store.video.mark_as_deleted()
-        db.commit()
-
-    extension = get_file_extension(video)
-
-    if not extension:
-        log(log.ERROR, "Extension not found for video [%s]", video.filename)
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Extension not found")
-
-    video_file_model = c.create_file(
-        db=db,
-        file=video,
-        s3_client=s3_client,
-        extension=extension,
-        store_url=current_store.url,
-        file_type=s.FileType.VIDEO,
-    )
-
-    current_store.video_id = video_file_model.id
-    db.commit()
-    db.refresh(current_store)
-
-    log(log.INFO, "Video [%s] uploaded for store [%s]", video_file_model.name, current_store.url)
+    log(log.INFO, "Main media [%s] uploaded for store [%s]", main_media_file_model.name, current_store.url)
 
     return current_store
 
 
 @store_router.delete(
-    "/image",
+    "/main_media",
     status_code=status.HTTP_204_NO_CONTENT,
     responses={
         404: {"description": "Store not found"},
     },
 )
-def delete_store_image(
+def delete_store_main_media(
     db: Session = Depends(get_db),
     current_store: m.Store = Depends(get_current_user_store),
 ):
-    log(log.INFO, "Deleting image for store [%s]", current_store.url)
-    if not current_store.image:
-        log(log.ERROR, "Store [%s] does not have an image", current_store.url)
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Store does not have an image")
+    log(log.INFO, "Deleting main media for store [%s]", current_store.url)
+    if not current_store.main_media:
+        log(log.ERROR, "Store [%s] does not have a main media", current_store.url)
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Store does not have a main media")
 
-    current_store.image.mark_as_deleted()
+    current_store.main_media.mark_as_deleted()
     db.commit()
 
-    log(log.INFO, "Image deleted for store [%s]", current_store.url)
-
-
-@store_router.delete(
-    "/video",
-    status_code=status.HTTP_204_NO_CONTENT,
-    responses={
-        404: {"description": "Store not found"},
-    },
-)
-def delete_store_video(
-    db: Session = Depends(get_db),
-    current_store: m.Store = Depends(get_current_user_store),
-):
-    log(log.INFO, "Deleting video for store [%s]", current_store.url)
-    if not current_store.video:
-        log(log.ERROR, "Store [%s] does not have a video", current_store.url)
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Store does not have a video")
-
-    current_store.video.mark_as_deleted()
-    db.commit()
-
-    log(log.INFO, "Video deleted for store [%s]", current_store.url)
+    log(log.INFO, "Main media deleted for store [%s]", current_store.url)
 
 
 @store_router.post(
