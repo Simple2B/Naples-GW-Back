@@ -62,8 +62,7 @@ class Item(db.Model, ModelMixin):
     realtor_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey("members.id"))
 
     # media should be changed via separate API endpoints
-    image_id: orm.Mapped[int | None] = orm.mapped_column(sa.ForeignKey("files.id"))
-    video_id: orm.Mapped[int | None] = orm.mapped_column(sa.ForeignKey("files.id"))
+    main_media_id: orm.Mapped[int | None] = orm.mapped_column(sa.ForeignKey("files.id"))
 
     realtor: orm.Mapped["Member"] = orm.relationship()
     store: orm.Mapped["Store"] = orm.relationship()
@@ -74,8 +73,7 @@ class Item(db.Model, ModelMixin):
     _rates: orm.Mapped[list["Rate"]] = orm.relationship(back_populates="item")
     _floor_plans: orm.Mapped[list["FloorPlan"]] = orm.relationship(viewonly=True)
     _booked_dates: orm.Mapped[list["BookedDate"]] = orm.relationship(viewonly=True)
-    _image: orm.Mapped["File"] = orm.relationship(foreign_keys=[image_id])
-    _video: orm.Mapped["File"] = orm.relationship(foreign_keys=[video_id])
+    _main_media: orm.Mapped["File"] = orm.relationship()
     _images: orm.Mapped[list["File"]] = orm.relationship(secondary="items_images")
     _documents: orm.Mapped[list["File"]] = orm.relationship(secondary="items_documents")
     _contact_requests: orm.Mapped[list["ContactRequest"]] = orm.relationship(viewonly=True)
@@ -97,16 +95,8 @@ class Item(db.Model, ModelMixin):
         return [f for f in self._floor_plans if not f.is_deleted]
 
     @property
-    def image(self):
-        return self._image if self._image and not self._image.is_deleted else None
-
-    @property
-    def video(self):
-        return self._video if self._video and not self._video.is_deleted else None
-
-    @property
     def main_media(self):
-        return self.video or self.image
+        return self._main_media if self._main_media and not self._main_media.is_deleted else None
 
     @property
     def images(self):
@@ -125,16 +115,16 @@ class Item(db.Model, ModelMixin):
         return [d.url for d in self.documents]
 
     @property
+    def image_url(self) -> str:
+        if self.main_media.type == "image":
+            return self.main_media.url
+        if self.images:
+            return self.images[0].url
+        return ""
+
+    @property
     def logo_url(self) -> str:
         return self.store.logo_url
-
-    @property
-    def image_url(self) -> str:
-        return self.image.url if self.image else ""
-
-    @property
-    def video_url(self) -> str:
-        return self.video.url if self.video else ""
 
     @property
     def min_price(self) -> float:
@@ -170,6 +160,10 @@ class Item(db.Model, ModelMixin):
     def mark_as_deleted(self):
         self.is_deleted = True
         self.deleted_at = datetime_utc()
+        if self.main_media:
+            self.main_media.mark_as_deleted()
+        for image in self.images:
+            image.mark_as_deleted()
 
     def __repr__(self):
         return f"<{self.uuid}:{self.name} >"

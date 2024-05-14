@@ -5,6 +5,7 @@ from fastapi import Depends, APIRouter, File, Form, UploadFile, status, HTTPExce
 from fastapi_pagination import Page, Params, paginate
 from mypy_boto3_s3 import S3Client
 
+from naples.controllers.file import get_file_type
 from naples.dependency.s3_client import get_s3_connect
 import naples.models as m
 import naples.schemas as s
@@ -309,108 +310,67 @@ def delete_item(
 
 
 @item_router.post(
-    "/{item_uuid}/main_image",
-    status_code=status.HTTP_201_CREATED,
-    response_model=s.ItemOut,
-    responses={
-        404: {"description": "Store not found"},
-    },
-)
-def upload_item_main_image(
-    item_uuid: str,
-    image: UploadFile,
-    db: Session = Depends(get_db),
-    current_store: m.Store = Depends(get_current_user_store),
-    s3_client: S3Client = Depends(get_s3_connect),
-):
-    log(log.INFO, "Uploading main image for item [%s]", item_uuid)
-
-    item = current_store.get_item_by_uuid(item_uuid)
-
-    if item.image:
-        log(log.INFO, "Deleting previous main image for item [%s]", item_uuid)
-        item.image.mark_as_deleted()
-
-    extension = get_file_extension(image)
-
-    item_model = c.create_file(
-        file=image,
-        db=db,
-        s3_client=s3_client,
-        extension=extension,
-        store_url=current_store.url,
-        file_type=s.FileType.IMAGE,
-    )
-
-    item.image_id = item_model.id
-    db.commit()
-    db.refresh(item)
-
-    log(log.INFO, "Main image for item [%s] was uploaded", item_uuid)
-
-    return s.ItemOut.model_validate(item)
-
-
-@item_router.post(
-    "/{item_uuid}/main_video",
+    "/{item_uuid}/main_media",
     status_code=status.HTTP_201_CREATED,
     response_model=s.ItemDetailsOut,
     responses={
         404: {"description": "Store not found"},
     },
 )
-def upload_item_main_video(
+def upload_item_main_media(
     item_uuid: str,
-    video: UploadFile,
+    main_media: UploadFile,
     db: Session = Depends(get_db),
     current_store: m.Store = Depends(get_current_user_store),
     s3_client: S3Client = Depends(get_s3_connect),
 ):
-    log(log.INFO, "Uploading main video for item [%s]", item_uuid)
+    log(log.INFO, "Uploading main media for item [%s]", item_uuid)
 
     item = current_store.get_item_by_uuid(item_uuid)
 
-    if not item:
-        log(log.ERROR, "Item [%s] not found", item_uuid)
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
+    if item.main_media:
+        log(log.INFO, "Deleting previous main media for item [%s]", item_uuid)
+        item.main_media.mark_as_deleted()
 
-    if item.video:
-        log(log.INFO, "Deleting previous main video for item [%s]", item_uuid)
-        item.video.mark_as_deleted()
+    extension = get_file_extension(main_media)
 
-    extension = get_file_extension(video)
+    file_type = get_file_type(extension)
+
+    if file_type == s.FileType.UNKNOWN:
+        log(log.ERROR, "Unknown file extension [%s]", extension)
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Unknown file extension")
 
     item_model = c.create_file(
-        file=video,
+        file=main_media,
         db=db,
+        s3_client=s3_client,
         extension=extension,
         store_url=current_store.url,
-        file_type=s.FileType.VIDEO,
-        s3_client=s3_client,
+        file_type=file_type,
     )
 
-    item.video_id = item_model.id
+    item.main_media_id = item_model.id
     db.commit()
     db.refresh(item)
 
-    log(log.INFO, "Main video for item [%s] was uploaded", item_uuid)
+    log(log.INFO, "Main media for item [%s] was uploaded", item_uuid)
 
     return s.ItemDetailsOut.model_validate(item)
 
 
 @item_router.delete(
-    "/{item_uuid}/main_image",
+    "/{item_uuid}/main_media",
     status_code=status.HTTP_204_NO_CONTENT,
     responses={
         404: {"description": "Store not found"},
     },
 )
-def delete_item_main_image(
+def delete_item_main_media(
     item_uuid: str,
     db: Session = Depends(get_db),
     current_store: m.Store = Depends(get_current_user_store),
 ):
-    log(log.INFO, "Deleting main image for item [%s]", item_uuid)
+    log(log.INFO, "Deleting main media for item [%s]", item_uuid)
 
     item = current_store.get_item_by_uuid(item_uuid)
 
@@ -418,46 +378,15 @@ def delete_item_main_image(
         log(log.ERROR, "Item [%s] not found", item_uuid)
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
 
-    if not item.image:
-        log(log.ERROR, "Item [%s] has no main image", item_uuid)
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item has no main image")
+    if not item.main_media:
+        log(log.ERROR, "Item [%s] has no main media", item_uuid)
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item has no main media")
 
-    item.image.mark_as_deleted()
+    item.main_media.mark_as_deleted()
     db.commit()
     db.refresh(item)
 
-    log(log.INFO, "Main image for item [%s] was deleted", item_uuid)
-
-
-@item_router.delete(
-    "/{item_uuid}/main_video",
-    status_code=status.HTTP_204_NO_CONTENT,
-    responses={
-        404: {"description": "Store not found"},
-    },
-)
-def delete_item_video(
-    item_uuid: str,
-    db: Session = Depends(get_db),
-    current_store: m.Store = Depends(get_current_user_store),
-):
-    log(log.INFO, "Deleting main video for item [%s]", item_uuid)
-
-    item = current_store.get_item_by_uuid(item_uuid)
-
-    if not item:
-        log(log.ERROR, "Item [%s] not found", item_uuid)
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
-
-    if not item.video:
-        log(log.ERROR, "Item [%s] has no main video", item_uuid)
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item has no main video")
-
-    item.video.mark_as_deleted()
-    db.commit()
-    db.refresh(item)
-
-    log(log.INFO, "Main video for item [%s] was deleted", item_uuid)
+    log(log.INFO, "Main media for item [%s] was deleted", item_uuid)
 
 
 @item_router.post(
