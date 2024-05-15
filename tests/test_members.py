@@ -96,6 +96,8 @@ def test_update_member(client: TestClient, full_db: Session, headers: dict[str, 
     assert updated_member.phone == req_payload.phone
     assert updated_member.instagram_url == req_payload.instagram_url
     assert updated_member.messenger_url == req_payload.messenger_url
+    assert member.title == "Realtor"
+    assert updated_member.title == member.title
 
 
 def test_delete_member(client: TestClient, full_db: Session, headers: dict[str, str]):
