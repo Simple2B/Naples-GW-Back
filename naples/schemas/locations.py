@@ -106,3 +106,11 @@ class LocationOut(BaseModel):
     model_config = ConfigDict(
         from_attributes=True,
     )
+
+
+class LocationsListOut(BaseModel):
+    items: list[LocationOut]
+
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
