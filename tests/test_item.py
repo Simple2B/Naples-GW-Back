@@ -131,9 +131,9 @@ def test_upload_item_main_image(
 
     with open("tests/house_example.png", "rb") as image:
         response = client.post(
-            f"/api/items/{item_model.uuid}/main_image/",
+            f"/api/items/{item_model.uuid}/main_media/",
             headers=headers,
-            files={"image": ("test.png", image, "image/npg")},
+            files={"main_media": ("test.png", image, "image/npg")},
         )
         assert response.status_code == 201
 
@@ -152,9 +152,9 @@ def test_update_item_main_image(
 
     with open("tests/house_example.png", "rb") as image:
         response = client.post(
-            f"/api/items/{item_model.uuid}/main_image/",
+            f"/api/items/{item_model.uuid}/main_media/",
             headers=headers,
-            files={"image": ("test.png", image, "image/npg")},
+            files={"main_media": ("test.png", image, "image/npg")},
         )
         assert response.status_code == 201
 
@@ -162,9 +162,9 @@ def test_update_item_main_image(
         assert item.image_url
 
         update_response = client.post(
-            f"/api/items/{item_model.uuid}/main_image/",
+            f"/api/items/{item_model.uuid}/main_media/",
             headers=headers,
-            files={"image": ("test_2.png", image, "image/npg")},
+            files={"main_media": ("test_2.png", image, "image/npg")},
         )
 
         assert update_response.status_code == 201
@@ -175,7 +175,7 @@ def test_update_item_main_image(
 
         full_db.refresh(item_model)
 
-        assert item_model.image_url == updated_item.image_url
+        assert item_model.main_media.url == updated_item.image_url
 
 
 def test_delete_main_image(
@@ -189,20 +189,20 @@ def test_delete_main_image(
 
     with open("tests/house_example.png", "rb") as image:
         response = client.post(
-            f"/api/items/{item_model.uuid}/main_image/",
+            f"/api/items/{item_model.uuid}/main_media/",
             headers=headers,
-            files={"image": ("test.png", image, "image/npg")},
+            files={"main_media": ("test.png", image, "image/npg")},
         )
         assert response.status_code == 201
 
         item = s.ItemOut.model_validate(response.json())
         assert item.image_url
 
-        delete_response = client.delete(f"/api/items/{item.uuid}/main_image/", headers=headers)
+        delete_response = client.delete(f"/api/items/{item.uuid}/main_media/", headers=headers)
         assert delete_response.status_code == 204
 
         full_db.refresh(item_model)
-        assert not item_model.image_url
+        assert not item_model.main_media
 
 
 def test_create_main_item_video(
@@ -216,14 +216,14 @@ def test_create_main_item_video(
 
     with open("tests/house_example.png", "rb") as video:
         response = client.post(
-            f"/api/items/{item_model.uuid}/main_video/",
+            f"/api/items/{item_model.uuid}/main_media/",
             headers=headers,
-            files={"video": ("test.mp4", video, "video/mp4")},
+            files={"main_media": ("test.mp4", video, "video/mp4")},
         )
         assert response.status_code == 201
 
         item = s.ItemDetailsOut.model_validate(response.json())
-        assert item.main_media and item.main_media.url
+        assert item.main_media and item.main_media.url and item.main_media.url
 
 
 def test_update_main_item_video(
@@ -237,9 +237,9 @@ def test_update_main_item_video(
 
     with open("tests/house_example.png", "rb") as video:
         response = client.post(
-            f"/api/items/{item_model.uuid}/main_video/",
+            f"/api/items/{item_model.uuid}/main_media/",
             headers=headers,
-            files={"video": ("test.mp4", video, "video/mp4")},
+            files={"main_media": ("test.mp4", video, "video/mp4")},
         )
         assert response.status_code == 201
 
@@ -247,9 +247,9 @@ def test_update_main_item_video(
         assert item.main_media and item.main_media.url
 
         update_response = client.post(
-            f"/api/items/{item_model.uuid}/main_video/",
+            f"/api/items/{item_model.uuid}/main_media/",
             headers=headers,
-            files={"video": ("test_2.mp4", video, "video/mp4")},
+            files={"main_media": ("test_2.mp4", video, "video/mp4")},
         )
 
         assert update_response.status_code == 201
@@ -262,7 +262,7 @@ def test_update_main_item_video(
 
         full_db.refresh(item_model)
 
-        assert item_model.video_url == updated_item.main_media.url
+        assert item_model.main_media.url == updated_item.main_media.url
 
 
 def test_delete_main_item_video(
@@ -276,20 +276,20 @@ def test_delete_main_item_video(
 
     with open("tests/house_example.png", "rb") as video:
         response = client.post(
-            f"/api/items/{item_model.uuid}/main_video/",
+            f"/api/items/{item_model.uuid}/main_media/",
             headers=headers,
-            files={"video": ("test.mp4", video, "video/mp4")},
+            files={"main_media": ("test.mp4", video, "video/mp4")},
         )
         assert response.status_code == 201
 
         item = s.ItemDetailsOut.model_validate(response.json())
         assert item.main_media and item.main_media.url
 
-        delete_response = client.delete(f"/api/items/{item.uuid}/main_video/", headers=headers)
+        delete_response = client.delete(f"/api/items/{item.uuid}/main_media/", headers=headers)
         assert delete_response.status_code == 204
 
         full_db.refresh(item_model)
-        assert not item_model.video_url
+        assert not item_model.main_media
 
 
 def test_create_item_image(

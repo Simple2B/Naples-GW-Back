@@ -8,6 +8,7 @@ class FileType(enum.Enum):
     ATTACHMENT = "attachment"
     AVATAR = "avatar"
     LOGO = "logo"
+    UNKNOWN = "unknown"
 
 
 class OwnerType(enum.Enum):

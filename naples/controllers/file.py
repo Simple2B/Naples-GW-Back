@@ -92,3 +92,20 @@ def delete_file(
     except SQLAlchemyError as e:
         log(log.INFO, "file [%s] was not deleted:\n %s", file.name, e)
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="file exists")
+
+
+def is_image_file(extension: str) -> bool:
+    return extension.lower() in ("jpg", "jpeg", "png", "gif", "webp", "avif")
+
+
+def is_video_file(extension: str) -> bool:
+    return extension.lower() in ("mp4", "mov", "avi", "flv", "wmv")
+
+
+def get_file_type(extension: str) -> s.FileType:
+    if is_image_file(extension):
+        return s.FileType.IMAGE
+    elif is_video_file(extension):
+        return s.FileType.VIDEO
+    else:
+        return s.FileType.UNKNOWN

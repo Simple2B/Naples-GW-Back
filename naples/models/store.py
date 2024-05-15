@@ -63,25 +63,21 @@ class Store(db.Model, ModelMixin):
     _members: orm.Mapped[list["Member"]] = orm.relationship(back_populates="store", viewonly=True)
     _contact_requests: orm.Mapped[list["ContactRequest"]] = orm.relationship(back_populates="store", viewonly=True)
 
-    image_id: orm.Mapped[int | None] = orm.mapped_column(sa.ForeignKey("files.id"), nullable=True)
-
-    video_id: orm.Mapped[int | None] = orm.mapped_column(sa.ForeignKey("files.id"), nullable=True)
+    main_media_id: orm.Mapped[int | None] = orm.mapped_column(sa.ForeignKey("files.id"), nullable=True)
 
     logo_id: orm.Mapped[int | None] = orm.mapped_column(sa.ForeignKey("files.id"), nullable=True)
 
-    _image: orm.Mapped["File"] = orm.relationship(viewonly=True, foreign_keys=[image_id])
-
-    _video: orm.Mapped["File"] = orm.relationship(viewonly=True, foreign_keys=[video_id])
+    _main_media: orm.Mapped["File"] = orm.relationship(viewonly=True, foreign_keys=[main_media_id])
 
     _logo: orm.Mapped["File"] = orm.relationship(viewonly=True, foreign_keys=[logo_id])
 
     @property
-    def image(self):
-        return self._image if self._image and not self._image.is_deleted else None
+    def main_media(self):
+        return self._main_media if self._main_media and not self._main_media.is_deleted else None
 
     @property
-    def video(self):
-        return self._video if self._video and not self._video.is_deleted else None
+    def main_media_url(self):
+        return self.main_media.url if self.main_media else ""
 
     @property
     def logo(self):
@@ -94,14 +90,6 @@ class Store(db.Model, ModelMixin):
     @property
     def items(self):
         return [item for item in self._items if not item.is_deleted]
-
-    @property
-    def image_url(self):
-        return self.image.url if self.image else ""
-
-    @property
-    def video_url(self):
-        return self.video.url if self.video else ""
 
     @property
     def logo_url(self):
@@ -122,10 +110,6 @@ class Store(db.Model, ModelMixin):
             color=self.sub_title_color,
             font_size=self.sub_title_font_size,
         )
-
-    @property
-    def main_media(self):
-        return self.video or self.image
 
     @property
     def contact_requests(self):

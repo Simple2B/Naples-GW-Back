@@ -55,9 +55,9 @@ def test_upload_image(client: TestClient, headers: dict[str, str], full_db: Sess
         assert store_model
 
         response = client.post(
-            "/api/stores/image",
+            "/api/stores/main_media",
             headers=headers,
-            files={"image": ("test.jpg", f, "image/jpeg")},
+            files={"main_media": ("test.jpg", f, "image/jpeg")},
         )
         assert response.status_code == 201
 
@@ -65,13 +65,13 @@ def test_upload_image(client: TestClient, headers: dict[str, str], full_db: Sess
         assert store_res.status_code == 200
 
         store = s.StoreOut.model_validate(store_res.json())
-        assert store.main_media and store.main_media.url == store_model.image.url
+        assert store.main_media and store.main_media.url == store_model.main_media.url
 
         full_db.refresh(store_model)
 
         bucket_file = s3_client.get_object(
             Bucket=CFG.AWS_S3_BUCKET_NAME,
-            Key=store_model.image.key,
+            Key=store_model.main_media.key,
         )
 
         assert bucket_file["ResponseMetadata"]["HTTPStatusCode"] == 200
@@ -84,27 +84,27 @@ def test_update_image(client: TestClient, headers: dict[str, str], full_db: Sess
         assert store_model
 
         response = client.post(
-            "/api/stores/image",
+            "/api/stores/main_media",
             headers=headers,
-            files={"image": ("test.jpg", f, "image/jpeg")},
+            files={"main_media": ("test.jpg", f, "image/jpeg")},
         )
         assert response.status_code == 201
 
         full_db.refresh(store_model)
 
-        assert store_model.image.original_name == "test.jpg"
+        assert store_model.main_media.original_name == "test.jpg"
 
         update_response = client.post(
-            "/api/stores/image",
+            "/api/stores/main_media",
             headers=headers,
-            files={"image": ("test_2.jpg", f, "image/jpeg")},
+            files={"main_media": ("test_2.jpg", f, "image/jpeg")},
         )
 
         assert update_response.status_code == 201
 
         full_db.refresh(store_model)
 
-        assert store_model.image.original_name == "test_2.jpg"
+        assert store_model.main_media.original_name == "test_2.jpg"
 
 
 def test_delete_image(client: TestClient, headers: dict[str, str], full_db: Session, s3_client: S3Client):
@@ -113,19 +113,19 @@ def test_delete_image(client: TestClient, headers: dict[str, str], full_db: Sess
         assert store_model
 
         response = client.post(
-            "/api/stores/image",
+            "/api/stores/main_media",
             headers=headers,
-            files={"image": ("test.jpg", f, "image/jpeg")},
+            files={"main_media": ("test.jpg", f, "image/jpeg")},
         )
         assert response.status_code == 201
 
-        delete_res = client.delete("/api/stores/image", headers=headers)
+        delete_res = client.delete("/api/stores/main_media", headers=headers)
 
         assert delete_res.status_code == 204
 
         full_db.refresh(store_model)
 
-        assert not store_model.image
+        assert not store_model.main_media
 
 
 def test_create_store_video(client: TestClient, headers: dict[str, str], full_db: Session, s3_client: S3Client):
@@ -134,15 +134,15 @@ def test_create_store_video(client: TestClient, headers: dict[str, str], full_db
         assert store_model
 
         response = client.post(
-            "/api/stores/video",
+            "/api/stores/main_media",
             headers=headers,
-            files={"video": ("test.mp4", f, "video/mp4")},
+            files={"main_media": ("test.mp4", f, "video/mp4")},
         )
         assert response.status_code == 201
 
         full_db.refresh(store_model)
 
-        assert store_model.video.original_name == "test.mp4"
+        assert store_model.main_media.original_name == "test.mp4"
 
 
 def test_update_video(client: TestClient, headers: dict[str, str], full_db: Session, s3_client: S3Client):
@@ -151,27 +151,27 @@ def test_update_video(client: TestClient, headers: dict[str, str], full_db: Sess
         assert store_model
 
         response = client.post(
-            "/api/stores/video",
+            "/api/stores/main_media",
             headers=headers,
-            files={"video": ("test.mp4", f, "video/mp4")},
+            files={"main_media": ("test.mp4", f, "video/mp4")},
         )
         assert response.status_code == 201
 
         full_db.refresh(store_model)
 
-        assert store_model.video.original_name == "test.mp4"
+        assert store_model.main_media.original_name == "test.mp4"
 
         update_response = client.post(
-            "/api/stores/video",
+            "/api/stores/main_media",
             headers=headers,
-            files={"video": ("test_2.mp4", f, "video/mp4")},
+            files={"main_media": ("test_2.mp4", f, "video/mp4")},
         )
 
         assert update_response.status_code == 201
 
         full_db.refresh(store_model)
 
-        assert store_model.video.original_name == "test_2.mp4"
+        assert store_model.main_media.original_name == "test_2.mp4"
 
 
 def test_delete_video(client: TestClient, headers: dict[str, str], full_db: Session, s3_client: S3Client):
@@ -180,19 +180,19 @@ def test_delete_video(client: TestClient, headers: dict[str, str], full_db: Sess
         assert store_model
 
         response = client.post(
-            "/api/stores/video",
+            "/api/stores/main_media",
             headers=headers,
-            files={"video": ("test.mp4", f, "video/mp4")},
+            files={"main_media": ("test.mp4", f, "video/mp4")},
         )
         assert response.status_code == 201
 
-        delete_res = client.delete("/api/stores/video", headers=headers)
+        delete_res = client.delete("/api/stores/main_media", headers=headers)
 
         assert delete_res.status_code == 204
 
         full_db.refresh(store_model)
 
-        assert not store_model.video
+        assert not store_model.main_media
 
 
 def test_create_store_logo(client: TestClient, headers: dict[str, str], full_db: Session, s3_client: S3Client):
