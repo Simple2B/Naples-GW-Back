@@ -77,6 +77,8 @@ def update_member(
         member_model.phone = member.phone
         member_model.instagram_url = member.instagram_url
         member_model.messenger_url = member.messenger_url
+        if member.title:
+            member_model.title = member.title
         db.commit()
         db.refresh(member_model)
         return s.MemberOut.model_validate(member_model)

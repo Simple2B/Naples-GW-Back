@@ -37,7 +37,6 @@ class Item(db.Model, ModelMixin):
 
     name: orm.Mapped[str] = orm.mapped_column(
         sa.String(128),
-        unique=True,
         nullable=False,
     )
     description: orm.Mapped[str] = orm.mapped_column(sa.Text, default="")

@@ -7,6 +7,7 @@ class Member(BaseModel):
     phone: str = ""
     instagram_url: str = ""
     messenger_url: str = ""
+    title: str
 
     model_config = ConfigDict(
         from_attributes=True,
@@ -19,6 +20,7 @@ class MemberIn(BaseModel):
     phone: str = ""
     instagram_url: str = ""
     messenger_url: str = ""
+    title: str = ""
 
     model_config = ConfigDict(
         from_attributes=True,
