@@ -13,9 +13,36 @@ from naples.logger import log
 from naples.dependency import get_current_user, get_current_user_store
 from naples.database import get_db
 from naples.utils import get_file_extension
+from naples.config import config
 
 
 store_router = APIRouter(prefix="/stores", tags=["Stores"])
+
+CFG = config()
+
+
+@store_router.get(
+    "/urls",
+    status_code=status.HTTP_200_OK,
+    response_model=s.TraefikData,
+    responses={
+        404: {"description": "Store not found"},
+    },
+)
+def get_stores_urls(
+    db: Session = Depends(get_db),
+):
+    stores = db.scalars(sa.select(m.Store)).all()
+    traefik_http = s.TraefikHttp(
+        routers={store.uuid: s.TraefikRoute(rule=f"Host(`{store.url}`)", service=store.uuid) for store in stores},
+        services={
+            store.uuid: s.TraefikService(
+                loadBalancer=s.TraefikLoadBalancer(servers=[s.TraefikServer(url=f"http://{CFG.WEB_SERVICE_NAME}")])
+            )
+            for store in stores
+        },
+    )
+    return s.TraefikData(http=traefik_http)
 
 
 @store_router.get(

@@ -49,6 +49,10 @@ class BaseConfig(BaseSettings):
     # TODO: Add more AWS configurations
     # DEFAULT_IMAGE_URL: str
 
+    # Stores URLs Discovery
+
+    WEB_SERVICE_NAME: str = "naples-gw-front-app-1"
+
     model_config = SettingsConfigDict(
         extra="allow",
         env_file=("project.env", ".env.dev", ".env"),
