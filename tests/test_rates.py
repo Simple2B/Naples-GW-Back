@@ -33,7 +33,7 @@ def test_create_rate(client: TestClient, full_db: Session, headers: dict[str, st
     assert rate.week == rate_model.week
 
 
-def test_get_rates_for_item(client: TestClient, full_db: Session):
+def test_get_rates_for_item(client: TestClient, full_db: Session, headers: dict[str, str]):
     item = full_db.scalar(select(m.Item))
     assert item
 
@@ -61,13 +61,18 @@ def test_get_rates_for_item(client: TestClient, full_db: Session):
     full_db.add_all([rate, invisible_rate])
     full_db.commit()
 
-    res = client.get(f"/api/rates/{item.uuid}", params={"store_url": item.store.url})
+    res = client.get(f"/api/rates/{item.uuid}", headers=headers)
     assert res.status_code == 200
 
     rates = s.RateListOut.model_validate(res.json())
     assert rates.items
-    assert len(rates.items) == 1
+    assert len(rates.items) == 2
     assert rates.items[0].night == rate.night
+
+    item_details = client.get(f"/api/items/{item.uuid}", params={"store_url": item.store.url}, headers=headers)
+    item_res = s.ItemDetailsOut.model_validate(item_details.json())
+    assert item_res.rates
+    assert len(item_res.rates) == 1
 
 
 def test_update_rate(client: TestClient, full_db: Session, headers: dict[str, str]):
@@ -132,6 +137,6 @@ def test_delete_rate(client: TestClient, full_db: Session, headers: dict[str, st
     rate_model = full_db.scalar(select(m.Rate).where(m.Rate.uuid == rate.uuid))
     assert rate_model and rate_model.is_deleted
 
-    rates_res = client.get(f"/api/rates/{item.uuid}", params={"store_url": item.store.url})
+    rates_res = client.get(f"/api/rates/{item.uuid}", headers=headers)
     rates = s.RateListOut.model_validate(rates_res.json())
     assert not rates.items
