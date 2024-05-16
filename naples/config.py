@@ -52,6 +52,7 @@ class BaseConfig(BaseSettings):
     # Stores URLs Discovery
 
     WEB_SERVICE_NAME: str = "naples-gw-front-app-1"
+    CERT_RESOLVER: str = "myresolver"
 
     model_config = SettingsConfigDict(
         extra="allow",

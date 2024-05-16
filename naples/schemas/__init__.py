@@ -53,4 +53,5 @@ from .store_url import (
     TraefikService,
     TraefikHttp,
     TraefikData,
+    TraefikTLS,
 )
