@@ -306,3 +306,21 @@ def test_update_store(client: TestClient, headers: dict[str, str], full_db: Sess
     assert store.phone == more_update_data.phone
     assert store.instagram_url == str(more_update_data.instagram_url)
     assert store.url == more_update_data.url
+
+
+def test_get_stores_urls(
+    client: TestClient,
+    full_db: Session,
+):
+    store_models = full_db.scalars(sa.select(m.Store)).all()
+    assert store_models
+
+    response = client.get("/api/stores/urls")
+    assert response.status_code == 200
+
+    stores = s.TraefikData.model_validate(response.json())
+
+    for store in store_models:
+        assert store.uuid in stores.http.routers
+        assert stores.http.routers[store.uuid].rule == f"Host(`{store.url}`)"
+        assert stores.http.services[store.uuid].loadBalancer.servers[0].url == f"http://{CFG.WEB_SERVICE_NAME}"

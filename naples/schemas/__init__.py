@@ -46,3 +46,11 @@ from .contact_request import (
     ContactRequestListOut,
     ContactRequestUpdateIn,
 )
+from .store_url import (
+    TraefikRoute,
+    TraefikServer,
+    TraefikLoadBalancer,
+    TraefikService,
+    TraefikHttp,
+    TraefikData,
+)
