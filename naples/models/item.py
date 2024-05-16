@@ -152,15 +152,11 @@ class Item(db.Model, ModelMixin):
         return [b.date for b in self._booked_dates if not b.is_deleted]
 
     @property
-    def external_urls(self) -> s.ExternalUrls | None:
-        return (
-            s.ExternalUrls(
-                airbnb_url=self.airbnb_url,
-                vrbo_url=self.vrbo_url,
-                expedia_url=self.expedia_url,
-            )
-            if self.show_external_urls
-            else None
+    def external_urls(self) -> s.ExternalUrls:
+        return s.ExternalUrls(
+            airbnb_url=self.airbnb_url,
+            vrbo_url=self.vrbo_url,
+            expedia_url=self.expedia_url,
         )
 
     @property

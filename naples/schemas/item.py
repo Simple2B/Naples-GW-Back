@@ -129,7 +129,7 @@ class ItemDetailsOut(ItemOut):
     booked_dates: list[datetime]
     description: str
     amenities: list[str]
-    external_urls: ExternalUrls | None = None
+    external_urls: ExternalUrls
     city_uuid: str
     adults: int
     show_rates: bool
