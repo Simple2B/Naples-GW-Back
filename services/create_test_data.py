@@ -60,6 +60,9 @@ def create_item(test_item: s.TestItem, city_id: int) -> m.Item:
         realtor_id=test_item.realtor_id,
         city_id=city_id,
         adults=test_item.adults,
+        nightly=test_item.nightly,
+        monthly=test_item.monthly,
+        annual=test_item.annual,
     )
     return item
 

@@ -38,6 +38,11 @@ item_router = APIRouter(prefix="/items", tags=["Items"])
     },
 )
 def get_published_items(
+    city_uuid: str | None = None,
+    adults: int = 0,
+    rent_length: s.RentalLength | None = None,
+    check_in: datetime | None = None,
+    check_out: datetime | None = None,
     name: str | None = None,
     params: Params = Depends(),
     db: Session = Depends(get_db),
@@ -54,6 +59,32 @@ def get_published_items(
             m.Item.stage == s.ItemStage.ACTIVE.value,
         )
     )
+
+    if city_uuid:
+        city: m.City | None = db.scalar(sa.select(m.City).where(m.City.uuid == city_uuid))
+        assert city, f"City with UUID [{city_uuid}] not found"
+        stmt = stmt.where(m.Item.city_id == city.id)
+
+    if adults:
+        stmt = stmt.where(m.Item.adults >= adults)
+
+    if rent_length:
+        if rent_length == s.RentalLength.NIGHTLY:
+            stmt = stmt.where(m.Item.nightly.is_(True))
+        elif rent_length == s.RentalLength.MONTHLY:
+            stmt = stmt.where(m.Item.monthly.is_(True))
+        elif rent_length == s.RentalLength.ANNUAL:
+            stmt = stmt.where(m.Item.annual.is_(True))
+
+    if check_in:
+        stmt = stmt.where(
+            m.Item._booked_dates.any(sa.and_(m.BookedDate.date >= check_in, m.BookedDate.is_deleted.is_(False)))
+        )
+
+    if check_out:
+        stmt = stmt.where(
+            m.Item._booked_dates.any(sa.and_(m.BookedDate.date <= check_out, m.BookedDate.is_deleted.is_(False)))
+        )
 
     if name:
         stmt = stmt.where(m.Item.name.ilike(f"%{name}%"))
@@ -77,11 +108,6 @@ def get_published_items(
     },
 )
 def get_all_items(
-    city_uuid: str | None = None,
-    adults: int = 0,
-    rent_type: s.ItemType | None = None,
-    check_in: datetime | None = None,
-    check_out: datetime | None = None,
     name: str | None = None,
     params: Params = Depends(),
     db: Session = Depends(get_db),
@@ -97,28 +123,6 @@ def get_all_items(
             m.Item.store_id == current_store.id,
         )
     )
-
-    if city_uuid:
-        city: m.City | None = db.scalar(sa.select(m.City).where(m.City.uuid == city_uuid))
-        assert city, f"City with UUID [{city_uuid}] not found"
-        stmt = stmt.where(m.Item.city_id == city.id)
-
-    if adults:
-        stmt = stmt.where(m.Item.adults >= adults)
-
-    # if rent_type:
-    #     if rent_type == s.ItemType.NIGHTLY:
-    #         stmt = stmt.where(m.Item._rates.any(m.Rate. == s.ItemType.NIGHTLY))
-
-    if check_in:
-        stmt = stmt.where(
-            m.Item._booked_dates.any(sa.and_(m.BookedDate.date >= check_in, m.BookedDate.is_deleted.is_(False)))
-        )
-
-    if check_out:
-        stmt = stmt.where(
-            m.Item._booked_dates.any(sa.and_(m.BookedDate.date <= check_out, m.BookedDate.is_deleted.is_(False)))
-        )
 
     if name:
         stmt = stmt.where(m.Item.name.ilike(f"%{name}%"))

@@ -18,7 +18,7 @@ class ItemStage(enum.Enum):
     ARCHIVE = "archive"
 
 
-class ItemType(enum.Enum):
+class RentalLength(enum.Enum):
     NIGHTLY = "nightly"
     MONTHLY = "monthly"
     ANNUAL = "annual"

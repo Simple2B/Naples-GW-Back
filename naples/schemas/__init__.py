@@ -12,7 +12,7 @@ from .item import (
     ItemsFilterDataOut,
     ItemDataIn,
     ItemDetailsOut,
-    ItemType,
+    RentalLength,
     ExternalUrls,
     ItemUpdateIn,
 )
