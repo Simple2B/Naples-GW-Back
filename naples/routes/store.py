@@ -34,7 +34,12 @@ def get_stores_urls(
 ):
     stores = db.scalars(sa.select(m.Store)).all()
     traefik_http = s.TraefikHttp(
-        routers={store.uuid: s.TraefikRoute(rule=f"Host(`{store.url}`)", service=store.uuid) for store in stores},
+        routers={
+            store.uuid: s.TraefikRoute(
+                rule=f"Host(`{store.url}`)", service=store.uuid, tls=s.TraefikTLS(certResolver=CFG.CERT_RESOLVER)
+            )
+            for store in stores
+        },
         services={
             store.uuid: s.TraefikService(
                 loadBalancer=s.TraefikLoadBalancer(servers=[s.TraefikServer(url=f"http://{CFG.WEB_SERVICE_NAME}")])

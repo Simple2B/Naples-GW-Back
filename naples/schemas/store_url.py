@@ -6,7 +6,10 @@ from pydantic import BaseModel, ConfigDict
 #     "routers": {
 #       "whoami": {
 #         "rule": "PathPrefix(`/`)",
-#         "service": "whoami"
+#         "service": "whoami",
+#         "tls": {
+#           "certResolver": "le"
+#         },
 #       }
 #     },
 #     "services": {
@@ -24,9 +27,18 @@ from pydantic import BaseModel, ConfigDict
 # }
 
 
+class TraefikTLS(BaseModel):
+    certResolver: str
+
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
+
+
 class TraefikRoute(BaseModel):
     rule: str
     service: str
+    tls: TraefikTLS
 
     model_config = ConfigDict(
         from_attributes=True,
