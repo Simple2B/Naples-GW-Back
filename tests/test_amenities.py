@@ -1,3 +1,5 @@
+import sqlalchemy as sa
+
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
@@ -47,3 +49,20 @@ def test_delete_amenity(client: TestClient, full_db: Session, headers: dict[str,
     all_res = client.get("/api/amenities", headers=headers)
     amenities = s.AmenitiesListOut.model_validate(all_res.json())
     assert len(amenities.items) == 0
+
+
+def test_get_item_amenities(client: TestClient, full_db: Session, headers: dict[str, str]):
+    item = full_db.scalar(sa.select(m.Item))
+    assert item
+    amenity = m.Amenity(value="Test Amenity")
+    full_db.add(amenity)
+    full_db.commit()
+    full_db.refresh(amenity)
+    item._amenities.append(amenity)
+    full_db.commit()
+
+    response = client.get(f"/api/amenities/{item.uuid}", headers=headers)
+    assert response.status_code == 200
+    amenities = s.AmenitiesListOut.model_validate(response.json())
+    assert len(amenities.items) == 1
+    assert amenities.items[0].value == "Test Amenity"
