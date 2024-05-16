@@ -19,6 +19,7 @@ def test_create_rate(client: TestClient, full_db: Session, headers: dict[str, st
         week=300.0,
         month=400.0,
         min_stay=1,
+        visible=True,
     )
 
     res = client.post("/api/rates/", content=req_payload.model_dump_json(), headers=headers)
@@ -46,7 +47,18 @@ def test_get_rates_for_item(client: TestClient, full_db: Session):
         min_stay=1,
         item_id=item.id,
     )
-    full_db.add(rate)
+    invisible_rate = m.Rate(
+        start_date=datetime.now(UTC),
+        end_date=datetime.now(UTC),
+        night=100.0,
+        weekend_night=200.0,
+        week=300.0,
+        month=400.0,
+        min_stay=1,
+        item_id=item.id,
+        visible=False,
+    )
+    full_db.add_all([rate, invisible_rate])
     full_db.commit()
 
     res = client.get(f"/api/rates/{item.uuid}", params={"store_url": item.store.url})
@@ -84,6 +96,7 @@ def test_update_rate(client: TestClient, full_db: Session, headers: dict[str, st
         week=400.0,
         month=500.0,
         min_stay=2,
+        visible=True,
     )
 
     res = client.put(f"/api/rates/{rate.uuid}", content=req_payload.model_dump_json(), headers=headers)

@@ -72,6 +72,12 @@ class ItemUpdateIn(BaseModel):
     adults: int | None = None
     city_uuid: str | None = None
     realtor_uuid: str | None = None
+    show_rates: bool | None = None
+    show_fees: bool | None = None
+    show_external_urls: bool | None = None
+    nightly: bool | None = None
+    monthly: bool | None = None
+    annual: bool | None = None
 
     model_config = ConfigDict(
         from_attributes=True,
@@ -123,8 +129,15 @@ class ItemDetailsOut(ItemOut):
     booked_dates: list[datetime]
     description: str
     amenities: list[str]
-    external_urls: ExternalUrls
+    external_urls: ExternalUrls | None = None
     city_uuid: str
+    adults: int
+    show_rates: bool
+    show_fees: bool
+    show_external_urls: bool
+    nightly: bool
+    monthly: bool
+    annual: bool
 
 
 class Items(BaseModel):

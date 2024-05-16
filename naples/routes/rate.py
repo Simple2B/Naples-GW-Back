@@ -6,20 +6,19 @@ from naples import models as m, schemas as s
 from naples.database import get_db
 from naples.dependency import get_current_user_store
 from naples.logger import log
-from naples.dependency.store import get_current_store
 
 rates_router = APIRouter(prefix="/rates", tags=["rates"])
 
 
 @rates_router.get("/{item_uuid}", response_model=s.RateListOut)
-async def get_rates_for_item(item_uuid: str, store: m.Store = Depends(get_current_store)):
+async def get_rates_for_item(item_uuid: str, store: m.Store = Depends(get_current_user_store)):
     log(log.INFO, "Getting rates for item {%s} in store {%s}", item_uuid, store)
 
     item = store.get_item_by_uuid(item_uuid)
     if not item:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
 
-    items = [s.RateOut.model_validate(r) for r in item.rates]
+    items = [s.RateOut.model_validate(r) for r in item.all_rates]
     log(log.INFO, "Found {%s} rates item {%s} in store {%s}", len(items), item_uuid, store)
 
     return s.RateListOut(items=items)

@@ -25,6 +25,8 @@ class Rate(db.Model):
     month: orm.Mapped[float] = orm.mapped_column()
     min_stay: orm.Mapped[int] = orm.mapped_column()
 
+    visible: orm.Mapped[bool] = orm.mapped_column(default=True, server_default=sa.true())
+
     item_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey("items.id"))
 
     item: orm.Mapped["Item"] = orm.relationship()

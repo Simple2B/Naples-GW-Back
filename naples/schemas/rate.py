@@ -14,6 +14,7 @@ class BaseRate(BaseModel):
     week: float
     month: float
     min_stay: int = Field(serialization_alias="minStay", validation_alias=AliasChoices("min_stay", "minStay"))
+    visible: bool
 
 
 class RateIn(BaseRate):

@@ -20,7 +20,7 @@ async def get_fees_for_item(item_uuid: str, current_store: m.Store = Depends(get
     if not item:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
 
-    return s.FeeListOut(items=[s.FeeOut.model_validate(fee) for fee in item.fees])
+    return s.FeeListOut(items=[s.FeeOut.model_validate(fee) for fee in item.all_fees])
 
 
 @fee_router.post("/", response_model=s.FeeOut, status_code=201)
