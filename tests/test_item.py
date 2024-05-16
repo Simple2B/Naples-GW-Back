@@ -468,7 +468,6 @@ def test_delete_amenities_from_item(client: TestClient, full_db: Session, header
 def test_item_list_with_filter(
     client: TestClient,
     full_db: Session,
-    headers: dict[str, str],
 ):
     store = full_db.scalar(select(m.Store))
     assert store
@@ -494,6 +493,16 @@ def test_item_list_with_filter(
     filtered_items = s.Items.model_validate(filet_response.json()).items
     assert len(filtered_items) == 1
     assert filtered_items[0].name == "test_item3"
+
+    nightly_response = client.get(
+        "/api/items",
+        params={"store_url": store_url, "rent_length": s.RentalLength.NIGHTLY.value},
+    )
+    assert nightly_response.status_code == 200
+
+    nightly_items = s.Items.model_validate(nightly_response.json()).items
+
+    assert len(nightly_items) == 3
 
 
 def test_update_item(

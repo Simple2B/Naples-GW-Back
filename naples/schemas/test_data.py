@@ -16,6 +16,9 @@ class TestItem(ItemIn):
     city_id: int
     store_id: int
     realtor_id: int
+    nightly: bool
+    monthly: bool
+    annual: bool
 
 
 class TestStore(StoreIn):
