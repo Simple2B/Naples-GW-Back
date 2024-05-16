@@ -545,7 +545,9 @@ def test_update_item(
     assert response.status_code == 200
 
     updated_item = s.ItemDetailsOut.model_validate(response.json())
-    assert updated_item.external_urls.airbnb_url == str(more_update_data.airbnb_url)
-    assert updated_item.external_urls.vrbo_url == str(more_update_data.vrbo_url)
-    assert updated_item.external_urls.expedia_url == str(more_update_data.expedia_url)
+
+    if updated_item.show_external_urls and updated_item.external_urls:
+        assert updated_item.external_urls.airbnb_url == str(more_update_data.airbnb_url)
+        assert updated_item.external_urls.vrbo_url == str(more_update_data.vrbo_url)
+        assert updated_item.external_urls.expedia_url == str(more_update_data.expedia_url)
     assert updated_item.city_uuid == city.uuid

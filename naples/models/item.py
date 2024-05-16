@@ -53,6 +53,12 @@ class Item(db.Model, ModelMixin):
     vrbo_url: orm.Mapped[str] = orm.mapped_column(sa.String(256), default="")
     expedia_url: orm.Mapped[str] = orm.mapped_column(sa.String(256), default="")
     adults: orm.Mapped[int] = orm.mapped_column(default=0, server_default="0")
+    show_rates: orm.Mapped[bool] = orm.mapped_column(default=True, server_default=sa.true())
+    show_fees: orm.Mapped[bool] = orm.mapped_column(default=True, server_default=sa.true())
+    show_external_urls: orm.Mapped[bool] = orm.mapped_column(default=True, server_default=sa.true())
+    nightly: orm.Mapped[bool] = orm.mapped_column(default=True, server_default=sa.true())
+    monthly: orm.Mapped[bool] = orm.mapped_column(default=True, server_default=sa.true())
+    annual: orm.Mapped[bool] = orm.mapped_column(default=True, server_default=sa.true())
 
     # store id should not be changed via API
     store_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey("stores.id"))
@@ -83,11 +89,19 @@ class Item(db.Model, ModelMixin):
 
     @property
     def fees(self) -> list["Fee"]:
-        return [f for f in self._fees if not f.is_deleted]
+        return [f for f in self._fees if not f.is_deleted and f.visible] if self._fees else []
+
+    @property
+    def all_fees(self) -> list["Fee"]:
+        return [f for f in self._fees if not f.is_deleted] if self._fees else []
 
     @property
     def rates(self) -> list["Rate"]:
-        return [r for r in self._rates if not r.is_deleted]
+        return [r for r in self._rates if not r.is_deleted and r.visible] if self._rates else []
+
+    @property
+    def all_rates(self) -> list["Rate"]:
+        return [r for r in self._rates if not r.is_deleted] if self._rates else []
 
     @property
     def floor_plans(self) -> list["FloorPlan"]:
@@ -138,11 +152,15 @@ class Item(db.Model, ModelMixin):
         return [b.date for b in self._booked_dates if not b.is_deleted]
 
     @property
-    def external_urls(self) -> s.ExternalUrls:
-        return s.ExternalUrls(
-            airbnb_url=self.airbnb_url,
-            vrbo_url=self.vrbo_url,
-            expedia_url=self.expedia_url,
+    def external_urls(self) -> s.ExternalUrls | None:
+        return (
+            s.ExternalUrls(
+                airbnb_url=self.airbnb_url,
+                vrbo_url=self.vrbo_url,
+                expedia_url=self.expedia_url,
+            )
+            if self.show_external_urls
+            else None
         )
 
     @property
