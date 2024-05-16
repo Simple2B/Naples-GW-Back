@@ -28,33 +28,7 @@ item_router = APIRouter(prefix="/items", tags=["Items"])
 
 
 @item_router.get(
-    "/{item_uuid}",
-    status_code=status.HTTP_200_OK,
-    response_model=s.ItemDetailsOut,
-    responses={
-        404: {"description": "Item not found"},
-    },
-)
-def get_item_by_uuid(
-    item_uuid: str,
-    db: Session = Depends(get_db),
-    current_store: m.Store = Depends(get_current_store),
-):
-    """Get item by UUID"""
-
-    item: m.Item | None = db.scalar(
-        sa.select(m.Item).where(m.Item.uuid == item_uuid, m.Item.store_id == current_store.id)
-    )
-
-    if not item or item.is_deleted:
-        log(log.ERROR, "Item [%s] not found for store [%s]", item_uuid, current_store.url)
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
-
-    return s.ItemDetailsOut.model_validate(item)
-
-
-@item_router.get(
-    "/",
+    "",
     status_code=status.HTTP_200_OK,
     response_model=Page[s.ItemOut],
     responses={
@@ -63,7 +37,46 @@ def get_item_by_uuid(
         400: {"description": "Store URL is not provided"},
     },
 )
-def get_items(
+def get_published_items(
+    name: str | None = None,
+    params: Params = Depends(),
+    db: Session = Depends(get_db),
+    current_store: m.Store = Depends(get_current_store),
+):
+    """Get items by filters and pagination"""
+
+    log(log.INFO, "Getting items for store [%s]", current_store.url)
+
+    stmt = sa.select(m.Item).where(
+        sa.and_(
+            m.Item.is_deleted.is_(False),
+            m.Item.store_id == current_store.id,
+            m.Item.stage == s.ItemStage.ACTIVE.value,
+        )
+    )
+
+    if name:
+        stmt = stmt.where(m.Item.name.ilike(f"%{name}%"))
+
+    db_items: Sequence[m.Item] = db.scalars(stmt).all()
+    items: Sequence[s.ItemOut] = [s.ItemOut.model_validate(item) for item in db_items]
+
+    log(log.INFO, "Got [%s] items for store [%s]", len(items), current_store.url)
+
+    return paginate(items, params)
+
+
+@item_router.get(
+    "/all",
+    status_code=status.HTTP_200_OK,
+    response_model=Page[s.ItemOut],
+    responses={
+        404: {"description": "Store not found"},
+        403: {"description": "Invalid URL"},
+        400: {"description": "Store URL is not provided"},
+    },
+)
+def get_all_items(
     city_uuid: str | None = None,
     adults: int = 0,
     rent_type: s.ItemType | None = None,
@@ -116,6 +129,32 @@ def get_items(
     log(log.INFO, "Got [%s] items for store [%s]", len(items), current_store.url)
 
     return paginate(items, params)
+
+
+@item_router.get(
+    "/{item_uuid}",
+    status_code=status.HTTP_200_OK,
+    response_model=s.ItemDetailsOut,
+    responses={
+        404: {"description": "Item not found"},
+    },
+)
+def get_item_by_uuid(
+    item_uuid: str,
+    db: Session = Depends(get_db),
+    current_store: m.Store = Depends(get_current_store),
+):
+    """Get item by UUID"""
+
+    item: m.Item | None = db.scalar(
+        sa.select(m.Item).where(m.Item.uuid == item_uuid, m.Item.store_id == current_store.id)
+    )
+
+    if not item or item.is_deleted:
+        log(log.ERROR, "Item [%s] not found for store [%s]", item_uuid, current_store.url)
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
+
+    return s.ItemDetailsOut.model_validate(item)
 
 
 @item_router.get(

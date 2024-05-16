@@ -71,14 +71,25 @@ def test_get_items(client: TestClient, full_db: Session, headers: dict[str, str]
     store = full_db.scalar(select(m.Store))
     assert store
 
+    item = full_db.scalar(select(m.Item))
+    assert item
+
+    assert item.id in [i.id for i in store.items]
+
+    item.stage = s.ItemStage.DRAFT.value
+    full_db.commit()
+    full_db.refresh(item)
+
     store_url = store.url
-    size = 4
+    size = 3
     response = client.get("/api/items", params={"store_url": store_url, "page": 1, "size": size})
     assert response.status_code == 200
 
     items = s.Items.model_validate(response.json()).items
     assert items
-    assert len(items) == size
+    assert len(items) == size  # We have 5 items in the store, but only 4 are published
+
+    assert item.uuid not in [i.uuid for i in items]
 
     response = client.get(
         "/api/items",
@@ -88,7 +99,6 @@ def test_get_items(client: TestClient, full_db: Session, headers: dict[str, str]
 
     res_items = s.Items.model_validate(response.json()).items
     assert res_items
-    # assert len(res_items) == size
 
     city: m.City | None = full_db.scalar(select(m.City))
     assert city
@@ -104,6 +114,13 @@ def test_get_items(client: TestClient, full_db: Session, headers: dict[str, str]
 
     response = client.get("/api/items", params={"store_url": store.url})
     assert response.status_code == 200
+
+    all_items_response = client.get("/api/items/all", params={"store_url": store.url, "page": 1, "size": 100})
+    assert all_items_response.status_code == 200
+
+    all_items = s.Items.model_validate(all_items_response.json()).items
+
+    assert len(all_items) == 5
 
 
 def test_delete_item(client: TestClient, full_db: Session, headers: dict[str, str]):
