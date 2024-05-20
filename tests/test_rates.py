@@ -72,7 +72,7 @@ def test_get_rates_for_item(client: TestClient, full_db: Session, headers: dict[
     item_details = client.get(f"/api/items/{item.uuid}", params={"store_url": item.store.url}, headers=headers)
     item_res = s.ItemDetailsOut.model_validate(item_details.json())
     assert item_res.rates
-    assert len(item_res.rates) == 1
+    assert len(item_res.rates) == 2
 
 
 def test_update_rate(client: TestClient, full_db: Session, headers: dict[str, str]):
