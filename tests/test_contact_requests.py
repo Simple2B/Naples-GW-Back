@@ -20,7 +20,6 @@ def test_create_contact_request(client: TestClient, full_db: Session, headers: d
         message="Hello, I would like to know more about this item",
         check_in=datetime.now(),
         check_out=datetime.now(),
-        store_uuid=store.uuid,
     )
 
     res = client.post("/api/contact_requests/", content=req_payload.model_dump_json(), headers=headers)
@@ -50,7 +49,6 @@ def test_create_contact_request_for_item(client: TestClient, full_db: Session, h
         message="Hello, I would like to know more about this item",
         check_in=datetime.now(),
         check_out=datetime.now(),
-        store_uuid=store.uuid,
         item_uuid=item.uuid,
     )
 
@@ -136,7 +134,6 @@ def test_update_contact_request_status(client: TestClient, full_db: Session, hea
         message="Hello, I would like to know more about this item",
         check_in=datetime.now(),
         check_out=datetime.now(),
-        store_uuid=store.uuid,
     )
 
     res = client.post("/api/contact_requests/", content=payload.model_dump_json(), headers=headers)

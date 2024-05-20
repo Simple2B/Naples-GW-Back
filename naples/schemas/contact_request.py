@@ -22,7 +22,6 @@ class ContactRequestIn(BaseModel):
     message: str
     check_in: datetime
     check_out: datetime
-    store_uuid: str
     item_uuid: str | None = None
 
     model_config = ConfigDict(
