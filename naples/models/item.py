@@ -89,18 +89,10 @@ class Item(db.Model, ModelMixin):
 
     @property
     def fees(self) -> list["Fee"]:
-        return [f for f in self._fees if not f.is_deleted and f.visible] if self._fees else []
-
-    @property
-    def all_fees(self) -> list["Fee"]:
         return [f for f in self._fees if not f.is_deleted] if self._fees else []
 
     @property
     def rates(self) -> list["Rate"]:
-        return [r for r in self._rates if not r.is_deleted and r.visible] if self._rates else []
-
-    @property
-    def all_rates(self) -> list["Rate"]:
         return [r for r in self._rates if not r.is_deleted] if self._rates else []
 
     @property
