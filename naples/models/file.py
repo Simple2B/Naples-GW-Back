@@ -27,6 +27,8 @@ class File(db.Model, ModelMixin):
 
     title: orm.Mapped[str] = orm.mapped_column(sa.String(256), server_default="", default="")
 
+    is_deleted: orm.Mapped[bool] = orm.mapped_column(sa.Boolean, default=False)
+
     @property
     def url(self):
         return f"{CFG.AWS_S3_BUCKET_URL}{self.key}"
@@ -34,8 +36,6 @@ class File(db.Model, ModelMixin):
     @property
     def s3_url(self):
         return f"s3://{CFG.AWS_S3_BUCKET_NAME}/{self.key}"
-
-    is_deleted: orm.Mapped[bool] = orm.mapped_column(sa.Boolean, default=False)
 
     def mark_as_deleted(self):
         delete_date = datetime.now().strftime("%y-%m-%d_%H:%M:%S")

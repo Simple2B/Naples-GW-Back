@@ -18,10 +18,10 @@ async def get_rates_for_item(item_uuid: str, store: m.Store = Depends(get_curren
     if not item:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
 
-    items = [s.RateOut.model_validate(r) for r in item.all_rates]
-    log(log.INFO, "Found {%s} rates item {%s} in store {%s}", len(items), item_uuid, store)
+    # items = [s.RateOut.model_validate(r) for r in item.rates]
+    log(log.INFO, "Found {%s} rates item {%s} in store {%s}", len(item.rates), item_uuid, store)
 
-    return s.RateListOut(items=items)
+    return s.RateListOut(items=item.rates)
 
 
 @rates_router.post("/", response_model=s.RateOut, status_code=status.HTTP_201_CREATED)

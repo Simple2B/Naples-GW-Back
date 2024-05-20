@@ -2,7 +2,6 @@ from fastapi.testclient import TestClient
 from mypy_boto3_s3 import S3Client
 from sqlalchemy.orm import Session
 from sqlalchemy import select
-from pydantic import HttpUrl
 
 from naples import schemas as s
 from naples import models as m
@@ -540,9 +539,9 @@ def test_update_item(
     assert updated_item.description == "Updated Description"
 
     more_update_data = s.ItemUpdateIn(
-        airbnb_url=HttpUrl("https://www.airbnb.com/updated"),
-        vrbo_url=HttpUrl("https://www.vrbo.com/updated"),
-        expedia_url=HttpUrl("https://www.expedia.com/updated"),
+        airbnb_url="https://www.airbnb.com/updated",
+        vrbo_url="https://www.vrbo.com/updated",
+        expedia_url="https://www.expedia.com/updated",
         city_uuid=city.uuid,
     )
 
@@ -560,3 +559,17 @@ def test_update_item(
         assert updated_item.external_urls.vrbo_url == str(more_update_data.vrbo_url)
         assert updated_item.external_urls.expedia_url == str(more_update_data.expedia_url)
     assert updated_item.city_uuid == city.uuid
+
+    empty_url_string_data = s.ItemUpdateIn(
+        airbnb_url="",
+    )
+
+    response = client.patch(
+        f"/api/items/{item.uuid}",
+        headers=headers,
+        content=empty_url_string_data.model_dump_json(),
+    )
+    assert response.status_code == 200
+
+    updated_item = s.ItemDetailsOut.model_validate(response.json())
+    assert not updated_item.external_urls.airbnb_url
