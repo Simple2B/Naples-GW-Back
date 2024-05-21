@@ -6,8 +6,11 @@ def create_user(test_user: s.TestUser) -> m.User:
     """Create test user"""
     user = m.User(
         id=test_user.id,
+        first_name=test_user.first_name,
+        last_name=test_user.last_name,
         email=test_user.email,
         password=test_user.password,
+        role=test_user.role,
         is_verified=True,
     )
 
@@ -19,6 +22,10 @@ def create_test_user(test_user: s.TestUser) -> m.User:
     user = m.User(
         id=test_user.id,
         email=test_user.email,
+        first_name=test_user.first_name,
+        last_name=test_user.last_name,
+        password=test_user.password,
+        role=test_user.role,
         is_verified=True,
     )
 

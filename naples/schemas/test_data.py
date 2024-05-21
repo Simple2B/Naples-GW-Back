@@ -8,8 +8,11 @@ from naples.schemas.file import FileOut
 
 class TestUser(BaseModel):
     id: int
+    first_name: str
+    last_name: str
     email: str
     password: str
+    role: str
 
 
 class TestItem(ItemIn):
