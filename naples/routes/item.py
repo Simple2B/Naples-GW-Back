@@ -329,6 +329,18 @@ def update_item(
         log(log.INFO, "Show external URLs [%s] was updated for item [%s]", item_data.show_external_urls, item_uuid)
         item.show_external_urls = item_data.show_external_urls
 
+    if item_data.nightly is not None:
+        log(log.INFO, "Nightly [%s] was updated for item [%s]", item_data.nightly, item_uuid)
+        item.nightly = item_data.nightly
+
+    if item_data.monthly is not None:
+        log(log.INFO, "Monthly [%s] was updated for item [%s]", item_data.monthly, item_uuid)
+        item.monthly = item_data.monthly
+
+    if item_data.annual is not None:
+        log(log.INFO, "Annual [%s] was updated for item [%s]", item_data.annual, item_uuid)
+        item.annual = item_data.annual
+
     db.commit()
     db.refresh(item)
 

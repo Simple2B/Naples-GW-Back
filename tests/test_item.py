@@ -528,6 +528,9 @@ def test_update_item(
         show_rates=False,
         show_fees=None,
         show_external_urls=True,
+        nightly=None,
+        monthly=False,
+        annual=True,
     )
 
     response = client.patch(
@@ -543,6 +546,9 @@ def test_update_item(
     assert updated_item.show_fees is True
     assert updated_item.show_external_urls is True
     assert updated_item.description == "Updated Description"
+    assert updated_item.monthly is False
+    assert updated_item.annual is True
+    assert updated_item.nightly is True
 
     more_update_data = s.ItemUpdateIn(
         airbnb_url="https://www.airbnb.com/updated",
