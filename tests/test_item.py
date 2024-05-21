@@ -525,6 +525,9 @@ def test_update_item(
         bathrooms_count=1,
         stage=s.ItemStage.DRAFT,
         adults=5,
+        show_rates=False,
+        show_fees=None,
+        show_external_urls=True,
     )
 
     response = client.patch(
@@ -536,6 +539,9 @@ def test_update_item(
 
     updated_item = s.ItemDetailsOut.model_validate(response.json())
     assert updated_item.name == "Updated Item"
+    assert updated_item.show_rates is False
+    assert updated_item.show_fees is True
+    assert updated_item.show_external_urls is True
     assert updated_item.description == "Updated Description"
 
     more_update_data = s.ItemUpdateIn(

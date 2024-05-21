@@ -317,6 +317,18 @@ def update_item(
         log(log.INFO, "Adults [%s] was updated for item [%s]", item_data.adults, item_uuid)
         item.adults = item_data.adults
 
+    if item_data.show_rates is not None:
+        log(log.INFO, "Show rates [%s] was updated for item [%s]", item_data.show_rates, item_uuid)
+        item.show_rates = item_data.show_rates
+
+    if item_data.show_fees is not None:
+        log(log.INFO, "Show fees [%s] was updated for item [%s]", item_data.show_fees, item_uuid)
+        item.show_fees = item_data.show_fees
+
+    if item_data.show_external_urls is not None:
+        log(log.INFO, "Show external URLs [%s] was updated for item [%s]", item_data.show_external_urls, item_uuid)
+        item.show_external_urls = item_data.show_external_urls
+
     db.commit()
     db.refresh(item)
 
