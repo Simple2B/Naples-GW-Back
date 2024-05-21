@@ -7,12 +7,29 @@ class UserRole(enum.Enum):
     USER = "user"
 
 
-class User(BaseModel):
+class BaseUser(BaseModel):
+    first_name: str
+    last_name: str
+    email: str
+    role: str = UserRole.USER.value
+
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
+
+
+class UserSignIn(BaseUser):
+    password: str
+
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
+
+
+class User(BaseUser):
     id: int
     uuid: str
-    email: str
     is_verified: bool = True
-    role: str = UserRole.USER.value
 
     model_config = ConfigDict(
         from_attributes=True,
