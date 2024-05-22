@@ -84,12 +84,11 @@ def sign_up(data: s.UserSignIn, db: Session = Depends(get_db)):
 
     log(log.INFO, "User [%s] signed up", new_user.email)
 
-    db_store = db.scalar(sa.select(m.Store).where(m.Store.user_id == new_user.id))
+    user_store = m.Store(user_id=new_user.id, email=new_user.email)
 
-    if not db_store:
-        user_store = m.Store(user_id=new_user.id, email=new_user.email)
-        db.add(user_store)
-        db.commit()
-        log(log.INFO, "Store for user [%s] created", new_user.email)
+    db.add(user_store)
+    db.commit()
+
+    log(log.INFO, "Store for user [%s] created", new_user.email)
 
     return new_user

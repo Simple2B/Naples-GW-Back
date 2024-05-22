@@ -94,9 +94,7 @@ class User(db.Model, ModelMixin):
         return u.model_dump_json()
 
     @classmethod
-    def get_user_by_email(cls, email: str, session: orm.Session | None = None) -> Self | None:
-        if not session:
-            session = db.session
+    def get_user_by_email(cls, email: str, session: orm.Session) -> Self:
         query = cls.select().where((sa.func.lower(cls.email) == sa.func.lower(email)))
         assert session
         user = session.scalar(query)
