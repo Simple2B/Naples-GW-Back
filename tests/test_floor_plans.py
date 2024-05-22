@@ -9,6 +9,7 @@ from naples import schemas as s, models as m
 
 def test_create_floor_plan_with_markers(client: TestClient, full_db: Session, headers: dict[str, str]):
     item = full_db.scalar(select(m.Item))
+
     assert item
 
     with open("tests/house_example.png", "rb") as image_file:
