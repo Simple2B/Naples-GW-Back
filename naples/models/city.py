@@ -19,6 +19,9 @@ class City(db.Model, ModelMixin):
 
     name: orm.Mapped[str] = orm.mapped_column(sa.String(128))
 
+    latitude: orm.Mapped[float] = orm.mapped_column(default=0.0)
+    longitude: orm.Mapped[float] = orm.mapped_column(default=0.0)
+
     county_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey("counties.id"))
 
     county: orm.Mapped["County"] = orm.relationship()
