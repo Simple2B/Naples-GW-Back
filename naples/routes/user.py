@@ -38,6 +38,8 @@ def get_users(
     users: list[s.User] = [
         s.User(
             id=user.id,
+            first_name=user.first_name,
+            last_name=user.last_name,
             uuid=user.uuid,
             email=user.email,
             is_verified=user.is_verified,
