@@ -87,9 +87,6 @@
       "longitude": "73.8648",
       "realtor_id": 1,
       "city_id": 4,
-      "amenities": [
-        "test_amenities1"
-      ],
       "imageUrl": "",
       "realtor_uuid": "6915ad0f-392e-444d-96b1-f04dba7e751b",
       "city_uuid": "f53fecaf-c84a-4ac0-bfed-d6c945d91460",
@@ -116,9 +113,6 @@
       "longitude": "73.9442",
       "realtor_id": 1,
       "city_id": 2,
-      "amenities": [
-        "test_amenities1"
-      ],
       "imageUrl": "",
       "realtor_uuid": "6915ad0f-392e-444d-96b1-f04dba7e751b",
       "city_uuid": "f53fecaf-c84a-4ac0-bfed-d6c945d91460",
@@ -145,9 +139,6 @@
       "longitude": "73.9712",
       "realtor_id": 1,
       "city_id": 3,
-      "amenities": [
-        "test_amenities1"
-      ],
       "imageUrl": "",
       "realtor_uuid": "6915ad0f-392e-444d-96b1-f04dba7e751b",
       "city_uuid": "f53fecaf-c84a-4ac0-bfed-d6c945d91460",
@@ -174,9 +165,6 @@
       "longitude": "73.7949",
       "realtor_id": 1,
       "city_id": 1,
-      "amenities": [
-        "test_amenities1"
-      ],
       "imageUrl": "",
       "realtor_uuid": "6915ad0f-392e-444d-96b1-f04dba7e751b",
       "city_uuid": "f53fecaf-c84a-4ac0-bfed-d6c945d91460",
@@ -203,9 +191,6 @@
       "longitude": "74.1502",
       "realtor_id": 1,
       "city_id": 3,
-      "amenities": [
-        "test_amenities1"
-      ],
       "imageUrl": "",
       "realtor_uuid": "6915ad0f-392e-444d-96b1-f04dba7e751b",
       "city_uuid": "f53fecaf-c84a-4ac0-bfed-d6c945d91460",
