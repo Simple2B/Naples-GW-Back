@@ -570,7 +570,7 @@ def test_update_item(
         assert updated_item.external_urls.airbnb_url == str(more_update_data.airbnb_url)
         assert updated_item.external_urls.vrbo_url == str(more_update_data.vrbo_url)
         assert updated_item.external_urls.expedia_url == str(more_update_data.expedia_url)
-    assert updated_item.city_uuid == city.uuid
+    assert updated_item.city.uuid == city.uuid
 
     empty_url_string_data = s.ItemUpdateIn(
         airbnb_url="",

@@ -8,7 +8,7 @@ from .member import MemberOut
 from .fee import FeeOut
 from .rate import RateOut
 from .floor_plan import FloorPlanOut
-from .locations import LocationOut
+from .locations import LocationOut, CityOut
 from .file import DocumentOut
 
 
@@ -110,12 +110,8 @@ class ItemDetailsOut(ItemOut):
     logo_url: str
     main_media: MainMedia | None = None
     realtor: MemberOut
-    model_config = ConfigDict(
-        from_attributes=True,
-    )
     fees: list[FeeOut]
     rates: list[RateOut]
-
     floor_plans: list[FloorPlanOut]
 
     model_config = ConfigDict(
@@ -130,7 +126,6 @@ class ItemDetailsOut(ItemOut):
     description: str
     amenities: list[str]
     external_urls: ExternalUrls
-    city_uuid: str
     adults: int
     show_rates: bool
     show_fees: bool
@@ -138,6 +133,8 @@ class ItemDetailsOut(ItemOut):
     nightly: bool
     monthly: bool
     annual: bool
+
+    city: CityOut
 
 
 class Items(BaseModel):
