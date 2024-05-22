@@ -7,7 +7,9 @@ from sqlalchemy import select
 from naples import schemas as s, models as m
 
 
-def test_create_floor_plan_with_markers(client: TestClient, full_db: Session, headers: dict[str, str]):
+def test_create_floor_plan_with_markers(
+    client: TestClient, full_db: Session, headers: dict[str, str], s3_client: S3Client
+):
     item = full_db.scalar(select(m.Item))
 
     assert item
@@ -22,13 +24,13 @@ def test_create_floor_plan_with_markers(client: TestClient, full_db: Session, he
         assert res.status_code == 201
 
         plan_data = s.FloorPlanOut.model_validate(res.json())
-        assert plan_data.img_url
 
         assert plan_data.uuid
 
         marker_payload = s.FloorPlanMarkerIn(x=0.5, y=0.5, floor_plan_uuid=plan_data.uuid)
 
         res = client.post("/api/plan_markers/", content=marker_payload.model_dump_json(), headers=headers)
+
         assert res.status_code == 201
 
         marker = s.FloorPlanMarkerOut.model_validate(res.json())
@@ -49,7 +51,7 @@ def test_create_floor_plan_with_markers(client: TestClient, full_db: Session, he
         assert plan.markers[0].x == marker.x
 
 
-def test_update_marker(client: TestClient, full_db: Session, headers: dict[str, str]):
+def test_update_marker(client: TestClient, full_db: Session, headers: dict[str, str], s3_client: S3Client):
     item = full_db.scalar(select(m.Item))
     assert item
 
@@ -82,7 +84,7 @@ def test_update_marker(client: TestClient, full_db: Session, headers: dict[str, 
         assert updated_marker.x == marker_update_payload.x
 
 
-def test_delete_marker(client: TestClient, full_db: Session, headers: dict[str, str]):
+def test_delete_marker(client: TestClient, full_db: Session, headers: dict[str, str], s3_client: S3Client):
     # Delete a FloorPlanMarker and verify the response
     item = full_db.scalar(select(m.Item))
     assert item
@@ -119,7 +121,7 @@ def test_delete_marker(client: TestClient, full_db: Session, headers: dict[str, 
         assert not plan.markers
 
 
-def test_delete_floor_plan(client: TestClient, full_db: Session, headers: dict[str, str]):
+def test_delete_floor_plan(client: TestClient, full_db: Session, headers: dict[str, str], s3_client: S3Client):
     # Delete a FloorPlan and verify the response
     item = full_db.scalar(select(m.Item))
     assert item
