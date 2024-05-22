@@ -32,6 +32,8 @@ from .locations import (
     CityOut,
     Cities,
     LocationOut,
+    LocationsListCityOut,
+    LocationCityOut,
     LocationsListOut,
 )
 from .fee import FeeIn, FeeOut, FeeListOut

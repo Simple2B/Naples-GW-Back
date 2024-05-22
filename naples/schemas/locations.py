@@ -4,9 +4,8 @@ from pydantic import BaseModel, ConfigDict
 # cities schemas
 class City(BaseModel):
     name: str
-    latitude: float
-    longitude: float
-    county_id: int
+    county_uuid: str
+    state_uuid: str
 
     model_config = ConfigDict(
         from_attributes=True,
@@ -110,8 +109,25 @@ class LocationOut(BaseModel):
     )
 
 
+class LocationCityOut(LocationOut):
+    longitude: float
+    latitude: float
+
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
+
+
 class LocationsListOut(BaseModel):
     items: list[LocationOut]
+
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
+
+
+class LocationsListCityOut(BaseModel):
+    items: list[LocationCityOut]
 
     model_config = ConfigDict(
         from_attributes=True,

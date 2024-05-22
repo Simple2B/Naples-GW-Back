@@ -26,5 +26,13 @@ class City(db.Model, ModelMixin):
 
     county: orm.Mapped["County"] = orm.relationship()
 
+    @property
+    def county_uuid(self) -> str:
+        return self.county.uuid
+
+    @property
+    def state_uuid(self) -> str:
+        return self.county.state.uuid
+
     def __repr__(self):
         return f"<{self.id}:{self.name} >"
