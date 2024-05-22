@@ -4,6 +4,8 @@ from pydantic import BaseModel, ConfigDict
 # cities schemas
 class City(BaseModel):
     name: str
+    latitude: float
+    longitude: float
     county_id: int
 
     model_config = ConfigDict(

@@ -1,5 +1,6 @@
 from typing import TYPE_CHECKING
 
+from cffi.backend_ctypes import long
 import sqlalchemy as sa
 from sqlalchemy import orm
 
@@ -18,6 +19,9 @@ class City(db.Model, ModelMixin):
     uuid: orm.Mapped[str] = orm.mapped_column(sa.String(32), default=create_uuid, unique=True)
 
     name: orm.Mapped[str] = orm.mapped_column(sa.String(128))
+
+    latitude: orm.Mapped[float] = orm.mapped_column(default=0.0)
+    longitude: orm.Mapped[float] = orm.mapped_column(default=0.0)
 
     county_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey("counties.id"))
 

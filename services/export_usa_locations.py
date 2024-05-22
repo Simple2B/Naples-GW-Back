@@ -4,6 +4,7 @@ from pathlib import Path
 
 from typing import Sequence, cast
 
+from cffi.backend_ctypes import long
 from sqlalchemy.orm import Session
 import sqlalchemy as sa
 
@@ -29,12 +30,14 @@ def export_usa_locations_from_csv_file(session: Session, file_path: Path, is_new
         # ['city', 'city_ascii', 'state_id', 'state_name', 'county_fips', 'county_name', 'lat', 'lng', 'population', 'density', 'source', 'incorporated', 'timezone', 'zips', 'id']
 
         # colums what we need for db
-        # ['city', 'state_id', 'state_name', 'county_name']
+        # ['city', 'state_id', 'state_name', 'county_name', 'lat', 'lng']
 
         CITY_NAME_INDEX = header.index("city")
         ABBREVIATED_NAME_INDEX = header.index("state_id")
         STATE_NAME_INDEX = header.index("state_name")
         COUNTY_NAME_INDEX = header.index("county_name")
+        CITY_LATITUDE_INDEX = header.index("lat")
+        CITY_LONGETUDE_INDEX = header.index("lng")
 
         for row in csvreader:
             state_name = row[STATE_NAME_INDEX]
@@ -73,21 +76,35 @@ def export_usa_locations_from_csv_file(session: Session, file_path: Path, is_new
                 log(log.INFO, "County [%s] created for state [%s]", county_name, abbreviated_name)
 
             city_name = row[CITY_NAME_INDEX]
+            latitude = float(row[CITY_LATITUDE_INDEX])
+            longitude = float(row[CITY_LONGETUDE_INDEX])
 
             city_db: m.City | None = session.scalar(
-                sa.select(m.City).where(m.City.name == city_name, m.City.county_id == county_db.id)
+                sa.select(m.City).where(
+                    m.City.name == city_name,
+                    m.City.county_id == county_db.id,
+                )
             )
 
             if not city_db:
                 city_db = m.City(
                     name=city_name,
                     county_id=county_db.id,
+                    latitude=latitude,
+                    longitude=longitude,
                 )
 
                 session.add(city_db)
                 session.flush()
 
-                log(log.INFO, "City [%s] created for county [%s]", city_name, county_name)
+                log(
+                    log.INFO,
+                    "City [%s] created for county [%s] with latitude [%s] and longitude [%s]",
+                    city_name,
+                    county_name,
+                    latitude,
+                    longitude,
+                )
 
         log(log.INFO, "[Done]: Export USA locations from csv file to db")
 
