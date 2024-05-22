@@ -3,7 +3,6 @@ from fastapi import Depends, APIRouter, status, HTTPException
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from naples.oauth2 import create_access_token
 from sqlalchemy.orm import Session
-import sqlalchemy as sa
 
 
 from naples import models as m
