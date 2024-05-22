@@ -4,7 +4,6 @@ from pathlib import Path
 
 from typing import Sequence, cast
 
-from cffi.backend_ctypes import long
 from sqlalchemy.orm import Session
 import sqlalchemy as sa
 

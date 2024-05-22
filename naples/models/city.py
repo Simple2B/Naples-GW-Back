@@ -1,6 +1,5 @@
 from typing import TYPE_CHECKING
 
-from cffi.backend_ctypes import long
 import sqlalchemy as sa
 from sqlalchemy import orm
 
