@@ -1,7 +1,8 @@
 from typing import Annotated
 from fastapi import Depends, APIRouter, status, HTTPException
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
-from starlette.responses import RedirectResponse
+
+# from starlette.responses import RedirectResponse
 from naples.oauth2 import INVALID_CREDENTIALS_EXCEPTION, create_access_token, verify_access_token
 from sqlalchemy.orm import Session
 import sqlalchemy as sa

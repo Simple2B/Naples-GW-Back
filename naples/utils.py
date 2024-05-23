@@ -1,15 +1,16 @@
 import filetype
 import smtplib
-from email.message import EmailMessage
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 
 from fastapi import UploadFile, HTTPException, status
 from fastapi.routing import APIRoute
+from .config import config
 
 
 from naples.logger import log
 
-EMAIL_ADDRESS = "varvarashcherbyna7@gmail.com"
-EMAIL_PASSWORD = "tiigvauxcowxdlhf"
+CFG = config()
 
 
 def custom_generate_unique_id(route: APIRoute):
@@ -27,19 +28,40 @@ def get_file_extension(file: UploadFile):
 
 
 def sendEmailVerify(token: str, user_email: str):
-    # create email
-    msg = EmailMessage()
-    msg["Subject"] = "Email Verification"
-    msg["From"] = EMAIL_ADDRESS
-    msg["To"] = str(user_email)
+    html_content = f"""
+        <html>
+            <body style='margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, Helvetica, sans-serif;'>
+            <div style='width: 100%; background: #efefef; border-radius: 10px; padding: 10px;'>
+                <div style='margin: 0 auto; width: 90%; text-align: center;'>
+                <h1 style='background-color: rgba(0, 53, 102, 1); padding: 5px 10px; border-radius: 5px; color: white;'>Naples GW
+                </h1>
+                <div
+                    style='margin: 30px auto; background: white; width: 40%; border-radius: 10px; padding: 50px; text-align: center;'>
+                    <h3 style='margin-bottom: 100px; font-size: 24px;'>Click the link to verify your email!</h3>
+                    <p style='margin-bottom: 10px;'>Click the button below to verify your email address. If you did not sign up for
+                    an account, you can safely ignore this email.
+                    </p>
+                    <a style='display: block; margin: 0 auto; border: none; background-color: rgba(255, 214, 10, 1); color: white; width: 200px; line-height: 24px; padding: 10px; font-size: 24px; border-radius: 10px; cursor: pointer; text-decoration: none;'
+                    href='{CFG.REDIRECT_URL}?token={token}' target='_blank'>
+                    Verify Email
+                    </a>
+                </div>
+                </div>
+            </div>
+            </body>
+        </html>
+    """
 
-    msg.set_content(
-        f"Click the link to verify your email:\n http://127.0.0.1:5002/api/auth/verify-email?token={token}",
-    )
+    # create email
+    msg = MIMEMultipart()
+    msg["Subject"] = "Email Verification"
+    msg["From"] = f"{CFG.MAIL_USERNAME} <{CFG.MAIL_ADDRESS}>"
+    msg["To"] = str(user_email)
+    msg.attach(MIMEText(html_content, "html"))
 
     # send email
-    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
-        smtp.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
+    with smtplib.SMTP_SSL(CFG.MAIL_HOST, CFG.MAIL_PORT) as smtp:
+        smtp.login(CFG.MAIL_ADDRESS, CFG.MAIL_PASSWORD)
         smtp.send_message(msg)
 
     log(log.INFO, "Email verification sent to [%s]", user_email)
