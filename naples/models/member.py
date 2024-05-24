@@ -1,4 +1,3 @@
-import enum
 import sqlalchemy as sa
 
 from datetime import datetime
@@ -7,6 +6,7 @@ from typing import TYPE_CHECKING
 
 
 from naples.database import db
+from naples import schemas as s
 from .utils import ModelMixin, create_uuid
 
 
@@ -14,14 +14,6 @@ if TYPE_CHECKING:
     from .store import Store
     from .item import Item
     from .file import File
-
-
-class MemberType(enum.Enum):
-    REALTOR = "Realtor"
-    OWNER = "Owner"
-    LANDLORD = "Landlord"
-    HOST = "Host"
-    PROPERTY_MANAGER = "Property Manager"
 
 
 class Member(db.Model, ModelMixin):
@@ -42,7 +34,7 @@ class Member(db.Model, ModelMixin):
     phone: orm.Mapped[str] = orm.mapped_column(sa.String(16), default="")
 
     title: orm.Mapped[str] = orm.mapped_column(
-        sa.String(128), default=MemberType.REALTOR.value, server_default=MemberType.REALTOR.value
+        sa.String(128), default=s.MemberType.REALTOR.value, server_default=s.MemberType.REALTOR.value
     )
 
     store_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey("stores.id"))
