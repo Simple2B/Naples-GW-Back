@@ -28,7 +28,7 @@ class MemberIn(BaseModel):
     phone: str = ""
     instagram_url: str = ""
     messenger_url: str = ""
-    title: str = MemberType.REALTOR.value
+    title: str = MemberType.realtor.value
 
     model_config = ConfigDict(
         from_attributes=True,
