@@ -1,13 +1,12 @@
 from typing import Annotated
 from fastapi import Depends, APIRouter, status, HTTPException
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
-
-# from starlette.responses import RedirectResponse
-from naples.oauth2 import INVALID_CREDENTIALS_EXCEPTION, create_access_token, verify_access_token
 from sqlalchemy.orm import Session
 import sqlalchemy as sa
 
-
+# from starlette.responses import RedirectResponse
+from naples.dependency import get_ses_client
+from naples.oauth2 import INVALID_CREDENTIALS_EXCEPTION, create_access_token, verify_access_token
 from naples import models as m
 from naples import schemas as s
 from naples.logger import log
@@ -67,7 +66,7 @@ def get_token(auth_data: s.Auth, db=Depends(get_db)):
 
 
 @router.post("/sign-up", status_code=status.HTTP_201_CREATED, response_model=s.User)
-def sign_up(data: s.UserSignIn, db: Session = Depends(get_db)):
+def sign_up(data: s.UserSignIn, db: Session = Depends(get_db), ses=Depends(get_ses_client)):
     """Signs up a user"""
 
     user = m.User.get_user_by_email(data.email, session=db)

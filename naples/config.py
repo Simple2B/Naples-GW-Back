@@ -45,15 +45,19 @@ class BaseConfig(BaseSettings):
     WEB_SERVICE_NAME: str = "naples-gw-front-app-1"
     CERT_RESOLVER: str = "myresolver"
 
-    # mail configuration
-    MAIL_USERNAME: str = "Naples-GW"
-    MAIL_HOST: str = "smtp.gmail.com"
-    MAIL_PORT: int = 465
-    MAIL_ADDRESS: str
-    MAIL_PASSWORD: str
-    MAIL_SUBJECT: str = "Email Verification"
+    # mail configuration (gmail service)
+    # MAIL_USERNAME: str = "Naples-GW"
+    # MAIL_HOST: str = "smtp.gmail.com"
+    # MAIL_PORT: int = 465
+    # MAIL_ADDRESS: str
+    # MAIL_PASSWORD: str
+    # MAIL_SUBJECT: str = "Email Verification"
 
     REDIRECT_URL: str = "http://127.0.0.1:3000/verify-email"
+
+    # email configuration (Amazon SES)
+    AWS_SES_ACCESS_KEY: str
+    AWS_SES_SECRET_KEY: str
 
     model_config = SettingsConfigDict(
         extra="allow",
