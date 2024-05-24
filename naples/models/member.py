@@ -33,9 +33,7 @@ class Member(db.Model, ModelMixin):
 
     phone: orm.Mapped[str] = orm.mapped_column(sa.String(16), default="")
 
-    title: orm.Mapped[str] = orm.mapped_column(
-        sa.String(128), default=s.MemberType.REALTOR.value, server_default=s.MemberType.REALTOR.value
-    )
+    title: orm.Mapped[str] = orm.mapped_column(default=s.MemberType.REALTOR.value)
 
     store_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey("stores.id"))
 
