@@ -3,11 +3,11 @@ from pydantic import BaseModel, ConfigDict
 
 
 class MemberType(enum.Enum):
-    REALTOR = "Realtor"
-    OWNER = "Owner"
-    LANDLORD = "Landlord"
-    HOST = "Host"
-    PROPERTY_MANAGER = "Property Manager"
+    realtor = "realtor"
+    owner = "owner"
+    landlord = "landlord"
+    host = "host"
+    property_manager = "property manager"
 
 
 class Member(BaseModel):
