@@ -1,6 +1,6 @@
 # ruff: noqa: F401
 from .test_data import TestUser, TestItem, TestData, TestStore, TestMember
-from .user import UserRole, UserSignIn, BaseUser, User, Users
+from .user import UserRole, UserSignIn, BaseUser, User, Users, EmailContent
 from .token import Token, TokenData, Auth
 from .store import Store, StoreIn, StoreOut, Stores, StoreUpdateIn
 from .item import (
