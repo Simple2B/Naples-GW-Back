@@ -8,6 +8,7 @@ from moto import mock_aws
 
 from dotenv import load_dotenv
 
+
 load_dotenv("tests/test.env")
 
 # ruff: noqa: F401 E402
@@ -113,3 +114,17 @@ def headers(
     token = create_access_token(user_id=user.id)
 
     yield dict(Authorization=f"Bearer {token}")
+
+
+# @pytest.fixture
+# def test_send_email(mocker):
+#     """Function to test  email sending function"""
+
+#     # mock the smtplib.SMTP object
+#     mock_SMTP = mocker.MagicMock(name="your_module.smtplib.SMTP")
+#     mocker.patch("your_module.smtplib.SMTP", new=mock_SMTP)
+
+#     #  send email function
+#     sendEmailVerify("token", "user@mail.com")
+
+#     assert mock_SMTP.return_value.send_message.call_count == 1

@@ -51,6 +51,7 @@ class BaseConfig(BaseSettings):
     MAIL_PORT: int = 465
     MAIL_ADDRESS: str
     MAIL_PASSWORD: str
+    MAIL_SUBJECT: str = "Email Verification"
 
     REDIRECT_URL: str = "http://127.0.0.1:3000/verify-email"
 

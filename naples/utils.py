@@ -27,7 +27,7 @@ def get_file_extension(file: UploadFile):
     return extension
 
 
-def sendEmailVerify(token: str, user_email: str):
+def createMsgEmail(token: str, user_email: str) -> MIMEMultipart:
     html_content = f"""
         <html>
             <body style='margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, Helvetica, sans-serif;'>
@@ -54,16 +54,17 @@ def sendEmailVerify(token: str, user_email: str):
 
     # create email
     msg = MIMEMultipart()
-    msg["Subject"] = "Email Verification"
+    msg["Subject"] = CFG.MAIL_SUBJECT
     msg["From"] = f"{CFG.MAIL_USERNAME} <{CFG.MAIL_ADDRESS}>"
     msg["To"] = str(user_email)
     msg.attach(MIMEText(html_content, "html"))
 
-    # send email
+    return msg
+
+
+def sendEmail(msg: MIMEMultipart):
     with smtplib.SMTP_SSL(CFG.MAIL_HOST, CFG.MAIL_PORT) as smtp:
         smtp.login(CFG.MAIL_ADDRESS, CFG.MAIL_PASSWORD)
         smtp.send_message(msg)
-
-    log(log.INFO, "Email verification sent to [%s]", user_email)
 
     return

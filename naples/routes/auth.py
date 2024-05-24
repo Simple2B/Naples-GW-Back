@@ -12,7 +12,7 @@ from naples import models as m
 from naples import schemas as s
 from naples.logger import log
 from naples.database import get_db
-from naples.utils import sendEmailVerify
+from naples.utils import createMsgEmail, sendEmail
 
 security = HTTPBasic()
 
@@ -97,9 +97,11 @@ def sign_up(data: s.UserSignIn, db: Session = Depends(get_db)):
 
     token = s.Token(access_token=create_access_token(new_user.id))
 
-    sendEmailVerify(token.access_token, new_user.email)
+    msg = createMsgEmail(token.access_token, new_user.email)
 
-    # log(log.INFO, "Verification email sent to [%s]", new_user.email)
+    sendEmail(msg)
+
+    log(log.INFO, "Verification email sent to [%s]", new_user.email)
 
     return new_user
 
