@@ -68,7 +68,7 @@ def get_counties_for_state(
 @location_router.get(
     "/cities/{county_uuid}",
     status_code=status.HTTP_200_OK,
-    response_model=s.LocationsListOut,
+    response_model=s.LocationsListCityOut,
     responses={
         404: {"description": "County not found"},
     },
@@ -85,4 +85,4 @@ def get_cities_for_county(
         log(log.ERROR, "Cities [%s] not found")
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Cities not found")
 
-    return s.LocationsListOut(items=list(cities))
+    return s.LocationsListCityOut(items=list(cities))

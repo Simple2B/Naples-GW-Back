@@ -36,6 +36,6 @@ def test_get_cities(client: TestClient, full_db: Session, headers: dict[str, str
 
     response = client.get(f"/api/locations/cities/{county.uuid}", headers=headers)
     assert response.status_code == 200
-    cities = s.LocationsListOut.model_validate(response.json())
+    cities = s.LocationsListCityOut.model_validate(response.json())
 
     assert cities.items

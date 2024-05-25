@@ -1,4 +1,13 @@
+import enum
 from pydantic import BaseModel, ConfigDict
+
+
+class MemberType(enum.Enum):
+    realtor = "realtor"
+    owner = "owner"
+    landlord = "landlord"
+    host = "host"
+    property_manager = "property manager"
 
 
 class Member(BaseModel):
@@ -7,7 +16,6 @@ class Member(BaseModel):
     phone: str = ""
     instagram_url: str = ""
     messenger_url: str = ""
-    title: str
 
     model_config = ConfigDict(
         from_attributes=True,
@@ -20,7 +28,7 @@ class MemberIn(BaseModel):
     phone: str = ""
     instagram_url: str = ""
     messenger_url: str = ""
-    title: str = ""
+    title: str = MemberType.realtor.value
 
     model_config = ConfigDict(
         from_attributes=True,
@@ -30,6 +38,7 @@ class MemberIn(BaseModel):
 class MemberOut(Member):
     uuid: str
     avatar_url: str = ""
+    title: MemberType
 
     model_config = ConfigDict(
         from_attributes=True,

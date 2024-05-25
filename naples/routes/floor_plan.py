@@ -21,6 +21,7 @@ def get_floor_plans_for_item(item_uuid: str, current_store: m.Store = Depends(ge
     log(log.INFO, "Getting floor plans for item {%s} in store {%s}", item_uuid, current_store)
 
     item = current_store.get_item_by_uuid(item_uuid)
+
     if not item:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
     items = [s.FloorPlanOut.model_validate(floor_plan) for floor_plan in item.floor_plans]
@@ -29,13 +30,21 @@ def get_floor_plans_for_item(item_uuid: str, current_store: m.Store = Depends(ge
     return s.FloorPlanListOut(items=items)
 
 
-@floor_plan_router.post("/", response_model=s.FloorPlanOut, status_code=status.HTTP_201_CREATED)
+@floor_plan_router.post(
+    "/{item_uuid}",
+    response_model=s.FloorPlanOut,
+    status_code=status.HTTP_201_CREATED,
+)
 def create_floor_plan(
-    floor_plan: s.FloorPlanIn, current_store: m.Store = Depends(get_current_user_store), db: Session = Depends(get_db)
+    item_uuid: str,
+    image: UploadFile,
+    current_store: m.Store = Depends(get_current_user_store),
+    db: Session = Depends(get_db),
+    s3_client: S3Client = Depends(get_s3_connect),
 ):
-    log(log.INFO, "Creating floor plan {%s} in store {%s}", floor_plan, current_store.uuid)
+    log(log.INFO, "Creating floor plan in store {%s}", current_store.uuid)
 
-    item = current_store.get_item_by_uuid(floor_plan.item_uuid)
+    item = current_store.get_item_by_uuid(item_uuid)
     if not item:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
 
@@ -45,6 +54,20 @@ def create_floor_plan(
     db.refresh(floor_plan)
 
     log(log.INFO, "Created floor plan {%s} in store {%s}", floor_plan, current_store.uuid)
+
+    extension = get_file_extension(image)
+
+    file_model = c.create_file(
+        file=image,
+        db=db,
+        s3_client=s3_client,
+        file_type=s.FileType.IMAGE,
+        store_url=current_store.url,
+        extension=extension,
+    )
+
+    floor_plan.image_id = file_model.id
+    db.commit()
 
     return s.FloorPlanOut.model_validate(floor_plan)
 
@@ -73,46 +96,47 @@ def delete_floor_plan(
     log(log.INFO, "Deleted floor plan uuid {%s} in store {%s}", floor_plan_uuid, current_store.uuid)
 
 
-@floor_plan_router.post("/{floor_plan_uuid}/image", status_code=status.HTTP_201_CREATED, response_model=s.FloorPlanOut)
-def upload_floor_plan_image(
-    floor_plan_uuid: str,
-    image: UploadFile,
-    current_store: m.Store = Depends(get_current_user_store),
-    db: Session = Depends(get_db),
-    s3_client: S3Client = Depends(get_s3_connect),
-):
-    log(log.INFO, "Uploading image for floor plan uuid {%s} in store {%s}", floor_plan_uuid, current_store.uuid)
+# this is the new endpoint
+# @floor_plan_router.post("/{floor_plan_uuid}/image", status_code=status.HTTP_201_CREATED, response_model=s.FloorPlanOut)
+# def upload_floor_plan_image(
+#     floor_plan_uuid: str,
+#     image: UploadFile,
+#     current_store: m.Store = Depends(get_current_user_store),
+#     db: Session = Depends(get_db),
+#     s3_client: S3Client = Depends(get_s3_connect),
+# ):
+#     log(log.INFO, "Uploading image for floor plan uuid {%s} in store {%s}", floor_plan_uuid, current_store.uuid)
 
-    floor_plan = db.scalar(sa.select(m.FloorPlan).filter(m.FloorPlan.uuid == floor_plan_uuid))
-    if not floor_plan:
-        log(log.ERROR, "Floor plan not found")
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Floor plan not found")
+#     floor_plan = db.scalar(sa.select(m.FloorPlan).filter(m.FloorPlan.uuid == floor_plan_uuid))
+#     if not floor_plan:
+#         log(log.ERROR, "Floor plan not found")
+#         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Floor plan not found")
 
-    if floor_plan.item.store_id != current_store.id:
-        log(log.ERROR, "You can only upload images for your own floor plans")
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="You can only upload images for your own floor plans"
-        )
+#     if floor_plan.item.store_id != current_store.id:
+#         log(log.ERROR, "You can only upload images for your own floor plans")
+#         raise HTTPException(
+#             status_code=status.HTTP_403_FORBIDDEN, detail="You can only upload images for your own floor plans"
+#         )
 
-    if floor_plan.image:
-        log(log.INFO, "Deleting old image for floor plan {%s}", floor_plan_uuid)
-        floor_plan.image.mark_as_deleted()
-        db.commit()
+#     if floor_plan.image:
+#         log(log.INFO, "Deleting old image for floor plan {%s}", floor_plan_uuid)
+#         floor_plan.image.mark_as_deleted()
+#         db.commit()
 
-    log(log.INFO, "Creating new image for floor plan {%s}", floor_plan_uuid)
+#     log(log.INFO, "Creating new image for floor plan {%s}", floor_plan_uuid)
 
-    extension = get_file_extension(image)
+#     extension = get_file_extension(image)
 
-    file_model = c.create_file(
-        file=image,
-        db=db,
-        s3_client=s3_client,
-        file_type=s.FileType.IMAGE,
-        store_url=current_store.url,
-        extension=extension,
-    )
+#     file_model = c.create_file(
+#         file=image,
+#         db=db,
+#         s3_client=s3_client,
+#         file_type=s.FileType.IMAGE,
+#         store_url=current_store.url,
+#         extension=extension,
+#     )
 
-    floor_plan.image_id = file_model.id
-    db.commit()
+#     floor_plan.image_id = file_model.id
+#     db.commit()
 
-    return s.FloorPlanOut.model_validate(floor_plan)
+#     return s.FloorPlanOut.model_validate(floor_plan)

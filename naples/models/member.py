@@ -4,7 +4,9 @@ from datetime import datetime
 from sqlalchemy import orm
 from typing import TYPE_CHECKING
 
+
 from naples.database import db
+from naples import schemas as s
 from .utils import ModelMixin, create_uuid
 
 
@@ -31,7 +33,7 @@ class Member(db.Model, ModelMixin):
 
     phone: orm.Mapped[str] = orm.mapped_column(sa.String(16), default="")
 
-    title: orm.Mapped[str] = orm.mapped_column(sa.String(128), default="Realtor", server_default="Realtor")
+    title: orm.Mapped[str] = orm.mapped_column(default=s.MemberType.realtor.value)
 
     store_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey("stores.id"))
 
