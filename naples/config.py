@@ -47,9 +47,6 @@ class BaseConfig(BaseSettings):
 
     # mail configuration (gmail service)
     MAIL_USERNAME: str
-    MAIL_HOST: str
-    MAIL_PORT: int = 465
-    MAIL_ADDRESS: str
     MAIL_PASSWORD: str
     MAIL_DEFAULT_SENDER: str
     MAIL_SUBJECT: str = "Email Verification"
