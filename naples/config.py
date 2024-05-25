@@ -46,18 +46,18 @@ class BaseConfig(BaseSettings):
     CERT_RESOLVER: str = "myresolver"
 
     # mail configuration (gmail service)
-    # MAIL_USERNAME: str = "Naples-GW"
-    # MAIL_HOST: str = "smtp.gmail.com"
-    # MAIL_PORT: int = 465
-    # MAIL_ADDRESS: str
-    # MAIL_PASSWORD: str
-    # MAIL_SUBJECT: str = "Email Verification"
+    MAIL_USERNAME: str
+    MAIL_HOST: str
+    MAIL_PORT: int = 465
+    MAIL_ADDRESS: str
+    MAIL_PASSWORD: str
+    MAIL_DEFAULT_SENDER: str
+    MAIL_SUBJECT: str = "Email Verification"
+    MAIL_BODY_TEXT: str
+
+    CHARSET: str = "UTF-8"
 
     REDIRECT_URL: str = "http://127.0.0.1:3000/verify-email"
-
-    # email configuration (Amazon SES)
-    AWS_SES_ACCESS_KEY: str
-    AWS_SES_SECRET_KEY: str
 
     model_config = SettingsConfigDict(
         extra="allow",
@@ -79,6 +79,7 @@ class TestingConfig(BaseConfig):
     PRESERVE_CONTEXT_ON_EXCEPTION: bool = False
     ALCHEMICAL_DATABASE_URL: str = "sqlite:///" + os.path.join(BASE_DIR, "database-test.sqlite3")
     AWS_S3_BUCKET_NAME: str = "naples-gateway-test"
+    MAIL_DEFAULT_SENDER: str = "sender@infotest.com"
 
 
 class ProductionConfig(BaseConfig):
