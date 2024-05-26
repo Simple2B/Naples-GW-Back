@@ -1,5 +1,4 @@
 import enum
-from datetime import datetime
 from pydantic import BaseModel, ConfigDict, Field, AliasChoices
 
 
@@ -10,6 +9,7 @@ from .rate import RateOut
 from .floor_plan import FloorPlanOut
 from .locations import LocationOut, CityOut
 from .file import DocumentOut
+from .booked_date import BookedDateOut
 
 
 class ItemStage(enum.Enum):
@@ -122,7 +122,8 @@ class ItemDetailsOut(ItemOut):
 
     documents: list[DocumentOut]
 
-    booked_dates: list[datetime]
+    booked_dates: list[BookedDateOut]
+
     description: str
     amenities: list[str]
     external_urls: ExternalUrls

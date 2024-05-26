@@ -1,10 +1,11 @@
 from datetime import datetime
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 class BookedDatesBatchIn(BaseModel):
     item_uuid: str
-    dates: list[datetime]
+    from_date: datetime
+    to_date: datetime
 
 
 class BookedDateDeleteBatchIn(BaseModel):
@@ -14,7 +15,12 @@ class BookedDateDeleteBatchIn(BaseModel):
 
 class BookedDateOut(BaseModel):
     uuid: str
-    date: datetime
+    from_date: datetime
+    to_date: datetime
+
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
 
 
 class BookedDateListOut(BaseModel):
