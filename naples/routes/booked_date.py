@@ -48,8 +48,7 @@ async def get_booked_dates_for_item(item_uuid: str, store: m.Store = Depends(get
                 from_date=booked_date.from_date,
                 to_date=booked_date.to_date,
             )
-            for booked_date in item._booked_dates
-            if not booked_date.is_deleted
+            for booked_date in item.booked_dates
         ]
     )
 

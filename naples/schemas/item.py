@@ -48,7 +48,7 @@ class ItemIn(BaseModel):
     airbnb_url: str = ""
     vrbo_url: str = ""
     expedia_url: str = ""
-    adults: int | None = 0
+    adults: int = 0
 
     stage: str = ItemStage.DRAFT.value
 
