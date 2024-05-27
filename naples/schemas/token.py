@@ -12,6 +12,10 @@ class TokenData(BaseModel):
     exp: datetime
 
 
+class TokenOut(Token):
+    expire_time: datetime
+
+
 class Auth(BaseModel):
     email: str
     password: str
