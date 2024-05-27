@@ -141,8 +141,9 @@ class Item(db.Model, ModelMixin):
         return max([r.month for r in self.rates]) if self.rates else 0
 
     @property
-    def booked_dates(self) -> list[datetime]:
-        return [b.date for b in self._booked_dates if not b.is_deleted]
+    def booked_dates(self) -> list["BookedDate"]:
+        res = [b for b in self._booked_dates if not b.is_deleted]
+        return res
 
     @property
     def external_urls(self) -> s.ExternalUrls:

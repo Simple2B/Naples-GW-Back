@@ -20,7 +20,8 @@ class BookedDate(db.Model):
 
     is_deleted: orm.Mapped[bool] = orm.mapped_column(default=False)
 
-    date: orm.Mapped[datetime] = orm.mapped_column()
+    from_date: orm.Mapped[datetime] = orm.mapped_column(server_default=sa.func.now())
+    to_date: orm.Mapped[datetime] = orm.mapped_column(server_default=sa.func.now())
 
     item_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey("items.id"))
 
