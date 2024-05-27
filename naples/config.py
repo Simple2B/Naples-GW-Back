@@ -22,15 +22,6 @@ class BaseConfig(BaseSettings):
     WTF_CSRF_ENABLED: bool = False
     VERSION: str = get_version()
 
-    # Mail config
-    MAIL_SERVER: str
-    MAIL_PORT: int
-    MAIL_USE_TLS: bool
-    MAIL_USE_SSL: bool
-    MAIL_USERNAME: str
-    MAIL_PASSWORD: str
-    MAIL_DEFAULT_SENDER: str
-
     # Super admin
     ADMIN_USERNAME: str
     ADMIN_EMAIL: str
@@ -54,6 +45,17 @@ class BaseConfig(BaseSettings):
     WEB_SERVICE_NAME: str = "naples-gw-front-app-1"
     CERT_RESOLVER: str = "myresolver"
 
+    # mail configuration (gmail service)
+    MAIL_USERNAME: str
+    MAIL_PASSWORD: str
+    MAIL_DEFAULT_SENDER: str
+    MAIL_SUBJECT: str = "Email Verification"
+    MAIL_BODY_TEXT: str
+
+    CHARSET: str = "UTF-8"
+
+    REDIRECT_URL: str = "http://127.0.0.1:3000/verify-email"
+
     model_config = SettingsConfigDict(
         extra="allow",
         env_file=("project.env", ".env.dev", ".env"),
@@ -74,6 +76,7 @@ class TestingConfig(BaseConfig):
     PRESERVE_CONTEXT_ON_EXCEPTION: bool = False
     ALCHEMICAL_DATABASE_URL: str = "sqlite:///" + os.path.join(BASE_DIR, "database-test.sqlite3")
     AWS_S3_BUCKET_NAME: str = "naples-gateway-test"
+    MAIL_DEFAULT_SENDER: str = "sender@infotest.com"
 
 
 class ProductionConfig(BaseConfig):

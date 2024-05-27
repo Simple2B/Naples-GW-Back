@@ -1,7 +1,12 @@
 import base64
+
 from fastapi.testclient import TestClient
 
+
 from sqlalchemy.orm import Session
+from mypy_boto3_ses import SESClient
+from moto import mock_aws
+
 import sqlalchemy as sa
 
 from naples import schemas as s
@@ -26,10 +31,15 @@ new_user = s.UserSignIn(
 )
 
 
+@mock_aws
 def test_sign_up(
     client: TestClient,
     db: Session,
+    ses: SESClient,
 ):
+    ses.verify_email_address(EmailAddress=EMAIL)
+    ses.verify_email_address(EmailAddress=CFG.MAIL_DEFAULT_SENDER)
+
     response = client.post("/api/auth/sign-up", json=new_user.model_dump())
     assert response.status_code == 201
     assert response.json()["email"] == EMAIL
@@ -37,7 +47,14 @@ def test_sign_up(
     assert store is not None
 
 
-def test_login(client: TestClient):
+@mock_aws
+def test_login(
+    client: TestClient,
+    ses: SESClient,
+):
+    ses.verify_email_address(EmailAddress=EMAIL)
+    ses.verify_email_address(EmailAddress=CFG.MAIL_DEFAULT_SENDER)
+
     response = client.post("/api/auth/sign-up", json=new_user.model_dump())
     assert response.status_code == 201
 

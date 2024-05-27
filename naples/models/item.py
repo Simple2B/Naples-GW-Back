@@ -44,6 +44,7 @@ class Item(db.Model, ModelMixin):
     longitude: orm.Mapped[float] = orm.mapped_column(default=0.0)
 
     address: orm.Mapped[str] = orm.mapped_column(sa.String(256), default="")
+
     stage: orm.Mapped[str] = orm.mapped_column(default=s.ItemStage.DRAFT.value)
 
     size: orm.Mapped[int] = orm.mapped_column(default=0)

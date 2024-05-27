@@ -61,7 +61,10 @@ def export_usa_locations_from_csv_file(session: Session, file_path: Path, is_new
                 log(log.INFO, "New state [%s] created", abbreviated_name)
 
             county_db: m.County | None = session.scalar(
-                sa.select(m.County).where(m.County.name == county_name, m.County.state_id == state_db.id)
+                sa.select(m.County).where(
+                    m.County.name == county_name,
+                    m.County.state_id == state_db.id,
+                )
             )
 
             if not county_db:
@@ -109,4 +112,5 @@ def export_usa_locations_from_csv_file(session: Session, file_path: Path, is_new
 
         query = sa.select(m.State).order_by(m.State.name)
         states: Sequence[m.State] = session.scalars(query).all()
+
         return s.States(states=cast(list, states))

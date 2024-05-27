@@ -42,3 +42,8 @@ class Users(BaseModel):
     model_config = ConfigDict(
         from_attributes=True,
     )
+
+
+class EmailContent(BaseModel):
+    emailAddresses: list[str]
+    message: str = "Confirm your password"
