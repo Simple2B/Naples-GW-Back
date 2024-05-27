@@ -1,12 +1,16 @@
 import pytest
 
+
 from typing import Generator
 from pathlib import Path
 from mypy_boto3_s3 import S3Client
+from mypy_boto3_ses import SESClient
 from moto import mock_aws
+from moto.ses.models import SESBackend
 
 
 from dotenv import load_dotenv
+
 
 load_dotenv("tests/test.env")
 
@@ -88,6 +92,17 @@ def s3_client() -> Generator[S3Client, None, None]:
         )
 
         yield client
+
+
+@mock_aws
+@pytest.fixture
+def ses() -> Generator[SESClient, None, None]:
+    with mock_aws():
+        from naples.dependency.ses_client import get_ses_client
+
+        ses = get_ses_client()
+
+    yield ses
 
 
 @pytest.fixture(scope="session")

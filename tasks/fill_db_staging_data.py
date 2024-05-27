@@ -45,7 +45,7 @@ def create_user_with_store():
 
         test_store_data = test_data.test_stores[0]
         test_store: m.Store = m.Store(**test_store_data.model_dump())
-        store = session.query(m.Store).filter(m.Store.url == test_store.url).first()
+        store = session.query(m.Store).filter(m.Store.email == test_store.email).first()
         if not store:
             store = create_store(test_store)
             session.add(store)
@@ -56,7 +56,7 @@ def create_user_with_store():
         test_members: list[m.Member] = [m.Member(**member.model_dump()) for member in test_members_data]
 
         for member in test_members:
-            member_db: m.Member = session.query(m.Member).filter(m.Member.uuid == member.uuid).first()
+            member_db: m.Member = session.query(m.Member).filter(m.Member.email == member.email).first()
             if not member_db:
                 new_member = create_member(member)
                 session.add(new_member)
