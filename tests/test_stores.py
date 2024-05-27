@@ -324,3 +324,64 @@ def test_get_stores_urls(
         assert store.uuid in stores.http.routers
         assert stores.http.routers[store.uuid].rule == f"Host(`{store.url}`)"
         assert stores.http.services[store.uuid].loadBalancer.servers[0].url == f"http://{CFG.WEB_SERVICE_NAME}"
+
+
+def test_create_store_aboutus_media(client: TestClient, headers: dict[str, str], full_db: Session, s3_client: S3Client):
+    with open("tests/house_example.png", "rb") as f:
+        store_model = full_db.scalar(sa.select(m.Store))
+        assert store_model
+
+        response = client.post(
+            "/api/stores/aboutus/main_media",
+            headers=headers,
+            files={"aboutus_main_media": ("test.jpg", f, "image/jpeg")},
+        )
+        assert response.status_code == 201
+
+        store_res = client.get(f"/api/stores/{store_model.url}")
+        assert store_res.status_code == 200
+
+        store = s.StoreOut.model_validate(store_res.json())
+        assert store.aboutus
+        assert store.aboutus.aboutus_main_media
+        assert store.aboutus.aboutus_main_media.url == store_model.aboutus_main_media.url
+
+        full_db.refresh(store_model)
+
+        bucket_file = s3_client.get_object(
+            Bucket=CFG.AWS_S3_BUCKET_NAME,
+            Key=store_model.aboutus_main_media.key,
+        )
+
+        assert bucket_file["ResponseMetadata"]["HTTPStatusCode"] == 200
+        assert bucket_file["ContentLength"] > 0
+
+    db_store = full_db.scalar(sa.select(m.Store))
+    assert db_store
+    assert db_store.aboutus_main_media.original_name == "test.jpg"
+
+    # delete the image
+    delete_res = client.delete("/api/stores/aboutus/main_media", headers=headers)
+
+    assert delete_res.status_code == 204
+    assert not db_store.aboutus_main_media
+
+
+def test_create_store_aboutus_description(
+    client: TestClient,
+    headers: dict[str, str],
+    full_db: Session,
+):
+    data = s.StoreAboutUsDescription(
+        aboutus_description="This is a description",
+    )
+    response = client.patch(
+        "/api/stores/aboutus/description",
+        json=data.model_dump(),
+        headers=headers,
+    )
+    assert response.status_code == 201
+
+    db_store = full_db.scalar(sa.select(m.Store))
+    assert db_store
+    assert db_store.aboutus_description == data.aboutus_description
