@@ -1,4 +1,5 @@
 import filetype
+from datetime import datetime, timedelta, UTC
 
 from mypy_boto3_ses import SESClient
 from botocore.exceptions import ClientError
@@ -87,3 +88,7 @@ def sendEmail(email: str, message: str, ses_client: SESClient):
     except ClientError as e:
         log(log.ERROR, "Email not sent! [%s]", e.response["Error"]["Message"])
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email not sent!")
+
+
+def get_expire_datatime() -> datetime:
+    return datetime.now(UTC) + timedelta(minutes=CFG.ACCESS_TOKEN_EXPIRE_MINUTES)

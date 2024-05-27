@@ -7,7 +7,12 @@ from mypy_boto3_ses import SESClient
 
 # from starlette.responses import RedirectResponse
 from naples.dependency import get_ses_client
-from naples.oauth2 import INVALID_CREDENTIALS_EXCEPTION, create_access_token, verify_access_token
+from naples.oauth2 import (
+    INVALID_CREDENTIALS_EXCEPTION,
+    create_access_token,
+    create_access_token_exp_datetime,
+    verify_access_token,
+)
 from naples import models as m
 from naples import schemas as s
 from naples.logger import log
@@ -22,7 +27,7 @@ router = APIRouter(prefix="/auth", tags=["Auth"])
 @router.post(
     "/login",
     status_code=status.HTTP_200_OK,
-    response_model=s.Token,
+    response_model=s.TokenOut,
     responses={
         status.HTTP_404_NOT_FOUND: {"description": "Invalid credentials"},
         status.HTTP_403_FORBIDDEN: {"description": "Admin user can not get API token"},
@@ -40,13 +45,14 @@ def login(credentials: Annotated[HTTPBasicCredentials, Depends(security)], db=De
         log(log.ERROR, "User [%s] is an admin user", user.email)
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin user can not get API token")
     log(log.INFO, "User [%s] logged in", user.email)
-    return s.Token(access_token=create_access_token(user.id))
+
+    return create_access_token_exp_datetime(user.id)
 
 
 @router.post(
     "/token",
     status_code=status.HTTP_200_OK,
-    response_model=s.Token,
+    response_model=s.TokenOut,
     responses={
         status.HTTP_404_NOT_FOUND: {"description": "Invalid credentials"},
         status.HTTP_403_FORBIDDEN: {"description": "Admin user can not get API token"},
@@ -63,7 +69,8 @@ def get_token(auth_data: s.Auth, db=Depends(get_db)):
         log(log.ERROR, "User [%s] is an admin user", user.email)
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin user can not get API token")
     log(log.INFO, "User [%s] logged in", user.email)
-    return s.Token(access_token=create_access_token(user.id))
+
+    return create_access_token_exp_datetime(user.id)
 
 
 @router.post("/sign-up", status_code=status.HTTP_201_CREATED, response_model=s.User)
