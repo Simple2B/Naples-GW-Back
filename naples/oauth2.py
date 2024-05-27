@@ -11,7 +11,7 @@ CFG = config()
 
 SECRET_KEY = CFG.JWT_SECRET
 ACCESS_TOKEN_EXPIRE_MINUTES = CFG.ACCESS_TOKEN_EXPIRE_MINUTES
-EXPIRE_DATETIME = get_expire_datatime()
+
 
 INVALID_CREDENTIALS_EXCEPTION = HTTPException(
     status_code=status.HTTP_401_UNAUTHORIZED,
@@ -21,6 +21,7 @@ INVALID_CREDENTIALS_EXCEPTION = HTTPException(
 
 
 def create_access_token(user_id: int) -> str:
+    EXPIRE_DATETIME = get_expire_datatime()
     to_encode = s.TokenData(
         user_id=user_id,
         exp=EXPIRE_DATETIME,
@@ -32,6 +33,7 @@ def create_access_token(user_id: int) -> str:
 
 
 def create_access_token_exp_datetime(user_id: int) -> s.TokenOut:
+    EXPIRE_DATETIME = get_expire_datatime()
     to_encode = s.TokenData(
         user_id=user_id,
         exp=EXPIRE_DATETIME,
