@@ -78,12 +78,12 @@ def get_published_items(
 
     if check_in:
         stmt = stmt.where(
-            m.Item._booked_dates.any(sa.and_(m.BookedDate.date >= check_in, m.BookedDate.is_deleted.is_(False)))
+            m.Item._booked_dates.any(sa.and_(m.BookedDate.from_date == check_in, m.BookedDate.is_deleted.is_(False)))
         )
 
     if check_out:
         stmt = stmt.where(
-            m.Item._booked_dates.any(sa.and_(m.BookedDate.date <= check_out, m.BookedDate.is_deleted.is_(False)))
+            m.Item._booked_dates.any(sa.and_(m.BookedDate.to_date == check_out, m.BookedDate.is_deleted.is_(False)))
         )
 
     if name:
