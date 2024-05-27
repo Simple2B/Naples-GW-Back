@@ -7,7 +7,7 @@ from naples.schemas.file import FileOut
 
 
 class TestUser(BaseModel):
-    id: int
+    uuid: str
     first_name: str
     last_name: str
     email: str

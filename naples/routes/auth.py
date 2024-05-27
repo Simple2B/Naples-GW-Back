@@ -13,10 +13,13 @@ from naples import schemas as s
 from naples.logger import log
 from naples.database import get_db
 from naples.utils import createMsgEmail, sendEmail
+from naples.config import config
 
 security = HTTPBasic()
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
+
+CFG = config()
 
 
 @router.post(
@@ -92,7 +95,11 @@ def sign_up(
 
     log(log.INFO, "User [%s] signed up", new_user.email)
 
-    user_store = m.Store(user_id=new_user.id, email=new_user.email)
+    user_store = m.Store(
+        user_id=new_user.id,
+        email=new_user.email,
+        url=f"{new_user.uuid}.{CFG.WEB_SERVICE_NAME}",
+    )
 
     db.add(user_store)
     db.commit()

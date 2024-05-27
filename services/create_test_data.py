@@ -5,7 +5,7 @@ from naples import schemas as s
 def create_user(test_user: s.TestUser) -> m.User:
     """Create test user"""
     user = m.User(
-        id=test_user.id,
+        uuid=test_user.uuid,
         first_name=test_user.first_name,
         last_name=test_user.last_name,
         email=test_user.email,
@@ -20,7 +20,7 @@ def create_user(test_user: s.TestUser) -> m.User:
 def create_test_user(test_user: s.TestUser) -> m.User:
     """Create test user"""
     user = m.User(
-        id=test_user.id,
+        uuid=test_user.uuid,
         email=test_user.email,
         first_name=test_user.first_name,
         last_name=test_user.last_name,
