@@ -1,28 +1,25 @@
 {
   "test_users": [
     {
-      "id": 1,
       "first_name": "name_1",
       "last_name": "surname_1",
-      "uuid": "6915ad0f-392e-444d-96b1-f04dba7e751b",
+      "uuid": "353b9f0a430b4bbcaa8cbcbe186ec3e4",
       "email": "testemail1@gmail.com",
       "password": "user_1",
       "role": "user"
     },
     {
-      "id": 2,
       "first_name": "name_2",
       "last_name": "surname_2",
-      "uuid": "f53fecaf-c84a-4ac0-bfed-d6c945d91460",
+      "uuid": "1feab9bfb8424b399e887017d1815972",
       "email": "testemail2@gmail.com",
       "password": "user_2",
       "role": "user"
     },
     {
-      "id": 3,
       "first_name": "name_3",
       "last_name": "surname_3",
-      "uuid": "3037b1d3-a5a9-4a06-97e4-a77eca1825c7",
+      "uuid": "d5d9a500aab643f9b748ece58e71c878",
       "email": "testemail3@gmail.com",
       "password": "user_3",
       "role": "user"
