@@ -67,13 +67,25 @@ class Store(db.Model, ModelMixin):
 
     logo_id: orm.Mapped[int | None] = orm.mapped_column(sa.ForeignKey("files.id"), nullable=True)
 
+    aboutus_description: orm.Mapped[str] = orm.mapped_column(sa.Text, default="", server_default="")
+
+    aboutus_main_media_id: orm.Mapped[int | None] = orm.mapped_column(sa.ForeignKey("files.id"), nullable=True)
+
     _main_media: orm.Mapped["File"] = orm.relationship(viewonly=True, foreign_keys=[main_media_id])
+
+    _aboutus_main_media: orm.Mapped["File"] = orm.relationship(viewonly=True, foreign_keys=[aboutus_main_media_id])
 
     _logo: orm.Mapped["File"] = orm.relationship(viewonly=True, foreign_keys=[logo_id])
 
     @property
     def main_media(self):
         return self._main_media if self._main_media and not self._main_media.is_deleted else None
+
+    @property
+    def aboutus_main_media(self):
+        return (
+            self._aboutus_main_media if self._aboutus_main_media and not self._aboutus_main_media.is_deleted else None
+        )
 
     @property
     def main_media_url(self):
@@ -94,6 +106,13 @@ class Store(db.Model, ModelMixin):
     @property
     def logo_url(self):
         return self.logo.url if self.logo else ""
+
+    @property
+    def aboutus(self) -> s.StoreAboutUs:
+        return s.StoreAboutUs(
+            aboutus_description=self.aboutus_description,
+            aboutus_main_media=self.aboutus_main_media,
+        )
 
     @property
     def title(self) -> s.EditableText:

@@ -298,3 +298,103 @@ def delete_store_logo(
     db.commit()
 
     log(log.INFO, "Logo deleted for store [%s]", current_store.url)
+
+
+@store_router.post(
+    "/aboutus/main_media",
+    status_code=status.HTTP_201_CREATED,
+    response_model=s.StoreOut,
+    responses={
+        status.HTTP_404_NOT_FOUND: {"description": "Store not found"},
+    },
+)
+def create_store_aboutus_media(
+    aboutus_main_media: UploadFile,
+    db: Session = Depends(get_db),
+    current_store: m.Store = Depends(get_current_user_store),
+    s3_client: S3Client = Depends(get_s3_connect),
+):
+    """Uploads the main media for the about us section of the store"""
+
+    if current_store.aboutus_main_media and not current_store.aboutus_main_media.is_deleted:
+        log(log.WARNING, "Store [%s] already has a main media. Marking as deleted", current_store.url)
+        current_store.main_media.mark_as_deleted()
+        db.commit()
+
+    extension = get_file_extension(aboutus_main_media)
+
+    if not extension:
+        log(log.ERROR, "Extension not found for main media [%s]", aboutus_main_media.filename)
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Extension not found")
+
+    file_type = get_file_type(extension)
+
+    if file_type == s.FileType.UNKNOWN:
+        log(log.ERROR, "File type not supported for main media [%s]", aboutus_main_media.filename)
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="File type not supported")
+
+    aboutus_main_media_file_model = c.create_file(
+        db=db,
+        file=aboutus_main_media,
+        s3_client=s3_client,
+        extension=extension,
+        store_url=current_store.url,
+        file_type=file_type,
+    )
+
+    current_store.aboutus_main_media_id = aboutus_main_media_file_model.id
+
+    db.commit()
+    db.refresh(current_store)
+
+    log(log.INFO, "Main media [%s] uploaded for store [%s]", aboutus_main_media_file_model.name, current_store.url)
+
+    return current_store
+
+
+@store_router.delete(
+    "/aboutus/main_media",
+    status_code=status.HTTP_204_NO_CONTENT,
+    responses={
+        404: {"description": "Store not found"},
+    },
+)
+def delete_store_aboutus_media(
+    db: Session = Depends(get_db),
+    current_store: m.Store = Depends(get_current_user_store),
+):
+    """Deletes the main media for the about us section of the store"""
+
+    log(log.INFO, "Deleting main media for store [%s]", current_store.url)
+
+    if not current_store.aboutus_main_media:
+        log(log.ERROR, "Store [%s] does not have a main media", current_store.url)
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Store does not have a main media")
+
+    current_store.aboutus_main_media.mark_as_deleted()
+    db.commit()
+
+    log(log.INFO, "About us main media deleted for store [%s]", current_store.url)
+
+
+@store_router.patch(
+    "/aboutus/description",
+    status_code=status.HTTP_201_CREATED,
+    response_model=s.StoreOut,
+    responses={
+        status.HTTP_404_NOT_FOUND: {"description": "Store not found"},
+    },
+)
+def create_store_aboutus_description(
+    data: s.StoreAboutUsDescription,
+    db: Session = Depends(get_db),
+    current_store: m.Store = Depends(get_current_user_store),
+):
+    """Uploads the description for the about us section of the store"""
+
+    current_store.aboutus_description = data.aboutus_description
+    db.commit()
+
+    log(log.INFO, "About us description updated for store [%s]", current_store.url)
+
+    return current_store

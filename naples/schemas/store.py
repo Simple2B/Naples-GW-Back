@@ -57,12 +57,26 @@ class StoreUpdateIn(BaseModel):
     )
 
 
+class StoreAboutUsDescription(BaseModel):
+    aboutus_description: str = ""
+
+
+class StoreAboutUs(StoreAboutUsDescription):
+    aboutus_main_media: MainMedia | None = None
+
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
+
+
 class StoreOut(Store):
     url: str
     main_media: MainMedia | None = None
 
     title: EditableText
     sub_title: EditableText
+
+    aboutus: StoreAboutUs
 
     model_config = ConfigDict(
         from_attributes=True,
