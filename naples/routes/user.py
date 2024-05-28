@@ -82,3 +82,17 @@ def update_user(
     log(log.INFO, f"User {current_user.email} updated his profile")
 
     return current_user
+
+
+@user_router.post(
+    "/reset_password",
+    status_code=status.HTTP_200_OK,
+    response_model=s.User,
+)
+def reset_password(
+    data: s.UserResetPasswordIn,
+    db: Session = Depends(get_db),
+    current_user: m.User = Depends(get_current_user),
+):
+    """Resets the user password"""
+    return current_user
