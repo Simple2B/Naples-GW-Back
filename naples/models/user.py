@@ -31,6 +31,8 @@ class User(db.Model, ModelMixin):
         nullable=False,
     )
 
+    phone: orm.Mapped[str] = orm.mapped_column(sa.String(16), default="", server_default="")
+
     password_hash: orm.Mapped[str] = orm.mapped_column(sa.String(256), default="")
 
     is_verified: orm.Mapped[bool] = orm.mapped_column(default=False)

@@ -51,3 +51,12 @@ def get_users(
     return s.Users(
         users=users,
     )
+
+
+@user_router.patch("/", status_code=status.HTTP_200_OK, response_model=s.User)
+def update_user(
+    data: s.UserUpdate,
+    db: Session = Depends(get_db),
+    current_user: m.User = Depends(get_current_user),
+):
+    return current_user

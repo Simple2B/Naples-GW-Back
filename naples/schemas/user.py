@@ -36,6 +36,14 @@ class User(BaseUser):
     )
 
 
+class UserUpdate(BaseUser):
+    phone: str = ""
+
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
+
+
 class Users(BaseModel):
     users: list[User]
 
