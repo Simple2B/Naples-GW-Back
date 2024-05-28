@@ -37,12 +37,19 @@ class User(BaseUser):
     )
 
 
-class UserUpdate(BaseUser):
-    phone: str = ""
+class UserUpdate(BaseModel):
+    first_name: str | None = None
+    last_name: str | None = None
+    phone: str | None = None
 
     model_config = ConfigDict(
         from_attributes=True,
     )
+
+
+class UserResetPasswordIn(BaseModel):
+    old_password: str
+    new_password: str
 
 
 class Users(BaseModel):
