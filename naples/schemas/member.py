@@ -3,11 +3,11 @@ from pydantic import BaseModel, ConfigDict
 
 
 class MemberType(enum.Enum):
-    realtor = "realtor"
-    owner = "owner"
-    landlord = "landlord"
-    host = "host"
-    property_manager = "property manager"
+    REALTOR = "realtor"
+    OWNER = "owner"
+    LANDLORD = "landlord"
+    HOST = "host"
+    PROPERTY_MANAGER = "property_manager"
 
 
 class Member(BaseModel):
@@ -28,7 +28,7 @@ class MemberIn(BaseModel):
     phone: str = ""
     instagram_url: str = ""
     messenger_url: str = ""
-    title: str = MemberType.realtor.value
+    title: str = MemberType.REALTOR.value
 
     model_config = ConfigDict(
         from_attributes=True,
