@@ -3,7 +3,6 @@ import sqlalchemy as sa
 from sqlalchemy.orm import Session
 from fastapi.testclient import TestClient
 from pydantic_extra_types.color import Color
-from pydantic.networks import HttpUrl
 
 from naples import schemas as s, models as m
 from naples.config import config
@@ -274,6 +273,7 @@ def test_update_store(client: TestClient, headers: dict[str, str], full_db: Sess
         sub_title_color=Color("#000000"),
         sub_title_font_size=12,
         about_us_description="This is a description",
+        messenger_url="",
     )
 
     response = client.patch("/api/stores/", headers=headers, content=update_data.model_dump_json())
@@ -294,9 +294,9 @@ def test_update_store(client: TestClient, headers: dict[str, str], full_db: Sess
     assert store.about_us.about_us_description == update_data.about_us_description
 
     more_update_data = s.StoreUpdateIn(
-        messenger_url=HttpUrl("https://messenger.com"),
+        messenger_url="https://messenger.com",
         phone="1234567890",
-        instagram_url=HttpUrl("https://instagram.com"),
+        instagram_url="https://instagram.com",
         url="new_url.com",
     )
 

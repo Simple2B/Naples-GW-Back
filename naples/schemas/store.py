@@ -1,4 +1,4 @@
-from pydantic import BaseModel, ConfigDict, HttpUrl, EmailStr
+from pydantic import BaseModel, ConfigDict, EmailStr
 from pydantic_extra_types.color import Color
 
 from .main_media import MainMedia
@@ -39,8 +39,8 @@ class StoreIn(BaseModel):
 
 class StoreUpdateIn(BaseModel):
     email: EmailStr | None = None
-    instagram_url: HttpUrl | None = None
-    messenger_url: HttpUrl | None = None
+    instagram_url: str | None = None
+    messenger_url: str | None = None
     phone: str | None = None
 
     title_value: str | None = None
