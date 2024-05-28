@@ -52,17 +52,19 @@ class StoreUpdateIn(BaseModel):
     sub_title_font_size: int | None = None
     url: str | None = None
 
+    about_us_description: str = ""
+
     model_config = ConfigDict(
         from_attributes=True,
     )
 
 
 class StoreAboutUsDescription(BaseModel):
-    aboutus_description: str = ""
+    about_us_description: str = ""
 
 
 class StoreAboutUs(StoreAboutUsDescription):
-    aboutus_main_media: MainMedia | None = None
+    about_us_main_media: MainMedia | None = None
 
     model_config = ConfigDict(
         from_attributes=True,
@@ -76,7 +78,7 @@ class StoreOut(Store):
     title: EditableText
     sub_title: EditableText
 
-    aboutus: StoreAboutUs
+    about_us: StoreAboutUs
 
     model_config = ConfigDict(
         from_attributes=True,
