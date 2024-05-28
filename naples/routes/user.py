@@ -15,7 +15,7 @@ from sqlalchemy.sql.expression import Executable
 
 from naples.dependency import get_current_user
 from naples.database import get_db
-from naples.utils import createMsgEmail, createMsgEmailChangePassword, sendEmail
+from naples.utils import createMsgEmailChangePassword, sendEmail
 from naples.config import config
 
 CFG = config()
