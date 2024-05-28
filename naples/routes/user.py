@@ -51,3 +51,48 @@ def get_users(
     return s.Users(
         users=users,
     )
+
+
+@user_router.patch(
+    "/",
+    status_code=status.HTTP_200_OK,
+    response_model=s.User,
+)
+def update_user(
+    data: s.UserUpdate,
+    db: Session = Depends(get_db),
+    current_user: m.User = Depends(get_current_user),
+):
+    """Updates the user"""
+
+    if data.first_name:
+        log(log.INFO, f"User {current_user.email} updated his first name to {data.first_name}")
+        current_user.first_name = data.first_name
+
+    if data.last_name:
+        log(log.INFO, f"User {current_user.email} updated his last name to {data.last_name}")
+        current_user.last_name = data.last_name
+
+    if data.phone:
+        log(log.INFO, f"User {current_user.email} updated his phone to {data.phone}")
+        current_user.phone = data.phone
+
+    db.commit()
+
+    log(log.INFO, f"User {current_user.email} updated his profile")
+
+    return current_user
+
+
+@user_router.post(
+    "/reset_password",
+    status_code=status.HTTP_200_OK,
+    response_model=s.User,
+)
+def reset_password(
+    data: s.UserResetPasswordIn,
+    db: Session = Depends(get_db),
+    current_user: m.User = Depends(get_current_user),
+):
+    """Resets the user password"""
+    return current_user

@@ -11,6 +11,7 @@ class BaseUser(BaseModel):
     first_name: str
     last_name: str
     email: str
+    phone: str = ""
     role: str = UserRole.USER.value
 
     model_config = ConfigDict(
@@ -34,6 +35,21 @@ class User(BaseUser):
     model_config = ConfigDict(
         from_attributes=True,
     )
+
+
+class UserUpdate(BaseModel):
+    first_name: str | None = None
+    last_name: str | None = None
+    phone: str | None = None
+
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
+
+
+class UserResetPasswordIn(BaseModel):
+    old_password: str
+    new_password: str
 
 
 class Users(BaseModel):
