@@ -84,7 +84,7 @@ def update_user(
     return current_user
 
 
-@user_router.post(
+@user_router.patch(
     "/reset_password",
     status_code=status.HTTP_200_OK,
     response_model=s.User,
@@ -95,4 +95,16 @@ def reset_password(
     current_user: m.User = Depends(get_current_user),
 ):
     """Resets the user password"""
+
+    user = m.User.authenticate(current_user.email, data.old_password, session=db)
+
+    if not user:
+        log(log.ERROR, f"User {current_user.email} entered wrong old password")
+        raise Exception("Old password is incorrect")
+
+    current_user.password = data.new_password
+
+    db.commit()
+    db.refresh(current_user)
+
     return current_user
