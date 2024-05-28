@@ -172,10 +172,21 @@ def get_filters_data(
 ):
     """Get data for filter items"""
 
-    cities_idx = [item.city_id for item in current_user_store.items if not item.is_deleted]
+    cities_idx = [
+        item.city_id
+        for item in current_user_store.items
+        if not item.is_deleted and item.stage == s.ItemStage.ACTIVE.value
+    ]
 
     cities = db.scalars(sa.select(m.City).where(m.City.id.in_(cities_idx))).all()
-    adults = max([item.adults for item in current_user_store.items if not item.is_deleted], default=0)
+    adults = max(
+        [
+            item.adults
+            for item in current_user_store.items
+            if not item.is_deleted and item.stage == s.ItemStage.ACTIVE.value
+        ],
+        default=0,
+    )
 
     return s.ItemsFilterDataOut(locations=list(cities), adults=adults)
 
