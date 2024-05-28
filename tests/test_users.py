@@ -82,7 +82,7 @@ def test_update_user(
     assert db_user.first_name == user.first_name
 
 
-def test_reset_password(
+def test_change_password(
     client: TestClient,
     db: Session,
     headers: dict[str, str],
@@ -95,7 +95,7 @@ def test_reset_password(
         new_password="new_password",
     )
 
-    response = client.patch("/api/users/reset_password", headers=headers, json=data.model_dump())
+    response = client.patch("/api/users/change_password", headers=headers, json=data.model_dump())
 
     assert response.status_code == 200
 

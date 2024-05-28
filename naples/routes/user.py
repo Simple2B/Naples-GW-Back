@@ -85,11 +85,11 @@ def update_user(
 
 
 @user_router.patch(
-    "/reset_password",
+    "/change_password",
     status_code=status.HTTP_200_OK,
     response_model=s.User,
 )
-def reset_password(
+def change_password(
     data: s.UserResetPasswordIn,
     db: Session = Depends(get_db),
     current_user: m.User = Depends(get_current_user),
