@@ -307,6 +307,22 @@ def test_update_store(client: TestClient, headers: dict[str, str], full_db: Sess
     assert store.instagram_url == str(more_update_data.instagram_url)
     assert store.url == more_update_data.url
 
+    data = s.StoreAboutUsDescription(
+        aboutus_description="This is a description",
+    )
+    response = client.patch(
+        "/api/stores/aboutus/description",
+        json=data.model_dump(),
+        headers=headers,
+    )
+    assert response.status_code == 201
+
+    db_store = full_db.scalar(sa.select(m.Store))
+    assert db_store
+    assert db_store.aboutus_description == data.aboutus_description
+
+    assert db_store.title.value == update_data.title_value
+
 
 def test_get_stores_urls(
     client: TestClient,
@@ -365,23 +381,3 @@ def test_create_store_aboutus_media(client: TestClient, headers: dict[str, str],
 
     assert delete_res.status_code == 204
     assert not db_store.aboutus_main_media
-
-
-def test_create_store_aboutus_description(
-    client: TestClient,
-    headers: dict[str, str],
-    full_db: Session,
-):
-    data = s.StoreAboutUsDescription(
-        aboutus_description="This is a description",
-    )
-    response = client.patch(
-        "/api/stores/aboutus/description",
-        json=data.model_dump(),
-        headers=headers,
-    )
-    assert response.status_code == 201
-
-    db_store = full_db.scalar(sa.select(m.Store))
-    assert db_store
-    assert db_store.aboutus_description == data.aboutus_description
