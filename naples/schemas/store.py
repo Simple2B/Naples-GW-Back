@@ -52,7 +52,7 @@ class StoreUpdateIn(BaseModel):
     sub_title_font_size: int | None = None
     url: str | None = None
 
-    about_us_description: str = ""
+    about_us_description: str | None = None
 
     model_config = ConfigDict(
         from_attributes=True,

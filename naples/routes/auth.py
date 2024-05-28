@@ -115,7 +115,7 @@ def sign_up(
 
     token = s.Token(access_token=create_access_token(new_user.id))
 
-    msg = createMsgEmail(token.access_token)
+    msg = createMsgEmail(token.access_token, CFG.REDIRECT_ROUTER_VERIFY_EMAIL)
 
     sendEmail(new_user.email, msg, ses)
 

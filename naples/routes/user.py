@@ -1,7 +1,11 @@
 from typing import Sequence
 from fastapi import Depends, APIRouter, status
+from mypy_boto3_ses import SESClient
 
+from naples.dependency.ses_client import get_ses_client
+from naples.hash_utils import make_hash
 import naples.models as m
+from naples.oauth2 import create_access_token, verify_access_token, HTTPException
 import naples.schemas as s
 from naples.logger import log
 
@@ -11,6 +15,16 @@ from sqlalchemy.sql.expression import Executable
 
 from naples.dependency import get_current_user
 from naples.database import get_db
+from naples.utils import createMsgEmail, createMsgEmailChangePassword, sendEmail
+from naples.config import config
+
+CFG = config()
+
+INVALID_CREDENTIALS_EXCEPTION = HTTPException(
+    status_code=status.HTTP_401_UNAUTHORIZED,
+    detail="Could not validate credentials",
+    headers={"WWW-Authenticate": "Bearer"},
+)
 
 
 user_router = APIRouter(prefix="/users", tags=["Users"])
@@ -93,6 +107,7 @@ def change_password(
     data: s.UserResetPasswordIn,
     db: Session = Depends(get_db),
     current_user: m.User = Depends(get_current_user),
+    ses: SESClient = Depends(get_ses_client),
 ):
     """Resets the user password"""
 
@@ -102,9 +117,56 @@ def change_password(
         log(log.ERROR, f"User {current_user.email} entered wrong old password")
         raise Exception("Old password is incorrect")
 
-    current_user.password = data.new_password
+    hashed_password = make_hash(data.new_password)
+
+    current_user.reset_password_uid = hashed_password
 
     db.commit()
     db.refresh(current_user)
 
+    token = s.Token(access_token=create_access_token(current_user.id))
+
+    msg = createMsgEmailChangePassword(token.access_token, CFG.REDIRECT_ROUTER_CHANGE_PASSWORD)
+
+    sendEmail(current_user.email, msg, ses)
+
+    log(log.INFO, f"User {current_user.email} changed his password")
+
     return current_user
+
+
+@user_router.get(
+    "/change-password/{token}",
+    status_code=status.HTTP_200_OK,
+    responses={
+        status.HTTP_404_NOT_FOUND: {"description": "Invalid token"},
+    },
+)
+def save_new_password(
+    token: str,
+    db: Session = Depends(get_db),
+):
+    """Saves the new password"""
+
+    token_data: s.TokenData = verify_access_token(token, INVALID_CREDENTIALS_EXCEPTION)
+
+    user = db.scalar(
+        sa.select(m.User).where(
+            m.User.id == token_data.user_id,
+            m.User.is_deleted == sa.false(),
+        )
+    )
+
+    if not user:
+        log(log.ERROR, "User not found")
+        raise Exception("User not found")
+
+    user.password = user.reset_password_uid
+    user.reset_password_uid = ""
+
+    db.commit()
+    db.refresh(user)
+
+    log(log.INFO, f"User {user.email} saved his new password")
+
+    return

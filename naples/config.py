@@ -54,7 +54,9 @@ class BaseConfig(BaseSettings):
 
     CHARSET: str = "UTF-8"
 
-    REDIRECT_URL: str = "http://127.0.0.1:3000/verify-email"
+    REDIRECT_URL: str = "http://127.0.0.1:3000"
+    REDIRECT_ROUTER_VERIFY_EMAIL: str = "/verify-email"
+    REDIRECT_ROUTER_CHANGE_PASSWORD: str = "/change-password"
 
     model_config = SettingsConfigDict(
         extra="allow",

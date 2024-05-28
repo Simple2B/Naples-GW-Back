@@ -1,5 +1,7 @@
 import base64
 from fastapi.testclient import TestClient
+from moto import mock_aws
+from mypy_boto3_ses import SESClient
 import sqlalchemy as sa
 
 from sqlalchemy.orm import Session
@@ -82,13 +84,18 @@ def test_update_user(
     assert db_user.first_name == user.first_name
 
 
+@mock_aws
 def test_change_password(
     client: TestClient,
     db: Session,
     headers: dict[str, str],
     test_data: s.TestData,
+    ses: SESClient,
 ):
     user = test_data.test_users[0]
+
+    ses.verify_email_address(EmailAddress=user.email)
+    ses.verify_email_address(EmailAddress=CFG.MAIL_DEFAULT_SENDER)
 
     data = s.UserResetPasswordIn(
         old_password=user.password,
@@ -103,6 +110,13 @@ def test_change_password(
     assert db_user
 
     assert db_user.password
+
+    change_password = db_user.reset_password_uid
+    assert change_password
+    db_user.password_hash = change_password
+
+    db.commit()
+    db.refresh(db_user)
 
     credentials = {"username": user.email, "password": data.new_password}
     auth_str = f"{credentials['username']}:{credentials['password']}"
