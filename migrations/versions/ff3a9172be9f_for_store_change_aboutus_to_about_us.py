@@ -1,7 +1,7 @@
 """for store change aboutus to about us
 
 Revision ID: ff3a9172be9f
-Revises: 9e7ef0a78034
+Revises: d19b7c9e489d
 Create Date: 2024-05-28 11:02:42.694791
 
 """
@@ -13,7 +13,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision: str = 'ff3a9172be9f'
-down_revision: Union[str, None] = '9e7ef0a78034'
+down_revision: Union[str, None] = 'd19b7c9e489d'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
