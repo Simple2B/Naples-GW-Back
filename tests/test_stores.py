@@ -269,10 +269,11 @@ def test_update_store(client: TestClient, headers: dict[str, str], full_db: Sess
     update_data = s.StoreUpdateIn(
         title_value="New Title",
         sub_title_value="New Sub Title",
-        title_color=Color("#112233"),
+        title_color=Color("#ffffff"),
         title_font_size=24,
-        sub_title_color=Color("#112233"),
+        sub_title_color=Color("#000000"),
         sub_title_font_size=12,
+        about_us_description="This is a description",
     )
 
     response = client.patch("/api/stores/", headers=headers, content=update_data.model_dump_json())
@@ -289,6 +290,8 @@ def test_update_store(client: TestClient, headers: dict[str, str], full_db: Sess
     assert store.title.font_size == update_data.title_font_size
     assert store.sub_title.color == update_data.sub_title_color.as_hex()
     assert store.sub_title.font_size == update_data.sub_title_font_size
+    assert store.about_us
+    assert store.about_us.about_us_description == update_data.about_us_description
 
     more_update_data = s.StoreUpdateIn(
         messenger_url=HttpUrl("https://messenger.com"),
@@ -306,22 +309,6 @@ def test_update_store(client: TestClient, headers: dict[str, str], full_db: Sess
     assert store.phone == more_update_data.phone
     assert store.instagram_url == str(more_update_data.instagram_url)
     assert store.url == more_update_data.url
-
-    data = s.StoreAboutUsDescription(
-        aboutus_description="This is a description",
-    )
-    response = client.patch(
-        "/api/stores/aboutus/description",
-        json=data.model_dump(),
-        headers=headers,
-    )
-    assert response.status_code == 201
-
-    db_store = full_db.scalar(sa.select(m.Store))
-    assert db_store
-    assert db_store.aboutus_description == data.aboutus_description
-
-    assert db_store.title.value == update_data.title_value
 
 
 def test_get_stores_urls(
@@ -342,15 +329,20 @@ def test_get_stores_urls(
         assert stores.http.services[store.uuid].loadBalancer.servers[0].url == f"http://{CFG.WEB_SERVICE_NAME}"
 
 
-def test_create_store_aboutus_media(client: TestClient, headers: dict[str, str], full_db: Session, s3_client: S3Client):
-    with open("tests/house_example.png", "rb") as f:
-        store_model = full_db.scalar(sa.select(m.Store))
-        assert store_model
+def test_upload_store_about_us_media(
+    client: TestClient,
+    headers: dict[str, str],
+    full_db: Session,
+    s3_client: S3Client,
+):
+    store_model = full_db.scalar(sa.select(m.Store))
+    assert store_model
 
+    with open("tests/house_example.png", "rb") as f:
         response = client.post(
-            "/api/stores/aboutus/main_media",
+            "/api/stores/about_us/main_media",
             headers=headers,
-            files={"aboutus_main_media": ("test.jpg", f, "image/jpeg")},
+            files={"about_us_main_media": ("test.jpg", f, "image/jpeg")},
         )
         assert response.status_code == 201
 
@@ -358,15 +350,15 @@ def test_create_store_aboutus_media(client: TestClient, headers: dict[str, str],
         assert store_res.status_code == 200
 
         store = s.StoreOut.model_validate(store_res.json())
-        assert store.aboutus
-        assert store.aboutus.aboutus_main_media
-        assert store.aboutus.aboutus_main_media.url == store_model.aboutus_main_media.url
+        assert store.about_us
+        assert store.about_us.about_us_main_media
+        assert store.about_us.about_us_main_media.url == store_model.about_us_main_media.url
 
         full_db.refresh(store_model)
 
         bucket_file = s3_client.get_object(
             Bucket=CFG.AWS_S3_BUCKET_NAME,
-            Key=store_model.aboutus_main_media.key,
+            Key=store_model.about_us_main_media.key,
         )
 
         assert bucket_file["ResponseMetadata"]["HTTPStatusCode"] == 200
@@ -374,10 +366,24 @@ def test_create_store_aboutus_media(client: TestClient, headers: dict[str, str],
 
     db_store = full_db.scalar(sa.select(m.Store))
     assert db_store
-    assert db_store.aboutus_main_media.original_name == "test.jpg"
+    assert db_store.about_us_main_media.original_name == "test.jpg"
+
+    with open("tests/house_example.png", "rb") as f:
+        response = client.post(
+            "/api/stores/main_media",
+            headers=headers,
+            files={"main_media": ("main_media_test.jpg", f, "image/jpeg")},
+        )
+        assert response.status_code == 201
+
+        full_db.refresh(store_model)
+
+        assert store_model.main_media.original_name == "main_media_test.jpg"
 
     # delete the image
-    delete_res = client.delete("/api/stores/aboutus/main_media", headers=headers)
+    delete_res = client.delete("/api/stores/about_us/main_media", headers=headers)
 
     assert delete_res.status_code == 204
-    assert not db_store.aboutus_main_media
+    assert not db_store.about_us_main_media
+    assert not store_model.about_us_main_media
+    assert store_model.main_media.original_name == "main_media_test.jpg"
