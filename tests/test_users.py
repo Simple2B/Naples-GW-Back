@@ -38,6 +38,7 @@ def test_update_user(
 ):
     user = test_data.test_users[0]
     phone = "1234567890"
+
     user_update = s.UserUpdate(
         first_name=user.first_name,
         last_name=user.last_name,
@@ -45,11 +46,14 @@ def test_update_user(
         role=user.role,
         phone=phone,
     )
+
     response = client.patch(
         "/api/users/",
         headers=headers,
         json=user_update.model_dump(),
     )
+
     assert response.status_code == 200
     users_out = s.Users.model_validate(response.json())
     assert users_out
+    assert users_out[0].phone == phone
