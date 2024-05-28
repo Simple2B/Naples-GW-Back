@@ -117,7 +117,7 @@ def sign_up(
 
     msg = createMsgEmail(token.access_token, CFG.REDIRECT_ROUTER_VERIFY_EMAIL)
 
-    sendEmail(new_user.email, msg, ses)
+    sendEmail(new_user.email, msg, ses, db)
 
     log(log.INFO, "Verification email sent to [%s]", new_user.email)
 

@@ -128,7 +128,7 @@ def change_password(
 
     msg = createMsgEmailChangePassword(token.access_token, CFG.REDIRECT_ROUTER_CHANGE_PASSWORD)
 
-    sendEmail(current_user.email, msg, ses)
+    sendEmail(current_user.email, msg, ses, db)
 
     log(log.INFO, f"User {current_user.email} changed his password")
 

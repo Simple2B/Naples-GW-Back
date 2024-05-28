@@ -3,7 +3,10 @@ from datetime import datetime, timedelta, UTC
 
 from mypy_boto3_ses import SESClient
 from botocore.exceptions import ClientError
+from sqlalchemy.orm import Session
+import sqlalchemy as sa
 
+from naples import models as m
 
 from fastapi import UploadFile, HTTPException, status
 from fastapi.routing import APIRoute
@@ -84,7 +87,7 @@ def createMsgEmailChangePassword(token: str, verify_router: str) -> str:
     return html_content
 
 
-def sendEmail(email: str, message: str, ses_client: SESClient):
+def sendEmail(email: str, message: str, ses_client: SESClient, db: Session):
     try:
         # the contents of the email.
         response = ses_client.send_email(
@@ -115,6 +118,17 @@ def sendEmail(email: str, message: str, ses_client: SESClient):
         log(log.INFO, "Email sent response [%s]", response)
     except ClientError as e:
         log(log.ERROR, "Email not sent! [%s]", e.response["Error"]["Message"])
+
+        db_store = db.scalar(sa.select(m.Store).where(m.Store.email == email))
+
+        db_user = db.scalar(sa.select(m.User).where(m.User.email == email))
+
+        if db_store and db_user:
+            db.delete(db_store)
+            db.delete(db_user)
+            db.commit()
+            log(log.INFO, "User [%s] deleted", email)
+
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email not sent!")
 
 
