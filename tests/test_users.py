@@ -1,9 +1,12 @@
+import base64
 from fastapi.testclient import TestClient
 import sqlalchemy as sa
 
+from sqlalchemy.orm import Session
+
+
 from naples import schemas as s
 import naples.models as m
-from sqlalchemy.orm import Session
 from naples.config import config
 
 
@@ -77,3 +80,34 @@ def test_update_user(
     assert db_user.phone == phone
     assert db_user.last_name == "last_name"
     assert db_user.first_name == user.first_name
+
+
+def test_change_password(
+    client: TestClient,
+    db: Session,
+    headers: dict[str, str],
+    test_data: s.TestData,
+):
+    user = test_data.test_users[0]
+
+    data = s.UserResetPasswordIn(
+        old_password=user.password,
+        new_password="new_password",
+    )
+
+    response = client.patch("/api/users/change_password", headers=headers, json=data.model_dump())
+
+    assert response.status_code == 200
+
+    db_user: m.User | None = db.scalar(sa.select(m.User).where(m.User.email == user.email))
+    assert db_user
+
+    assert db_user.password
+
+    credentials = {"username": user.email, "password": data.new_password}
+    auth_str = f"{credentials['username']}:{credentials['password']}"
+    auth_bytes = base64.b64encode(auth_str.encode())
+    auth_header = {"Authorization": f"Basic {auth_bytes.decode()}"}
+
+    response = client.post("/api/auth/login", headers=auth_header)
+    assert response.status_code == 200
