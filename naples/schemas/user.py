@@ -60,6 +60,12 @@ class Users(BaseModel):
     )
 
 
-class EmailContent(BaseModel):
-    emailAddresses: list[str]
-    message: str = "Confirm your password"
+class EmailAmazonSESContent(BaseModel):
+    recipient_email: str
+    sender_email: str
+    message: str = ""
+    charset: str = "UTF-8"
+    mail_body_text: str = ""
+    mail_subject: str = ""
+
+    model_config = ConfigDict(arbitrary_types_allowed=True)
