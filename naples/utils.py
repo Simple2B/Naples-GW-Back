@@ -1,14 +1,14 @@
 import filetype
 from datetime import datetime, timedelta, UTC
-
 from mypy_boto3_ses import SESClient
-from botocore.exceptions import ClientError
-
 
 from fastapi import UploadFile, HTTPException, status
 from fastapi.routing import APIRoute
+from sqlalchemy.orm import Session
 from .config import config
 
+import naples.schemas as s
+import naples.models as m
 from naples.logger import log
 
 
@@ -84,39 +84,43 @@ def createMsgEmailChangePassword(token: str, verify_router: str) -> str:
     return html_content
 
 
-def sendEmail(email: str, message: str, ses_client: SESClient):
-    try:
-        # the contents of the email.
-        response = ses_client.send_email(
-            Destination={
-                "ToAddresses": [
-                    email,
-                ],
-            },
-            Message={
-                "Body": {
-                    "Html": {
-                        "Charset": CFG.CHARSET,
-                        "Data": message,
-                    },
-                    "Text": {
-                        "Charset": CFG.CHARSET,
-                        "Data": CFG.MAIL_BODY_TEXT,
-                    },
+def sendEmailAmazonSES(emailContent: s.EmailAmazonSESContent, ses_client: SESClient):
+    # the contents of the email.
+    response = ses_client.send_email(
+        Destination={
+            "ToAddresses": [
+                emailContent.recipient_email,
+            ],
+        },
+        Message={
+            "Body": {
+                "Html": {
+                    "Charset": emailContent.charset,
+                    "Data": emailContent.message,
                 },
-                "Subject": {
-                    "Charset": CFG.CHARSET,
-                    "Data": CFG.MAIL_SUBJECT,
+                "Text": {
+                    "Charset": emailContent.charset,
+                    "Data": emailContent.mail_body_text,
                 },
             },
-            Source=CFG.MAIL_DEFAULT_SENDER,
-        )
-        log(log.INFO, "Email sent! Message ID: [%s]", response["MessageId"])
-        log(log.INFO, "Email sent response [%s]", response)
-    except ClientError as e:
-        log(log.ERROR, "Email not sent! [%s]", e.response["Error"]["Message"])
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email not sent!")
+            "Subject": {
+                "Charset": emailContent.charset,
+                "Data": emailContent.mail_subject,
+            },
+        },
+        Source=emailContent.sender_email,
+    )
+    log(log.INFO, "Email sent! Message ID: [%s]", response["MessageId"])
+    log(log.INFO, "Email sent response [%s]", response)
+    return response
 
 
 def get_expire_datatime() -> datetime:
     return datetime.now(UTC) + timedelta(minutes=CFG.ACCESS_TOKEN_EXPIRE_MINUTES)
+
+
+def delete_user_with_store(db: Session, user: m.User) -> None:
+    db.delete(user.store)
+    db.delete(user)
+    db.commit()
+    return

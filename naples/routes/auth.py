@@ -3,6 +3,7 @@ from fastapi import Depends, APIRouter, status, HTTPException
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from sqlalchemy.orm import Session
 import sqlalchemy as sa
+from botocore.exceptions import ClientError
 from mypy_boto3_ses import SESClient
 
 # from starlette.responses import RedirectResponse
@@ -17,7 +18,7 @@ from naples import models as m
 from naples import schemas as s
 from naples.logger import log
 from naples.database import get_db
-from naples.utils import createMsgEmail, sendEmail
+from naples.utils import createMsgEmail, delete_user_with_store, sendEmailAmazonSES
 from naples.config import config
 
 security = HTTPBasic()
@@ -36,7 +37,10 @@ CFG = config()
         status.HTTP_403_FORBIDDEN: {"description": "Admin user can not get API token"},
     },
 )
-def login(credentials: Annotated[HTTPBasicCredentials, Depends(security)], db=Depends(get_db)):
+def login(
+    credentials: Annotated[HTTPBasicCredentials, Depends(security)],
+    db=Depends(get_db),
+):
     """Logs in a user"""
 
     user = m.User.authenticate(credentials.username, credentials.password, session=db)
@@ -76,7 +80,15 @@ def get_token(auth_data: s.Auth, db=Depends(get_db)):
     return create_access_token_exp_datetime(user.id)
 
 
-@router.post("/sign-up", status_code=status.HTTP_201_CREATED, response_model=s.User)
+@router.post(
+    "/sign-up",
+    status_code=status.HTTP_201_CREATED,
+    response_model=s.User,
+    responses={
+        status.HTTP_409_CONFLICT: {"description": "User already exists"},
+        status.HTTP_400_BAD_REQUEST: {"description": "Email not sent!"},
+    },
+)
 def sign_up(
     data: s.UserSignIn,
     db: Session = Depends(get_db),
@@ -117,7 +129,23 @@ def sign_up(
 
     msg = createMsgEmail(token.access_token, CFG.REDIRECT_ROUTER_VERIFY_EMAIL)
 
-    sendEmail(new_user.email, msg, ses)
+    try:
+        emailContent = s.EmailAmazonSESContent(
+            recipient_email=new_user.email,
+            sender_email=CFG.MAIL_DEFAULT_SENDER,
+            message=msg,
+            charset=CFG.CHARSET,
+            mail_body_text=CFG.MAIL_BODY_TEXT,
+            mail_subject=CFG.MAIL_SUBJECT,
+        )
+        sendEmailAmazonSES(emailContent, ses_client=ses)
+
+    except ClientError as e:
+        delete_user_with_store(db, new_user)
+
+        log(log.ERROR, "Email not sent! [%s]", e)
+        log(log.INFO, "User [%s] user is not registered", new_user.email)
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email not sent!")
 
     log(log.INFO, "Verification email sent to [%s]", new_user.email)
 

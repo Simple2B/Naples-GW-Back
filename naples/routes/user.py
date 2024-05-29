@@ -1,5 +1,6 @@
 from typing import Sequence
 from fastapi import Depends, APIRouter, status
+from botocore.exceptions import ClientError
 from mypy_boto3_ses import SESClient
 
 from naples.dependency.ses_client import get_ses_client
@@ -15,7 +16,7 @@ from sqlalchemy.sql.expression import Executable
 
 from naples.dependency import get_current_user
 from naples.database import get_db
-from naples.utils import createMsgEmailChangePassword, sendEmail
+from naples.utils import createMsgEmailChangePassword, sendEmailAmazonSES
 from naples.config import config
 
 CFG = config()
@@ -108,6 +109,10 @@ def change_password(
     db: Session = Depends(get_db),
     current_user: m.User = Depends(get_current_user),
     ses: SESClient = Depends(get_ses_client),
+    responses={
+        status.HTTP_404_NOT_FOUND: {"description": "Old password is incorrect"},
+        status.HTTP_400_BAD_REQUEST: {"description": "Email not sent!"},
+    },
 ):
     """Resets the user password"""
 
@@ -115,7 +120,7 @@ def change_password(
 
     if not user:
         log(log.ERROR, f"User {current_user.email} entered wrong old password")
-        raise Exception("Old password is incorrect")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Old password is incorrect")
 
     hashed_password = make_hash(data.new_password)
 
@@ -128,7 +133,20 @@ def change_password(
 
     msg = createMsgEmailChangePassword(token.access_token, CFG.REDIRECT_ROUTER_CHANGE_PASSWORD)
 
-    sendEmail(current_user.email, msg, ses)
+    try:
+        emailContent = s.EmailAmazonSESContent(
+            recipient_email=current_user.email,
+            sender_email=CFG.MAIL_DEFAULT_SENDER,
+            message=msg,
+            charset=CFG.CHARSET,
+            mail_body_text=CFG.MAIL_BODY_TEXT,
+            mail_subject=CFG.MAIL_SUBJECT,
+        )
+        sendEmailAmazonSES(emailContent, ses_client=ses)
+
+    except ClientError as e:
+        log(log.ERROR, f"Email not sent! {e}")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email not sent!")
 
     log(log.INFO, f"User {current_user.email} changed his password")
 
