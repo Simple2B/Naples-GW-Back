@@ -17,7 +17,7 @@ from naples import models as m
 from naples import schemas as s
 from naples.logger import log
 from naples.database import get_db
-from naples.utils import createMsgEmail, sendEmailAmazonSES
+from naples.utils import createMsgEmail, delete_user_with_store, sendEmailAmazonSES
 from naples.config import config
 
 security = HTTPBasic()
@@ -140,9 +140,7 @@ def sign_up(
         sendEmailAmazonSES(emailContent, ses_client=ses)
 
     except Exception as e:
-        db.delete(user_store)
-        db.delete(new_user)
-        db.commit()
+        delete_user_with_store(db, new_user)
 
         log(log.ERROR, "Email not sent! [%s]", e)
         log(log.INFO, "User [%s] user is not registered", new_user.email)

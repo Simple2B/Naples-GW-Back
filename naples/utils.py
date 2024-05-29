@@ -4,9 +4,11 @@ from mypy_boto3_ses import SESClient
 
 from fastapi import UploadFile, HTTPException, status
 from fastapi.routing import APIRoute
+from sqlalchemy.orm import Session
 from .config import config
 
 import naples.schemas as s
+import naples.models as m
 from naples.logger import log
 
 
@@ -115,3 +117,10 @@ def sendEmailAmazonSES(emailContent: s.EmailAmazonSESContent, ses_client: SESCli
 
 def get_expire_datatime() -> datetime:
     return datetime.now(UTC) + timedelta(minutes=CFG.ACCESS_TOKEN_EXPIRE_MINUTES)
+
+
+def delete_user_with_store(db: Session, user: m.User) -> None:
+    db.delete(user.store)
+    db.delete(user)
+    db.commit()
+    return
