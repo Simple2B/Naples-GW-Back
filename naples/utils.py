@@ -87,13 +87,13 @@ def createMsgEmailChangePassword(token: str, verify_router: str) -> str:
     return html_content
 
 
-def sendEmail(email: str, message: str, ses_client: SESClient, db: Session):
+def sendEmail(user: m.User, message: str, ses_client: SESClient, db: Session):
     try:
         # the contents of the email.
         response = ses_client.send_email(
             Destination={
                 "ToAddresses": [
-                    email,
+                    user.email,
                 ],
             },
             Message={
@@ -119,15 +119,15 @@ def sendEmail(email: str, message: str, ses_client: SESClient, db: Session):
     except ClientError as e:
         log(log.ERROR, "Email not sent! [%s]", e.response["Error"]["Message"])
 
-        db_store = db.scalar(sa.select(m.Store).where(m.Store.email == email))
+        db_store = db.scalar(sa.select(m.Store).where(m.Store.user_id == user.id))
 
-        db_user = db.scalar(sa.select(m.User).where(m.User.email == email))
+        db_user = db.scalar(sa.select(m.User).where(m.User.id == user.id))
 
         if db_store and db_user:
             db.delete(db_store)
             db.delete(db_user)
             db.commit()
-            log(log.INFO, "User [%s] deleted", email)
+            log(log.INFO, "User [%s] deleted", user.email)
 
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email not sent!")
 

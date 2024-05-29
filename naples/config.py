@@ -58,6 +58,10 @@ class BaseConfig(BaseSettings):
     REDIRECT_ROUTER_VERIFY_EMAIL: str = "/verify-email"
     REDIRECT_ROUTER_CHANGE_PASSWORD: str = "/change-password"
 
+    # stripe
+    STRIPE_SECRET_KEY: str
+    STRIPE_PUBLIC_KEY: str
+
     model_config = SettingsConfigDict(
         extra="allow",
         env_file=("project.env", ".env.dev", ".env"),
