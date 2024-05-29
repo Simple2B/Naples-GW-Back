@@ -1,5 +1,6 @@
 from typing import Sequence
 from fastapi import Depends, APIRouter, status
+from botocore.exceptions import ClientError
 from mypy_boto3_ses import SESClient
 
 from naples.dependency.ses_client import get_ses_client
@@ -143,7 +144,7 @@ def change_password(
         )
         sendEmailAmazonSES(emailContent, ses_client=ses)
 
-    except Exception as e:
+    except ClientError as e:
         log(log.ERROR, f"Email not sent! {e}")
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email not sent!")
 

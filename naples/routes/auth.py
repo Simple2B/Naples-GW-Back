@@ -3,6 +3,7 @@ from fastapi import Depends, APIRouter, status, HTTPException
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from sqlalchemy.orm import Session
 import sqlalchemy as sa
+from botocore.exceptions import ClientError
 from mypy_boto3_ses import SESClient
 
 # from starlette.responses import RedirectResponse
@@ -139,7 +140,7 @@ def sign_up(
         )
         sendEmailAmazonSES(emailContent, ses_client=ses)
 
-    except Exception as e:
+    except ClientError as e:
         delete_user_with_store(db, new_user)
 
         log(log.ERROR, "Email not sent! [%s]", e)
