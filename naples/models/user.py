@@ -13,6 +13,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from .store import Store
+    from .billing import Billing
 
 
 class User(db.Model, ModelMixin):
@@ -52,6 +53,8 @@ class User(db.Model, ModelMixin):
     )
 
     store: orm.Mapped["Store"] = orm.relationship()
+
+    billing: orm.Mapped["Billing"] = orm.relationship()
 
     @property
     def password(self):

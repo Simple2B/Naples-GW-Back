@@ -1,12 +1,11 @@
 from typing import Annotated
 from fastapi import Depends, APIRouter, status, HTTPException
-from fastapi.security import HTTPBasic, HTTPBasicCredentials
+from fastapi.security import HTTPBasic, OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 import sqlalchemy as sa
 from botocore.exceptions import ClientError
 from mypy_boto3_ses import SESClient
 
-# from starlette.responses import RedirectResponse
 from naples.dependency import get_ses_client
 from naples.oauth2 import (
     INVALID_CREDENTIALS_EXCEPTION,
@@ -38,14 +37,15 @@ CFG = config()
     },
 )
 def login(
-    credentials: Annotated[HTTPBasicCredentials, Depends(security)],
+    form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
     db=Depends(get_db),
 ):
     """Logs in a user"""
 
-    user = m.User.authenticate(credentials.username, credentials.password, session=db)
+    user = m.User.authenticate(form_data.username, form_data.password, session=db)
+
     if not user:
-        log(log.ERROR, "User [%s] wrong username (email) or password", credentials.username)
+        log(log.ERROR, "User [%s] wrong username (email) or password", form_data.username)
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Invalid credentials")
     # admin user can not get API token
     if user.role == s.UserRole.ADMIN.value:

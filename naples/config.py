@@ -61,6 +61,11 @@ class BaseConfig(BaseSettings):
     # stripe
     STRIPE_SECRET_KEY: str
     STRIPE_PUBLIC_KEY: str
+    STRIPE_WEBHOOK_KEY: str
+
+    STRIPE_PRICE_STARTER_ID: str
+    STRIPE_PRICE_PLUS_ID: str
+    STRIPE_PRICE_PRO_ID: str
 
     model_config = SettingsConfigDict(
         extra="allow",

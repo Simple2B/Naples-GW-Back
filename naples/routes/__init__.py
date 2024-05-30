@@ -1,5 +1,9 @@
 # ruff: noqa: F401
+import stripe
+
 from fastapi import APIRouter, Request
+
+from naples.config import config
 
 from .user import user_router
 
@@ -15,6 +19,7 @@ from .floor_plan_marker import floor_plan_marker_router
 from .booked_date import booked_date_router
 from .amenity import amenities_router
 from .contact_request import contact_request_router
+from .billing import billing_router
 
 
 router = APIRouter(prefix="/api", tags=["API"])
@@ -32,6 +37,11 @@ router.include_router(floor_plan_marker_router)
 router.include_router(booked_date_router)
 router.include_router(amenities_router)
 router.include_router(contact_request_router)
+router.include_router(billing_router)
+
+CFG = config()
+
+stripe.api_key = CFG.STRIPE_SECRET_KEY
 
 
 @router.get("/list-endpoints/")
