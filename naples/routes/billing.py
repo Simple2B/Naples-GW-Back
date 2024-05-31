@@ -1,6 +1,7 @@
 import stripe
+from datetime import datetime
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Header, Request, status
 from sqlalchemy.orm import Session
 import sqlalchemy as sa
 
@@ -14,6 +15,13 @@ from naples.logger import log
 billing_router = APIRouter(prefix="/billings", tags=["Billings"])
 
 CFG = config()
+
+
+subscriptionPriceType = {
+    CFG.STRIPE_PRICE_STARTER_ID: s.SubscriptionType.STARTER.value,
+    CFG.STRIPE_PRICE_PLUS_ID: s.SubscriptionType.PLUS.value,
+    CFG.STRIPE_PRICE_PRO_ID: s.SubscriptionType.PRO.value,
+}
 
 
 @billing_router.get("/products", response_model=s.SubscriptionProductPricesOut, status_code=status.HTTP_200_OK)
@@ -57,9 +65,12 @@ def create_checkout_session(
             log(log.ERROR, "User not created in stripe")
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User not created in stripe")
 
+        subscription_type = subscriptionPriceType[data.product_price_id]
+
         user_billing = m.Billing(
             user_id=current_user.id,
             customer_stripe_id=stripe_user.id,
+            type=subscription_type,
         )
 
         db.add(user_billing)
@@ -78,9 +89,12 @@ def create_checkout_session(
         customer=user_billing.customer_stripe_id,
         success_url=f"{CFG.REDIRECT_URL}/success?session_id={{CHECKOUT_SESSION_ID}}",
         cancel_url=f"{CFG.REDIRECT_URL}/cancel",
+        subscription_data={
+            "trial_period_days": CFG.STRIPE_SUBSCRIPTION_TRIAL_PERIOD_DAYS,
+            # TODO: add billing cycle anchor (if needed)
+            # "billing_cycle_anchor": 1672531200,
+        },
     )
-
-    log(log.INFO, "User [%s] create checkout session", current_user.email)
 
     return s.CheckoutSessionOut(
         id=checkout_session.id,
@@ -93,6 +107,9 @@ def create_checkout_session(
     "/create-portal-session",
     response_model=s.CheckoutSessionOut,
     status_code=status.HTTP_200_OK,
+    responses={
+        status.HTTP_400_BAD_REQUEST: {"description": "User not create portal session"},
+    },
 )
 def create_portal_session(
     db: Session = Depends(get_db),
@@ -101,9 +118,13 @@ def create_portal_session(
     """Create a portal session"""
 
     session = stripe.billing_portal.Session.create(
-        customer=current_user.stripe_id,
+        customer=current_user.billing.customer_stripe_id,
         return_url=CFG.REDIRECT_URL,
     )
+
+    if not session:
+        log(log.ERROR, "User [%s] not create portal session", current_user.email)
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User not create portal session")
 
     log(log.INFO, "User [%s] create portal session", current_user.email)
 
@@ -111,3 +132,153 @@ def create_portal_session(
         id=session.id,
         url=session.url,
     )
+
+
+@billing_router.post(
+    "/webhook",
+    status_code=status.HTTP_200_OK,
+    responses={status.HTTP_400_BAD_REQUEST: {"description": "Error verifying webhook signature"}},
+)
+async def webhook_received(
+    request: Request,
+    stripe_signature: str = Header(None),
+    db: Session = Depends(get_db),
+):
+    webhook_secret = CFG.STRIPE_WEBHOOK_KEY
+
+    data = await request.body()
+
+    try:
+        event = stripe.Webhook.construct_event(
+            payload=data,
+            sig_header=stripe_signature,
+            secret=webhook_secret,
+        )
+
+        event_data = event["data"]
+
+        log(log.INFO, "Webhook received: %s", event_data)
+
+    except Exception as e:
+        log(log.ERROR, "Error verifying webhook signature: %s", e)
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Error verifying webhook signature")
+
+    event_type = event["type"]
+    if event_type == "checkout.session.completed":
+        session = event_data["object"]
+        log(log.INFO, "Checkout session [%s] completed", session["id"])
+
+    elif event_type == "invoice.paid":
+        invoice = event_data["object"]
+        log(log.INFO, "Invoice [%s] paid ", invoice["id"])
+
+    elif event_type == "invoice.payment_failed":
+        invoice = event_data["object"]
+        log(log.INFO, "Invoice payment failed: %s", invoice["id"])
+
+    elif event_type == "customer.subscription.deleted":
+        subscription = event_data["object"]
+
+        db_billing = db.scalar(sa.select(m.Billing).where(m.Billing.customer_stripe_id == subscription["customer"]))
+
+        if not db_billing:
+            log(log.ERROR, "User not found")
+            return
+
+        db.delete(db_billing)
+        db.commit()
+
+        log(log.INFO, "User subscription deleted")
+
+    elif event_type == "customer.subscription.updated":
+        subscription = event_data["object"]
+
+        res = stripe.Subscription.list(customer=subscription["customer"])
+
+        log(log.INFO, " customer for update subscription: %s", res)  # res.data
+
+        db_billing = db.scalar(sa.select(m.Billing).where(m.Billing.customer_stripe_id == subscription["customer"]))
+
+        if not db_billing:
+            log(log.ERROR, "User not found")
+            return
+
+        product_price = subscription["plan"]["id"]
+        subscription_type = subscriptionPriceType[product_price]
+
+        stripe.Subscription.modify(
+            db_billing.subscription_id,
+            items=[
+                {"id": subscription["items"]["data"][0].id, "price": product_price},
+            ],
+        )
+
+        log(log.INFO, "Subscription item id from db: => %s", db_billing.subscription_item_id)
+
+        db_billing.subscription_item_id = subscription["items"]["data"][0].id
+
+        db_billing.amount = subscription["plan"]["amount"] / 100
+        db_billing.subscription_status = subscription["status"]
+        db_billing.subscription_end_date = datetime.fromtimestamp(subscription["current_period_end"])
+        db_billing.subscription_start_date = datetime.fromtimestamp(subscription["current_period_start"])
+
+        db_billing.type = subscription_type
+
+        db.commit()
+        db.refresh(db_billing)
+
+        log(log.INFO, "User [%s] subscription updated", db_billing)
+
+    elif event_type == "customer.subscription.created":
+        subscription = event_data["object"]
+
+        list = stripe.Subscription.list(customer=subscription["customer"])
+
+        log(log.INFO, " customer for create subscription: %s", list)  # list.data
+
+        db_billing = db.scalar(sa.select(m.Billing).where(m.Billing.customer_stripe_id == subscription["customer"]))
+
+        if not db_billing:
+            log(log.ERROR, "User not found")
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User not found")
+
+        if not db_billing.subscription_id:
+            db_billing.subscription_id = subscription["id"]
+
+            db_billing.amount = subscription["plan"]["amount"] / 100
+
+            sub_item_id = subscription["items"]["data"][0]["id"]
+            db_billing.subscription_item_id = sub_item_id
+
+            product_price = subscription["plan"]["id"]
+            subscription_type = subscriptionPriceType[product_price]
+
+            db_billing.subscription_status = subscription["status"]
+
+            current_period_start = datetime.fromtimestamp(subscription["current_period_start"])
+            db_billing.subscription_start_date = current_period_start
+
+            current_period_end = datetime.fromtimestamp(subscription["current_period_end"])
+            db_billing.subscription_end_date = current_period_end
+
+            db_billing.type = subscription_type
+
+            db.commit()
+            db.refresh(db_billing)
+
+            log(log.INFO, "!!! User [%s] subscription created", db_billing)
+
+    elif event_type == "customer.subscription.trial_will_end":
+        subscription = event_data["object"]
+
+        # log(log.INFO, "Subscription trial will end: %s", subscription)
+
+    elif event_type == "customer.subscription.pending_update_applied":
+        subscription = event_data["object"]
+
+        # log(log.INFO, "Subscription pending update applied: %s", subscription)
+
+    else:
+        log(log.INFO, "Event not handled: %s", event_type)
+
+    return

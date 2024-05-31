@@ -67,6 +67,8 @@ class BaseConfig(BaseSettings):
     STRIPE_PRICE_PLUS_ID: str
     STRIPE_PRICE_PRO_ID: str
 
+    STRIPE_SUBSCRIPTION_TRIAL_PERIOD_DAYS: int = 14
+
     model_config = SettingsConfigDict(
         extra="allow",
         env_file=("project.env", ".env.dev", ".env"),

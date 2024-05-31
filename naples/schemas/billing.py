@@ -1,9 +1,12 @@
 import enum
 from pydantic import BaseModel, ConfigDict
+from naples.config import config
+
+CFG = config()
 
 
 class SubscriptionType(enum.Enum):
-    FREE = "free"
+    TRIALING = "trialing"
     STARTER = "starter"
     PLUS = "plus"
     PRO = "pro"

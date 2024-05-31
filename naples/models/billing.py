@@ -5,6 +5,7 @@ from sqlalchemy import orm
 
 from typing import TYPE_CHECKING
 
+
 from naples.database import db
 from naples import schemas as s
 from .utils import ModelMixin, create_uuid, datetime_utc
@@ -21,7 +22,7 @@ class Billing(db.Model, ModelMixin):
     id: orm.Mapped[int] = orm.mapped_column(primary_key=True)
     uuid: orm.Mapped[str] = orm.mapped_column(sa.String(32), default=create_uuid, unique=True)
 
-    type: orm.Mapped[str] = orm.mapped_column(default=s.SubscriptionType.FREE.value)
+    type: orm.Mapped[str] = orm.mapped_column(default=s.SubscriptionType.TRIALING.value)
 
     description: orm.Mapped[str] = orm.mapped_column(sa.String(128), nullable=False, default="")
 
@@ -33,15 +34,12 @@ class Billing(db.Model, ModelMixin):
 
     subscription_id: orm.Mapped[str] = orm.mapped_column(sa.String(128), nullable=True)
 
-    subscription_quantity: orm.Mapped[int] = orm.mapped_column(sa.Integer, nullable=True)
+    subscription_start_date: orm.Mapped[datetime] = orm.mapped_column(nullable=True)
+    subscription_end_date: orm.Mapped[datetime] = orm.mapped_column(nullable=True)
 
-    subscription_interval: orm.Mapped[str] = orm.mapped_column(sa.String(16), nullable=True)
+    subscription_status: orm.Mapped[str] = orm.mapped_column(sa.String(32), nullable=True)
 
-    subscription_interval_count: orm.Mapped[int] = orm.mapped_column(sa.Integer, nullable=True)
-
-    payment_method: orm.Mapped[str] = orm.mapped_column(sa.String(128), nullable=True)
-
-    status: orm.Mapped[str] = orm.mapped_column(sa.String(32), nullable=True)
+    subscription_item_id: orm.Mapped[str] = orm.mapped_column(sa.String(128), nullable=True)
 
     user_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey("users.id"))
 
