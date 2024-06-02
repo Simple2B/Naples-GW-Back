@@ -1,9 +1,6 @@
 from fastapi.testclient import TestClient
 
-
 from naples import schemas as s
-
-# import naples.models as m
 from naples.config import config
 
 

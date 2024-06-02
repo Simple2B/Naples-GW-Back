@@ -178,6 +178,8 @@ async def webhook_received(
         invoice = event_data["object"]
         log(log.INFO, "Invoice payment failed: %s", invoice["id"])
 
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invoice payment failed")
+
     elif event_type == "customer.subscription.deleted":
         subscription = event_data["object"]
 
@@ -194,10 +196,6 @@ async def webhook_received(
 
     elif event_type == "customer.subscription.updated":
         subscription = event_data["object"]
-
-        res = stripe.Subscription.list(customer=subscription["customer"])
-
-        log(log.INFO, " customer for update subscription: %s", res)  # res.data
 
         db_billing = db.scalar(sa.select(m.Billing).where(m.Billing.customer_stripe_id == subscription["customer"]))
 
@@ -273,12 +271,9 @@ async def webhook_received(
     elif event_type == "customer.subscription.trial_will_end":
         subscription = event_data["object"]
 
-        # log(log.INFO, "Subscription trial will end: %s", subscription)
+        log(log.INFO, "Subscription trial will end: %s", subscription)
 
-    elif event_type == "customer.subscription.pending_update_applied":
-        subscription = event_data["object"]
-
-        # log(log.INFO, "Subscription pending update applied: %s", subscription)
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Subscription trial will end")
 
     else:
         log(log.INFO, "Event not handled: %s", event_type)
