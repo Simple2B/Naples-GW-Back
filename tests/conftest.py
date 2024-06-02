@@ -128,3 +128,66 @@ def headers(
     token = create_access_token(user_id=user.id)
 
     yield dict(Authorization=f"Bearer {token}")
+
+
+@pytest.fixture
+def stripe_product_price(
+    client: TestClient,
+    test_data: s.TestData,
+) -> Generator[str, None, None]:
+    """Returns an authorized test client for the API"""
+    import stripe
+
+    product_price = stripe.Price.create(
+        currency="usd",
+        unit_amount=1000,
+        recurring={"interval": "month"},
+        product_data={"name": "Gold Plan"},
+    )
+
+    yield product_price.id
+
+
+@pytest.fixture
+def stripe_customer(
+    client: TestClient,
+    test_data: s.TestData,
+) -> Generator[str, None, None]:
+    """Returns an authorized test client for the API"""
+    import stripe
+
+    customer = stripe.Customer.create(email=test_data.test_users[0].email)
+
+    yield customer.id
+
+
+@pytest.fixture
+def stripe_checkout_session(
+    client: TestClient,
+    test_data: s.TestData,
+    stripe_customer: str,
+    stripe_product_price: str,
+) -> Generator[dict[str, str], None, None]:
+    """Returns an authorized test client for the API"""
+    import stripe
+
+    checkout_session = stripe.checkout.Session.create(
+        payment_method_types=["card"],
+        line_items=[
+            {
+                "price": stripe_product_price,
+                "quantity": 1,
+            }
+        ],
+        mode="subscription",
+        customer=stripe_customer,
+        success_url="http://localhost:3000/success?session_id={{CHECKOUT_SESSION_ID}}",
+        cancel_url="http://localhost:3000/cancel",
+        subscription_data={
+            "trial_period_days": 5,
+        },
+    )
+    id = checkout_session.id
+    url = checkout_session.url if checkout_session.url else "http://localhost:3000/cancel"
+
+    yield dict(id=id, url=url)

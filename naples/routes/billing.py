@@ -137,7 +137,9 @@ def create_portal_session(
 @billing_router.post(
     "/webhook",
     status_code=status.HTTP_200_OK,
-    responses={status.HTTP_400_BAD_REQUEST: {"description": "Error verifying webhook signature"}},
+    responses={
+        status.HTTP_400_BAD_REQUEST: {"description": "Error verifying webhook signature"},
+    },
 )
 async def webhook_received(
     request: Request,

@@ -13,8 +13,6 @@ from .utils import ModelMixin, create_uuid, datetime_utc
 if TYPE_CHECKING:
     from .user import User
 
-    pass
-
 
 class Billing(db.Model, ModelMixin):
     __tablename__ = "billings"
