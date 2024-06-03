@@ -2,6 +2,9 @@ import enum
 from pydantic import BaseModel, ConfigDict
 
 
+from .main_media import MainMedia
+
+
 class UserRole(enum.Enum):
     ADMIN = "admin"
     USER = "user"
@@ -12,6 +15,7 @@ class BaseUser(BaseModel):
     last_name: str
     email: str
     phone: str = ""
+    avatar: MainMedia | None = None
     role: str = UserRole.USER.value
 
     model_config = ConfigDict(
@@ -31,6 +35,7 @@ class User(BaseUser):
     id: int
     uuid: str
     is_verified: bool = True
+    store_url: str = ""
 
     model_config = ConfigDict(
         from_attributes=True,

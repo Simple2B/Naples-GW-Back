@@ -16,7 +16,7 @@ import sqlalchemy as sa
 from sqlalchemy.orm import Session
 from sqlalchemy.sql.expression import Executable
 
-from naples.dependency import get_current_user, get_s3_connect, get_ses_client, get_current_store
+from naples.dependency import get_current_user, get_s3_connect, get_ses_client
 from naples.utils import get_file_extension
 from naples.database import get_db
 from naples.utils import createMsgEmailChangePassword, sendEmailAmazonSES
@@ -105,7 +105,7 @@ def update_user(
 @user_router.post(
     "/avatar",
     status_code=status.HTTP_201_CREATED,
-    response_model=s.StoreOut,
+    response_model=s.User,
     responses={
         status.HTTP_400_BAD_REQUEST: {"description": "Extension not found"},
         status.HTTP_400_BAD_REQUEST: {"description": "File type not supported"},
@@ -115,7 +115,6 @@ def upload_avatar(
     avatar: UploadFile,
     db: Session = Depends(get_db),
     current_user: m.User = Depends(get_current_user),
-    current_store: m.Store = Depends(get_current_store),
     s3_client: S3Client = Depends(get_s3_connect),
 ):
     """Uploads the user avatar"""
@@ -144,7 +143,7 @@ def upload_avatar(
         file=avatar,
         s3_client=s3_client,
         extension=extension,
-        store_url=current_store.url,
+        store_url=current_user.store.url,
         file_type=file_type,
     )
 

@@ -104,6 +104,10 @@ class User(db.Model, ModelMixin):
         u = s.User.model_validate(self)
         return u.model_dump_json()
 
+    @property
+    def store_url(self):
+        return self.store.url if self.store else ""
+
     @classmethod
     def get_user_by_email(cls, email: str, session: orm.Session) -> Self:
         query = cls.select().where((sa.func.lower(cls.email) == sa.func.lower(email)))
