@@ -131,24 +131,6 @@ def headers(
 
 
 @pytest.fixture
-def stripe_product_price(
-    client: TestClient,
-    test_data: s.TestData,
-) -> Generator[str, None, None]:
-    """Returns an authorized test client for the API"""
-    import stripe
-
-    product_price = stripe.Price.create(
-        currency="usd",
-        unit_amount=1000,
-        recurring={"interval": "month"},
-        product_data={"name": "Gold Plan"},
-    )
-
-    yield product_price.id
-
-
-@pytest.fixture
 def stripe_customer(
     client: TestClient,
     test_data: s.TestData,
@@ -166,10 +148,11 @@ def stripe_checkout_session(
     client: TestClient,
     test_data: s.TestData,
     stripe_customer: str,
-    stripe_product_price: str,
 ) -> Generator[dict[str, str], None, None]:
     """Returns an authorized test client for the API"""
     import stripe
+
+    stripe_product_price = "price_1PNL6qI7HDNT50q3WYkKCTGz"
 
     checkout_session = stripe.checkout.Session.create(
         payment_method_types=["card"],
