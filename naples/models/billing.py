@@ -41,7 +41,7 @@ class Billing(db.Model, ModelMixin):
 
     user_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey("users.id"))
 
-    user: orm.Mapped["User"] = orm.relationship(viewonly=True)
+    user: orm.Mapped["User"] = orm.relationship()
 
     def __repr__(self):
         return f"<{self.id}: {self.uuid}>"
