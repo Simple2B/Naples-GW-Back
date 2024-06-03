@@ -14,6 +14,8 @@ class City(BaseModel):
 
 class CityOut(City):
     uuid: str
+    latitude: float
+    longitude: float
 
     model_config = ConfigDict(
         from_attributes=True,

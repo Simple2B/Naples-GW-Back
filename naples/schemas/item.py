@@ -94,6 +94,7 @@ class ItemOut(BaseModel):
         validation_alias=AliasChoices("bathrooms_count", "bathroomsCount"), serialization_alias="bathroomsCount"
     )
     size: int
+
     longitude: float
     latitude: float
 
