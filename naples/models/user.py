@@ -34,7 +34,7 @@ class User(db.Model, ModelMixin):
 
     phone: orm.Mapped[str] = orm.mapped_column(sa.String(16), default="", server_default="")
 
-    avatar_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey("files.id"), nullable=True)
+    avatar_id: orm.Mapped[int | None] = orm.mapped_column(sa.ForeignKey("files.id"))
 
     password_hash: orm.Mapped[str] = orm.mapped_column(sa.String(256), default="")
 
