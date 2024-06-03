@@ -1,4 +1,3 @@
-import base64
 from typing import Sequence
 
 from fastapi.testclient import TestClient

@@ -1,6 +1,6 @@
 from typing import Annotated
 from fastapi import Depends, APIRouter, status, HTTPException
-from fastapi.security import HTTPBasic, HTTPBasicCredentials, OAuth2PasswordRequestForm
+from fastapi.security import HTTPBasic, OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 import sqlalchemy as sa
 from botocore.exceptions import ClientError
