@@ -7,6 +7,10 @@ on:
   pull_request:
     branches: [main, develop]
 
+env:
+  STRIPE_MOCK_URL: http://localhost:12111
+  STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+
 jobs:
   test:
     name: Test
@@ -16,6 +20,7 @@ jobs:
       stripemock:
         image: stripe/stripe-mock:latest
         ports: ['12111:12111']
+        options: --name stripemock
 
     steps:
       - uses: actions/checkout@v4
