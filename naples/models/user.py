@@ -13,6 +13,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from .store import Store
+    from .file import File
 
 
 class User(db.Model, ModelMixin):
@@ -33,6 +34,8 @@ class User(db.Model, ModelMixin):
 
     phone: orm.Mapped[str] = orm.mapped_column(sa.String(16), default="", server_default="")
 
+    avatar_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey("files.id"), nullable=True)
+
     password_hash: orm.Mapped[str] = orm.mapped_column(sa.String(256), default="")
 
     is_verified: orm.Mapped[bool] = orm.mapped_column(default=False)
@@ -52,6 +55,8 @@ class User(db.Model, ModelMixin):
     )
 
     store: orm.Mapped["Store"] = orm.relationship()
+
+    _avatar: orm.Mapped["File"] = orm.relationship(viewonly=True, foreign_keys=[avatar_id])
 
     @property
     def password(self):
@@ -89,6 +94,10 @@ class User(db.Model, ModelMixin):
 
     def __repr__(self):
         return f"<{self.id}: {self.email}>"
+
+    @property
+    def avatar(self):
+        return self._avatar if self._avatar and not self._avatar.is_deleted else None
 
     @property
     def json(self):
