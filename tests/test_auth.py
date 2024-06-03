@@ -95,10 +95,7 @@ def test_login(
     response = client.post("/api/auth/sign-up", json=new_user_1.model_dump())
     assert response.status_code == 201
 
-    credentials = {"username": EMAIL, "password": PASSWORD}
-    auth_str = f"{credentials['username']}:{credentials['password']}"
-    auth_bytes = base64.b64encode(auth_str.encode())
-    auth_header = {"Authorization": f"Basic {auth_bytes.decode()}"}
+    form_data = {"username": EMAIL, "password": PASSWORD}
 
-    response = client.post("/api/auth/login", headers=auth_header)
-    assert response.content is not None
+    response = client.post("/api/auth/login", data=form_data)
+    assert response.status_code == 200

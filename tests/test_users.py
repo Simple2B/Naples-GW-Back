@@ -149,10 +149,7 @@ def test_change_password(
     db.commit()
     db.refresh(db_user)
 
-    credentials = {"username": user.email, "password": data.new_password}
-    auth_str = f"{credentials['username']}:{credentials['password']}"
-    auth_bytes = base64.b64encode(auth_str.encode())
-    auth_header = {"Authorization": f"Basic {auth_bytes.decode()}"}
+    form_data = {"username": user.email, "password": data.new_password}
 
-    response = client.post("/api/auth/login", headers=auth_header)
+    response = client.post("/api/auth/login", data=form_data)
     assert response.status_code == 200
