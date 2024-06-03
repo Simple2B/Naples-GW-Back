@@ -185,16 +185,16 @@ def delete_user_avatar(
     "/change_password",
     status_code=status.HTTP_200_OK,
     response_model=s.User,
+    responses={
+        status.HTTP_404_NOT_FOUND: {"description": "Old password is incorrect"},
+        status.HTTP_400_BAD_REQUEST: {"description": "Email not sent!"},
+    },
 )
 def change_user_password(
     data: s.UserResetPasswordIn,
     db: Session = Depends(get_db),
     current_user: m.User = Depends(get_current_user),
     ses: SESClient = Depends(get_ses_client),
-    responses={
-        status.HTTP_404_NOT_FOUND: {"description": "Old password is incorrect"},
-        status.HTTP_400_BAD_REQUEST: {"description": "Email not sent!"},
-    },
 ):
     """Resets the user password"""
 
