@@ -42,6 +42,31 @@
         "fill-db-staging-data"
       ],
       "justMyCode": true
+    },
+    {
+      "name": "Stripe: Webhooks listen",
+      "type": "stripe",
+      "request": "launch",
+      "command": "listen",
+      "forwardTo": "http://127.0.0.1:5002/api/billings/webhook",
+      "forwardConnectTo": "http://127.0.0.1:5002/api/billings/webhook",
+      "events": [
+        "subscription_schedule.canceled",
+        "checkout.session.completed",
+        "customer.subscription.updated",
+        "customer.subscription.deleted",
+        "customer.subscription.created"
+      ],
+      "skipVerify": true
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Stripe + API",
+      "configurations": [
+        "FastAPI",
+        "Stripe: Webhooks listen"
+      ]
     }
   ]
 }
