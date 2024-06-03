@@ -229,6 +229,8 @@ def create_item(
         realtor_id=realtor.id,
         store_id=store.id,
         city_id=city.id,
+        latitude=city.latitude,
+        longitude=city.longitude,
     )
 
     db.add(new_item_model)

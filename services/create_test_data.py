@@ -51,13 +51,14 @@ def create_store(test_store: s.TestStore) -> m.Store:
     return store
 
 
-def create_item(test_item: s.TestItem, city_id: int) -> m.Item:
+def create_item(test_item: s.TestItem, city: m.City) -> m.Item:
     """Create test item"""
+
     item = m.Item(
         name=test_item.name,
         description=test_item.description,
-        latitude=test_item.latitude,
-        longitude=test_item.longitude,
+        latitude=city.latitude,
+        longitude=city.longitude,
         address=test_item.address,
         size=test_item.size,
         bedrooms_count=test_item.bedrooms_count,
@@ -65,7 +66,7 @@ def create_item(test_item: s.TestItem, city_id: int) -> m.Item:
         stage=test_item.stage,
         store_id=test_item.store_id,
         realtor_id=test_item.realtor_id,
-        city_id=city_id,
+        city_id=city.id,
         adults=test_item.adults,
         nightly=test_item.nightly,
         monthly=test_item.monthly,
