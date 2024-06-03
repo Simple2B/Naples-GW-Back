@@ -100,6 +100,10 @@ class User(db.Model, ModelMixin):
         return self._avatar if self._avatar and not self._avatar.is_deleted else None
 
     @property
+    def avatar_url(self):
+        return self.avatar.url if self.avatar else ""
+
+    @property
     def json(self):
         u = s.User.model_validate(self)
         return u.model_dump_json()
