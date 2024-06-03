@@ -12,7 +12,13 @@
     "viewonly",
     "vrbo"
   ],
-  "python.testing.unittestArgs": ["-v", "-s", "./tests", "-p", "test*.py"],
+  "python.testing.unittestArgs": [
+    "-v",
+    "-s",
+    "./tests",
+    "-p",
+    "test*.py"
+  ],
   "python.testing.unittestEnabled": false,
   "python.testing.pytestEnabled": false,
   "pythonTestExplorer.testFramework": "pytest",

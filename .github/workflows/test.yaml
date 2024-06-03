@@ -11,6 +11,12 @@ jobs:
   test:
     name: Test
     runs-on: Linux
+
+    services:
+      stripemock:
+        image: stripe/stripe-mock:latest
+        ports: ['12111:12111']
+
     steps:
       - uses: actions/checkout@v4
         with:
