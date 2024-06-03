@@ -12,7 +12,7 @@ class BaseUser(BaseModel):
     last_name: str
     email: str
     phone: str = ""
-    avatar_url: str = ""
+    avatar_url: str | None = None
     role: str = UserRole.USER.value
 
     model_config = ConfigDict(
