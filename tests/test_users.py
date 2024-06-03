@@ -1,6 +1,6 @@
-import base64
 from fastapi.testclient import TestClient
 from moto import mock_aws
+from mypy_boto3_s3 import S3Client
 from mypy_boto3_ses import SESClient
 import sqlalchemy as sa
 
@@ -84,6 +84,40 @@ def test_update_user(
     assert db_user.first_name == user.first_name
 
 
+def test_upload_avatar(client: TestClient, headers: dict[str, str], full_db: Session, s3_client: S3Client):
+    with open("tests/house_example.png", "rb") as f:
+        user_model = full_db.scalar(sa.select(m.User))
+        assert user_model
+
+        response = client.post(
+            "/api/users/avatar",
+            headers=headers,
+            files={"avatar": ("test.jpg", f, "image/jpeg")},
+        )
+        assert response.status_code == 201
+
+        user_res = client.get("/api/users/me", headers=headers)
+        assert user_res.status_code == 200
+
+        user = s.User.model_validate(user_res.json())
+
+        assert user.avatar and user.avatar.url == user_model.avatar.url
+
+        full_db.refresh(user_model)
+
+        bucket_file = s3_client.get_object(
+            Bucket=CFG.AWS_S3_BUCKET_NAME,
+            Key=user_model.avatar.key,
+        )
+
+        assert bucket_file["ResponseMetadata"]["HTTPStatusCode"] == 200
+        assert bucket_file["ContentLength"] > 0
+
+        res = client.delete("/api/users/avatar", headers=headers)
+
+        assert res.status_code == 204
+
+
 @mock_aws
 def test_change_password(
     client: TestClient,
@@ -118,10 +152,7 @@ def test_change_password(
     db.commit()
     db.refresh(db_user)
 
-    credentials = {"username": user.email, "password": data.new_password}
-    auth_str = f"{credentials['username']}:{credentials['password']}"
-    auth_bytes = base64.b64encode(auth_str.encode())
-    auth_header = {"Authorization": f"Basic {auth_bytes.decode()}"}
+    form_data = {"username": user.email, "password": data.new_password}
 
-    response = client.post("/api/auth/login", headers=auth_header)
+    response = client.post("/api/auth/login", data=form_data)
     assert response.status_code == 200

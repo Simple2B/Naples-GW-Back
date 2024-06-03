@@ -1,20 +1,23 @@
 from typing import Sequence
-from fastapi import Depends, APIRouter, status
+from fastapi import Depends, UploadFile, APIRouter, status
+from mypy_boto3_s3 import S3Client
 from botocore.exceptions import ClientError
 from mypy_boto3_ses import SESClient
 
-from naples.dependency.ses_client import get_ses_client
+
+from naples.controllers.file import get_file_type
 from naples.hash_utils import make_hash
-import naples.models as m
+from naples import controllers as c, models as m, schemas as s
+
 from naples.oauth2 import create_access_token, verify_access_token, HTTPException
-import naples.schemas as s
 from naples.logger import log
 
 import sqlalchemy as sa
 from sqlalchemy.orm import Session
 from sqlalchemy.sql.expression import Executable
 
-from naples.dependency import get_current_user
+from naples.dependency import get_current_user, get_s3_connect, get_ses_client
+from naples.utils import get_file_extension
 from naples.database import get_db
 from naples.utils import createMsgEmailChangePassword, sendEmailAmazonSES
 from naples.config import config
@@ -97,6 +100,85 @@ def update_user(
     log(log.INFO, f"User {current_user.email} updated his profile")
 
     return current_user
+
+
+@user_router.post(
+    "/avatar",
+    status_code=status.HTTP_201_CREATED,
+    response_model=s.User,
+    responses={
+        status.HTTP_400_BAD_REQUEST: {"description": "Extension not found"},
+        status.HTTP_400_BAD_REQUEST: {"description": "File type not supported"},
+    },
+)
+def upload_avatar(
+    avatar: UploadFile,
+    db: Session = Depends(get_db),
+    current_user: m.User = Depends(get_current_user),
+    s3_client: S3Client = Depends(get_s3_connect),
+):
+    """Uploads the user avatar"""
+
+    log(log.INFO, f"User {current_user.email} uploading avatar")
+
+    if current_user.avatar and not current_user.avatar.is_deleted:
+        log(log.INFO, f"User {current_user.email} deleting old avatar")
+        current_user.avatar.mark_as_deleted()
+        db.commit()
+
+    extension = get_file_extension(avatar)
+
+    if not extension:
+        log(log.ERROR, "Extension not found for avatar [%s]", avatar.filename)
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Extension not found")
+
+    file_type = get_file_type(extension)
+
+    if file_type == s.FileType.UNKNOWN:
+        log(log.ERROR, "File type not supported for avatar [%s]", avatar.filename)
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="File type not supported")
+
+    avatar_file_model = c.create_file(
+        db=db,
+        file=avatar,
+        s3_client=s3_client,
+        extension=extension,
+        store_url=current_user.store.url,
+        file_type=file_type,
+    )
+
+    current_user.avatar_id = avatar_file_model.id
+    db.commit()
+    db.refresh(current_user)
+
+    log(log.INFO, f"User {current_user.email} uploaded avatar")
+
+    return current_user
+
+
+@user_router.delete(
+    "/avatar",
+    status_code=status.HTTP_204_NO_CONTENT,
+    responses={
+        status.HTTP_404_NOT_FOUND: {"description": "User does not have an avatar"},
+    },
+)
+def delete_avatar(
+    db: Session = Depends(get_db),
+    current_user: m.User = Depends(get_current_user),
+):
+    """Deletes the user avatar"""
+
+    log(log.INFO, f"User {current_user.email} deleting avatar")
+
+    if not current_user.avatar:
+        log(log.ERROR, f"User {current_user.email} does not have an avatar")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User does not have an avatar")
+
+    current_user.avatar.mark_as_deleted()
+    db.commit()
+
+    log(log.INFO, f"User {current_user.email} deleted avatar")
 
 
 @user_router.patch(
