@@ -156,6 +156,31 @@ def upload_avatar(
     return current_user
 
 
+@user_router.delete(
+    "/avatar",
+    status_code=status.HTTP_204_NO_CONTENT,
+    responses={
+        status.HTTP_404_NOT_FOUND: {"description": "User does not have an avatar"},
+    },
+)
+def delete_avatar(
+    db: Session = Depends(get_db),
+    current_user: m.User = Depends(get_current_user),
+):
+    """Deletes the user avatar"""
+
+    log(log.INFO, f"User {current_user.email} deleting avatar")
+
+    if not current_user.avatar:
+        log(log.ERROR, f"User {current_user.email} does not have an avatar")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User does not have an avatar")
+
+    current_user.avatar.mark_as_deleted()
+    db.commit()
+
+    log(log.INFO, f"User {current_user.email} deleted avatar")
+
+
 @user_router.patch(
     "/change_password",
     status_code=status.HTTP_200_OK,

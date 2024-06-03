@@ -113,6 +113,10 @@ def test_upload_avatar(client: TestClient, headers: dict[str, str], full_db: Ses
         assert bucket_file["ResponseMetadata"]["HTTPStatusCode"] == 200
         assert bucket_file["ContentLength"] > 0
 
+        res = client.delete("/api/users/avatar", headers=headers)
+
+        assert res.status_code == 204
+
 
 @mock_aws
 def test_change_password(
