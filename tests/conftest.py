@@ -138,7 +138,14 @@ def stripe_customer(
     """Returns an authorized test client for the API"""
     import stripe
 
-    customer = stripe.Customer.create(email=test_data.test_users[0].email)
+    customer_list = stripe.Customer.list(email=test_data.test_users[0].email)
+
+    customer = None
+
+    if customer_list.data:
+        customer = customer_list.data[0]
+    else:
+        customer = stripe.Customer.create(email=test_data.test_users[0].email)
 
     yield customer.id
 
@@ -152,6 +159,7 @@ def stripe_checkout_session(
     """Returns an authorized test client for the API"""
     import stripe
 
+    # test product in stripe
     stripe_product_price = "price_1PNL6qI7HDNT50q3WYkKCTGz"
 
     checkout_session = stripe.checkout.Session.create(
