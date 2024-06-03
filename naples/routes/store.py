@@ -325,7 +325,7 @@ def upload_store_about_us_media(
 
     if current_store.about_us_main_media and not current_store.about_us_main_media.is_deleted:
         log(log.WARNING, "Store [%s] already has a main media. Marking as deleted", current_store.url)
-        current_store.main_media.mark_as_deleted()
+        current_store.about_us_main_media.mark_as_deleted()
         db.commit()
 
     extension = get_file_extension(about_us_main_media)
