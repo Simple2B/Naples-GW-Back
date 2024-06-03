@@ -199,10 +199,8 @@ def get_filters_data(
         404: {"description": "Store not found"},
     },
 )
-
-# ItemDataIn
 def create_item(
-    new_item: s.ItemIn,
+    new_item: s.ItemIn,  # ItemDataIn
     db: Session = Depends(get_db),
     current_user: m.User = Depends(get_current_user),
 ):
