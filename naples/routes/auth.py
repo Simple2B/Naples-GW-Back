@@ -28,6 +28,7 @@ router = APIRouter(prefix="/auth", tags=["Auth"])
 CFG = config()
 
 
+# login router only for swagger for this project, that why include_in_schema is False
 @router.post(
     "/login",
     status_code=status.HTTP_200_OK,
@@ -36,6 +37,7 @@ CFG = config()
         status.HTTP_404_NOT_FOUND: {"description": "Invalid credentials"},
         status.HTTP_403_FORBIDDEN: {"description": "Admin user can not get API token"},
     },
+    include_in_schema=False,
 )
 def login(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],

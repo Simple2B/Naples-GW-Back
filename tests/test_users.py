@@ -101,7 +101,7 @@ def test_upload_avatar(client: TestClient, headers: dict[str, str], full_db: Ses
 
         user = s.User.model_validate(user_res.json())
 
-        assert user.avatar and user.avatar.url == user_model.avatar.url
+        assert user.avatar_url and user.avatar_url == user_model.avatar.url
 
         full_db.refresh(user_model)
 
