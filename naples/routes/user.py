@@ -62,6 +62,8 @@ def get_users(
             email=user.email,
             is_verified=user.is_verified,
             role=user.role,
+            avatar_url=user.avatar.url if user.avatar else "",
+            store_url=user.store_url,
         )
         for user in db_users
     ]
