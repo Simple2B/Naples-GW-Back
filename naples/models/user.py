@@ -56,7 +56,7 @@ class User(db.Model, ModelMixin):
 
     store: orm.Mapped["Store"] = orm.relationship()
 
-    _avatar: orm.Mapped["File"] = orm.relationship(viewonly=True, foreign_keys=[avatar_id])
+    avatar: orm.Mapped["File"] = orm.relationship()
 
     @property
     def password(self):
@@ -94,10 +94,6 @@ class User(db.Model, ModelMixin):
 
     def __repr__(self):
         return f"<{self.id}: {self.email}>"
-
-    @property
-    def avatar(self):
-        return self._avatar if self._avatar and not self._avatar.is_deleted else None
 
     @property
     def avatar_url(self):
