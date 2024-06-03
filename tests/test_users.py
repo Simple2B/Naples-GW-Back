@@ -90,7 +90,7 @@ def test_upload_avatar(client: TestClient, headers: dict[str, str], full_db: Ses
         assert user_model
 
         response = client.post(
-            "/api/users/avatar",
+            f"/api/users/{user_model.uuid}/avatar",
             headers=headers,
             files={"avatar": ("test.jpg", f, "image/jpeg")},
         )
@@ -113,7 +113,7 @@ def test_upload_avatar(client: TestClient, headers: dict[str, str], full_db: Ses
         assert bucket_file["ResponseMetadata"]["HTTPStatusCode"] == 200
         assert bucket_file["ContentLength"] > 0
 
-        res = client.delete("/api/users/avatar", headers=headers)
+        res = client.delete(f"/api/users/{user_model.uuid}/avatar", headers=headers)
 
         assert res.status_code == 204
 
