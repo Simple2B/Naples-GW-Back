@@ -111,7 +111,7 @@ def update_user(
         status.HTTP_400_BAD_REQUEST: {"description": "File type not supported"},
     },
 )
-def upload_avatar(
+def upload_user_avatar(
     avatar: UploadFile,
     db: Session = Depends(get_db),
     current_user: m.User = Depends(get_current_user),
@@ -163,7 +163,7 @@ def upload_avatar(
         status.HTTP_404_NOT_FOUND: {"description": "User does not have an avatar"},
     },
 )
-def delete_avatar(
+def delete_user_avatar(
     db: Session = Depends(get_db),
     current_user: m.User = Depends(get_current_user),
 ):
@@ -186,7 +186,7 @@ def delete_avatar(
     status_code=status.HTTP_200_OK,
     response_model=s.User,
 )
-def change_password(
+def change_user_password(
     data: s.UserResetPasswordIn,
     db: Session = Depends(get_db),
     current_user: m.User = Depends(get_current_user),
@@ -242,7 +242,7 @@ def change_password(
         status.HTTP_404_NOT_FOUND: {"description": "Invalid token"},
     },
 )
-def save_new_password(
+def save_user_new_password(
     token: str,
     db: Session = Depends(get_db),
 ):
