@@ -24,9 +24,7 @@ class Billing(db.Model, ModelMixin):
 
     description: orm.Mapped[str] = orm.mapped_column(sa.String(128), nullable=False, default="")
 
-    amount: orm.Mapped[float] = orm.mapped_column(sa.Float, nullable=False, default=0.0)
-
-    created_at: orm.Mapped[datetime] = orm.mapped_column(default=datetime_utc)
+    amount: orm.Mapped[int] = orm.mapped_column(nullable=False, default=0)
 
     customer_stripe_id: orm.Mapped[str] = orm.mapped_column(sa.String(128), nullable=True)
 
@@ -38,6 +36,8 @@ class Billing(db.Model, ModelMixin):
     subscription_status: orm.Mapped[str] = orm.mapped_column(sa.String(32), nullable=True)
 
     subscription_item_id: orm.Mapped[str] = orm.mapped_column(sa.String(128), nullable=True)
+
+    created_at: orm.Mapped[datetime] = orm.mapped_column(default=datetime_utc)
 
     user_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey("users.id"))
 

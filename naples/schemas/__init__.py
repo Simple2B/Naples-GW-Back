@@ -73,3 +73,6 @@ from .billing import (
     SubscriptionProductPricesOut,
     CheckoutSessionOut,
 )
+
+from .product import Product, ProductIn, ProductOut, ProductsOut
+from .point import Point, PointIn, PointOut, PointsOut

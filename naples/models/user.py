@@ -1,6 +1,7 @@
 from typing import Self
 from datetime import datetime
 
+from prompt_toolkit.key_binding.bindings import vi
 import sqlalchemy as sa
 from sqlalchemy import orm
 
@@ -57,8 +58,9 @@ class User(db.Model, ModelMixin):
 
     store: orm.Mapped["Store"] = orm.relationship()
 
-    billing: orm.Mapped["Billing"] = orm.relationship()
     avatar: orm.Mapped["File"] = orm.relationship()
+
+    billing: orm.Mapped["Billing"] = orm.relationship(viewonly=True, back_populates="user")
 
     @property
     def password(self):

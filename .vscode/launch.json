@@ -34,6 +34,16 @@
       "justMyCode": true
     },
     {
+      "name": "Fill db with stripe products",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "invoke",
+      "args": [
+        "fill-db-stripe-products"
+      ],
+      "justMyCode": true
+    },
+    {
       "name": "Fill db staging data",
       "type": "debugpy",
       "request": "launch",
