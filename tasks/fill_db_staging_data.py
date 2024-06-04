@@ -68,14 +68,14 @@ def create_user_with_store():
             m.Item(**item.model_dump(exclude={"city_uuid", "realtor_uuid"})) for item in test_items_data
         ]
         cities: Sequence[m.City] = session.query(m.City).all()
-        cities_ids = [city.id for city in cities]
+        cities = [city for city in cities]
         for test_item in test_items:
             item_db = session.query(m.Item).filter(m.Item.uuid == test_item.uuid).first()
             if not item_db:
                 index = test_items.index(test_item)
-                city_id = cities_ids[index % len(cities_ids)]
-                item = create_item(test_item, city_id)
-                log(log.INFO, "Item [%s] created with city [%s]", test_item.name, city_id)
+                city = cities[index % len(cities)]
+                item = create_item(test_item, city)
+                log(log.INFO, "Item [%s] created with city [%s]", test_item.name, city.id)
                 session.add(item)
 
     session.commit()

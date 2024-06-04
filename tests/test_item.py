@@ -34,8 +34,6 @@ def test_create_item(client: TestClient, full_db: Session, headers: dict[str, st
     test_item = s.ItemIn(
         name="Test Item",
         description="Test Description",
-        latitude=0.0,
-        longitude=0.0,
         address="Test Address",
         size=100,
         bedrooms_count=2,

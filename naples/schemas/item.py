@@ -37,8 +37,6 @@ class ExternalUrls(BaseModel):
 class ItemIn(BaseModel):
     name: str
     description: str = ""
-    latitude: float = 0.0
-    longitude: float = 0.0
     address: str = ""
     size: int = 0
     bedrooms_count: int = 0
