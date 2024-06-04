@@ -1,20 +1,23 @@
 from typing import Sequence
-from fastapi import Depends, APIRouter, status
+from fastapi import Depends, UploadFile, APIRouter, status
+from mypy_boto3_s3 import S3Client
 from botocore.exceptions import ClientError
 from mypy_boto3_ses import SESClient
 
-from naples.dependency.ses_client import get_ses_client
+
+from naples.dependency.get_user_store import get_current_user_store
 from naples.hash_utils import make_hash
-import naples.models as m
+from naples import controllers as c, models as m, schemas as s
+
 from naples.oauth2 import create_access_token, verify_access_token, HTTPException
-import naples.schemas as s
 from naples.logger import log
 
 import sqlalchemy as sa
 from sqlalchemy.orm import Session
 from sqlalchemy.sql.expression import Executable
 
-from naples.dependency import get_current_user
+from naples.dependency import get_current_user, get_s3_connect, get_ses_client
+from naples.utils import get_file_extension
 from naples.database import get_db
 from naples.utils import createMsgEmailChangePassword, sendEmailAmazonSES
 from naples.config import config
@@ -59,6 +62,8 @@ def get_users(
             email=user.email,
             is_verified=user.is_verified,
             role=user.role,
+            avatar_url=user.avatar.url if user.avatar else "",
+            store_url=user.store_url,
         )
         for user in db_users
     ]
@@ -99,20 +104,111 @@ def update_user(
     return current_user
 
 
+@user_router.post(
+    "/{user_uuid}/avatar",
+    response_model=s.User,
+    status_code=status.HTTP_201_CREATED,
+    responses={
+        status.HTTP_404_NOT_FOUND: {"description": "User not found"},
+        status.HTTP_403_FORBIDDEN: {"description": "User not found"},
+    },
+)
+def upload_user_avatar(
+    user_uuid: str,
+    avatar: UploadFile,
+    current_store: m.Store = Depends(get_current_user_store),
+    db: Session = Depends(get_db),
+    s3_client: S3Client = Depends(get_s3_connect),
+):
+    """Uploads the user avatar"""
+    log(log.INFO, "Uploading avatar for member {%s} in store {%s}", user_uuid, current_store.uuid)
+
+    user_db = db.scalar(sa.select(m.User).where(m.User.uuid == user_uuid))
+
+    if not user_db:
+        log(log.ERROR, "Member not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+    if user_db.store.id != current_store.id:
+        log(log.ERROR, "User not found")
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="User not found")
+
+    extension = get_file_extension(avatar)
+
+    if user_db.avatar:
+        log(log.INFO, "Deleting old avatar for member {%s}", user_uuid)
+        user_db.avatar.mark_as_deleted()
+        db.commit()
+
+    log(log.INFO, "Creating new avatar for member {%s}", user_uuid)
+
+    file_model = c.create_file(
+        file=avatar,
+        db=db,
+        s3_client=s3_client,
+        file_type=s.FileType.AVATAR,
+        store_url=current_store.url,
+        extension=extension,
+    )
+
+    user_db.avatar_id = file_model.id
+    db.commit()
+    db.refresh(user_db)
+
+    log(log.INFO, "Avatar uploaded for member {%s}", user_uuid)
+    return s.User.model_validate(user_db)
+
+
+@user_router.delete(
+    "/{user_uuid}/avatar",
+    status_code=status.HTTP_204_NO_CONTENT,
+    responses={
+        status.HTTP_404_NOT_FOUND: {"description": "User does not have an avatar"},
+        status.HTTP_403_FORBIDDEN: {"description": "User not found"},
+        status.HTTP_404_NOT_FOUND: {"description": "User does not have an avatar"},
+    },
+)
+def delete_user_avatar(
+    user_uuid: str,
+    current_store: m.User = Depends(get_current_user_store),
+    db: Session = Depends(get_db),
+):
+    """Deletes the user avatar"""
+    log(log.INFO, "Deleting avatar for member {%s} in store {%s}", user_uuid, current_store.uuid)
+
+    user = db.scalar(sa.select(m.User).where(m.User.uuid == user_uuid))
+
+    if not user:
+        log(log.ERROR, "User not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+
+    if user.store.id != current_store.id:
+        log(log.ERROR, "User not found")
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="User not found")
+
+    if not user.avatar:
+        log(log.ERROR, "User does not have an avatar")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User does not have an avatar")
+
+    user.avatar.mark_as_deleted()
+    db.commit()
+
+    log(log.INFO, "Avatar deleted for member {%s}", user_uuid)
+
+
 @user_router.patch(
     "/change_password",
     status_code=status.HTTP_200_OK,
     response_model=s.User,
-)
-def change_password(
-    data: s.UserResetPasswordIn,
-    db: Session = Depends(get_db),
-    current_user: m.User = Depends(get_current_user),
-    ses: SESClient = Depends(get_ses_client),
     responses={
         status.HTTP_404_NOT_FOUND: {"description": "Old password is incorrect"},
         status.HTTP_400_BAD_REQUEST: {"description": "Email not sent!"},
     },
+)
+def change_user_password(
+    data: s.UserResetPasswordIn,
+    db: Session = Depends(get_db),
+    current_user: m.User = Depends(get_current_user),
+    ses: SESClient = Depends(get_ses_client),
 ):
     """Resets the user password"""
 
@@ -160,7 +256,7 @@ def change_password(
         status.HTTP_404_NOT_FOUND: {"description": "Invalid token"},
     },
 )
-def save_new_password(
+def save_user_new_password(
     token: str,
     db: Session = Depends(get_db),
 ):
@@ -188,3 +284,54 @@ def save_new_password(
     log(log.INFO, f"User {user.email} saved his new password")
 
     return
+
+
+@user_router.post(
+    "/forgot_password",
+    status_code=status.HTTP_201_CREATED,
+    response_model=s.User,
+    responses={
+        status.HTTP_404_NOT_FOUND: {"description": "User not found"},
+        status.HTTP_400_BAD_REQUEST: {"description": "Email not sent!"},
+    },
+)
+def forgot_password(
+    data: s.UserForgotPasswordIn,
+    db: Session = Depends(get_db),
+    ses: SESClient = Depends(get_ses_client),
+):
+    """Forgot password"""
+
+    user = db.scalar(
+        sa.select(m.User).where(
+            m.User.email == data.email,
+            m.User.is_deleted == sa.false(),
+        )
+    )
+
+    if not user:
+        log(log.ERROR, f"User {data.email} not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+
+    token = s.Token(access_token=create_access_token(user.id))
+
+    msg = createMsgEmailChangePassword(token.access_token, CFG.REDIRECT_ROUTER_FORGOT_PASSWORD)
+
+    try:
+        emailContent = s.EmailAmazonSESContent(
+            recipient_email=user.email,
+            sender_email=CFG.MAIL_DEFAULT_SENDER,
+            message=msg,
+            charset=CFG.CHARSET,
+            mail_body_text="Click the link to change your password!",
+            mail_subject="Reset your password",
+        )
+        sendEmailAmazonSES(emailContent, ses_client=ses)
+
+    except ClientError as e:
+        log(log.ERROR, f"Email not sent! {e}")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email not sent!")
+
+    log(log.INFO, f"User {user.email} forgot his password")
+
+    return user

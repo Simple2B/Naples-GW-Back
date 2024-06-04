@@ -1,6 +1,16 @@
 # ruff: noqa: F401
 from .test_data import TestUser, TestItem, TestData, TestStore, TestMember
-from .user import UserRole, UserSignIn, UserResetPasswordIn, UserUpdate, BaseUser, User, Users, EmailAmazonSESContent
+from .user import (
+    UserRole,
+    UserSignIn,
+    UserResetPasswordIn,
+    UserUpdate,
+    BaseUser,
+    User,
+    Users,
+    EmailAmazonSESContent,
+    UserForgotPasswordIn,
+)
 from .token import Token, TokenData, TokenOut, Auth
 from .store import Store, StoreIn, StoreAboutUsDescription, StoreAboutUs, StoreOut, Stores, StoreUpdateIn
 from .item import (

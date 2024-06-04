@@ -44,6 +44,7 @@ async def create_rate(
         month=data.month,
         min_stay=data.min_stay,
         item_id=item.id,
+        visible=data.visible,
     )
     db.add(new_rate)
     db.commit()
@@ -83,6 +84,7 @@ async def update_rate(
     rate_model.week = rate.week
     rate_model.month = rate.month
     rate_model.min_stay = rate.min_stay
+    rate_model.visible = rate.visible
 
     db.commit()
 

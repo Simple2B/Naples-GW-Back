@@ -14,6 +14,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from .store import Store
     from .billing import Billing
+    from .file import File
 
 
 class User(db.Model, ModelMixin):
@@ -33,6 +34,8 @@ class User(db.Model, ModelMixin):
     )
 
     phone: orm.Mapped[str] = orm.mapped_column(sa.String(16), default="", server_default="")
+
+    avatar_id: orm.Mapped[int | None] = orm.mapped_column(sa.ForeignKey("files.id"))
 
     password_hash: orm.Mapped[str] = orm.mapped_column(sa.String(256), default="")
 
@@ -55,6 +58,7 @@ class User(db.Model, ModelMixin):
     store: orm.Mapped["Store"] = orm.relationship()
 
     billing: orm.Mapped["Billing"] = orm.relationship()
+    avatar: orm.Mapped["File"] = orm.relationship()
 
     @property
     def password(self):
@@ -94,9 +98,17 @@ class User(db.Model, ModelMixin):
         return f"<{self.id}: {self.email}>"
 
     @property
+    def avatar_url(self):
+        return self.avatar.url if self.avatar and not self.avatar.is_deleted else ""
+
+    @property
     def json(self):
         u = s.User.model_validate(self)
         return u.model_dump_json()
+
+    @property
+    def store_url(self):
+        return self.store.url if self.store else ""
 
     @classmethod
     def get_user_by_email(cls, email: str, session: orm.Session) -> Self:

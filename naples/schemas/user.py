@@ -12,7 +12,16 @@ class BaseUser(BaseModel):
     last_name: str
     email: str
     phone: str = ""
+    avatar_url: str = ""
     role: str = UserRole.USER.value
+
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
+
+
+class UserForgotPasswordIn(BaseModel):
+    email: str
 
     model_config = ConfigDict(
         from_attributes=True,
@@ -31,6 +40,7 @@ class User(BaseUser):
     id: int
     uuid: str
     is_verified: bool = True
+    store_url: str
 
     model_config = ConfigDict(
         from_attributes=True,
