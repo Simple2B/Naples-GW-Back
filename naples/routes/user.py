@@ -284,3 +284,54 @@ def save_user_new_password(
     log(log.INFO, f"User {user.email} saved his new password")
 
     return
+
+
+@user_router.post(
+    "/forgot_password",
+    status_code=status.HTTP_201_CREATED,
+    response_model=s.User,
+    responses={
+        status.HTTP_404_NOT_FOUND: {"description": "User not found"},
+        status.HTTP_400_BAD_REQUEST: {"description": "Email not sent!"},
+    },
+)
+def forgot_password(
+    data: s.UserForgotPasswordIn,
+    db: Session = Depends(get_db),
+    ses: SESClient = Depends(get_ses_client),
+):
+    """Forgot password"""
+
+    user = db.scalar(
+        sa.select(m.User).where(
+            m.User.email == data.email,
+            m.User.is_deleted == sa.false(),
+        )
+    )
+
+    if not user:
+        log(log.ERROR, f"User {data.email} not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+
+    token = s.Token(access_token=create_access_token(user.id))
+
+    msg = createMsgEmailChangePassword(token.access_token, CFG.REDIRECT_ROUTER_FORGOT_PASSWORD)
+
+    try:
+        emailContent = s.EmailAmazonSESContent(
+            recipient_email=user.email,
+            sender_email=CFG.MAIL_DEFAULT_SENDER,
+            message=msg,
+            charset=CFG.CHARSET,
+            mail_body_text="Click the link to change your password!",
+            mail_subject="Reset your password",
+        )
+        sendEmailAmazonSES(emailContent, ses_client=ses)
+
+    except ClientError as e:
+        log(log.ERROR, f"Email not sent! {e}")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email not sent!")
+
+    log(log.INFO, f"User {user.email} forgot his password")
+
+    return user

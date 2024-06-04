@@ -20,6 +20,14 @@ class BaseUser(BaseModel):
     )
 
 
+class UserForgotPasswordIn(BaseModel):
+    email: str
+
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
+
+
 class UserSignIn(BaseUser):
     password: str
 
