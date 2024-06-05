@@ -11,7 +11,9 @@ CFG = config("testing")
 
 
 def test_create_stripe_product_get_products(
-    client: TestClient, headers: dict[str, str], test_data: s.TestData, full_db: Session
+    client: TestClient,
+    headers: dict[str, str],
+    full_db: Session,
 ):
     test_stripe_product = s.ProductIn(
         type_name="test product",

@@ -14,7 +14,7 @@ def fill_db_stripe_products(with_print: bool = True):
     from naples.database import db
     from naples import schemas as s
 
-    with db.begin() as session:
+    with db.Session() as session:
         stripe_products: list[s.ProductIn] = [
             s.ProductIn(
                 type_name="starter",
