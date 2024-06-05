@@ -20,7 +20,7 @@ class Billing(db.Model, ModelMixin):
     id: orm.Mapped[int] = orm.mapped_column(primary_key=True)
     uuid: orm.Mapped[str] = orm.mapped_column(sa.String(32), default=create_uuid, unique=True)
 
-    type: orm.Mapped[str] = orm.mapped_column(default=s.SubscriptionType.TRIALING.value)
+    type: orm.Mapped[str] = orm.mapped_column(default="")
 
     description: orm.Mapped[str] = orm.mapped_column(sa.String(128), nullable=False, default="")
 

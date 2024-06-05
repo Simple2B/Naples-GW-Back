@@ -24,21 +24,21 @@ subscriptionPriceType = {
 }
 
 
-@billing_router.get("/products", response_model=s.SubscriptionProductPricesOut, status_code=status.HTTP_200_OK)
-def get_products_prices(
-    current_user: m.User = Depends(get_current_user),
-):
-    """Get products prices"""
+# @billing_router.get("/products", response_model=s.SubscriptionProductPricesOut, status_code=status.HTTP_200_OK)
+# def get_products_prices(
+#     current_user: m.User = Depends(get_current_user),
+# ):
+#     """Get products prices"""
 
-    prices_ids = s.SubscriptionProductPricesOut(
-        starter_price_id=CFG.STRIPE_PRICE_STARTER_ID,
-        plus_price_id=CFG.STRIPE_PRICE_PLUS_ID,
-        pro_price_id=CFG.STRIPE_PRICE_PRO_ID,
-    )
+#     prices_ids = s.SubscriptionProductPricesOut(
+#         starter_price_id=CFG.STRIPE_PRICE_STARTER_ID,
+#         plus_price_id=CFG.STRIPE_PRICE_PLUS_ID,
+#         pro_price_id=CFG.STRIPE_PRICE_PRO_ID,
+#     )
 
-    log(log.INFO, "User [%s] get products prices", current_user.email)
+#     log(log.INFO, "User [%s] get products prices", current_user.email)
 
-    return prices_ids
+#     return prices_ids
 
 
 @billing_router.post(
@@ -65,7 +65,7 @@ def create_checkout_session(
             log(log.ERROR, "User not created in stripe")
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User not created in stripe")
 
-        subscription_type = subscriptionPriceType[data.product_price_id]
+        subscription_type = data.subscription_type
 
         user_billing = m.Billing(
             user_id=current_user.id,

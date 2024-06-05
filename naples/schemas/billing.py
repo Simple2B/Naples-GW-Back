@@ -21,6 +21,7 @@ class SubscriptionProductPricesOut(BaseModel):
 
 
 class SubscriptionIn(BaseModel):
+    subscription_type: str
     product_price_id: str
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
