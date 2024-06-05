@@ -55,9 +55,9 @@ class BaseConfig(BaseSettings):
     CHARSET: str = "UTF-8"
 
     REDIRECT_URL: str = "http://127.0.0.1:3000"
-    REDIRECT_ROUTER_VERIFY_EMAIL: str = "/verify-email"
-    REDIRECT_ROUTER_CHANGE_PASSWORD: str = "/change-password"
-    REDIRECT_ROUTER_FORGOT_PASSWORD: str = "/forgot-password"
+    REDIRECT_ROUTER_VERIFY_EMAIL: str = "/auth/verify-email"
+    REDIRECT_ROUTER_CHANGE_PASSWORD: str = "/auth/change-password"
+    REDIRECT_ROUTER_FORGOT_PASSWORD: str = "/auth/forgot-password"
 
     # stripe
     STRIPE_SECRET_KEY: str
