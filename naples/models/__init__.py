@@ -19,3 +19,6 @@ from .floor_plan_markers_image import FloorPlanMarkerImage
 from .item_image import ItemImage
 from .item_document import ItemDocument
 from .contact_request import ContactRequest
+from .billing import Billing
+from .product import Product
+from .point import Point

@@ -7,10 +7,21 @@ on:
   pull_request:
     branches: [main, develop]
 
+env:
+
+  STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+
 jobs:
   test:
     name: Test
     runs-on: Linux
+
+    services:
+      stripemock:
+        image: stripe/stripe-mock:latest
+        ports: ['12111:12111']
+        options: --name stripemock
+
     steps:
       - uses: actions/checkout@v4
         with:

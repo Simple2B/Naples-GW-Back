@@ -6,7 +6,6 @@ import sqlalchemy as sa
 from botocore.exceptions import ClientError
 from mypy_boto3_ses import SESClient
 
-# from starlette.responses import RedirectResponse
 from naples.dependency import get_ses_client
 from naples.oauth2 import (
     INVALID_CREDENTIALS_EXCEPTION,
@@ -46,6 +45,7 @@ def login(
     """Logs in a user"""
 
     user = m.User.authenticate(form_data.username, form_data.password, session=db)
+
     if not user:
         log(log.ERROR, "User [%s] wrong username (email) or password", form_data.username)
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Invalid credentials")
