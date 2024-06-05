@@ -244,8 +244,6 @@ def change_user_password(
         log(log.ERROR, f"Email not sent! {e}")
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email not sent!")
 
-    log(log.INFO, f"User {current_user.email} changed his password")
-
     return current_user
 
 
@@ -281,7 +279,7 @@ def save_user_new_password(
     db.commit()
     db.refresh(user)
 
-    log(log.INFO, f"User {user.email} saved his new password")
+    log(log.INFO, f"User {user.email} changed his password")
 
     return
 
