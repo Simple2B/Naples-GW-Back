@@ -13,27 +13,15 @@ CFG = config()
 def create_product(data: s.ProductIn, db: Session) -> s.ProductOut | None:
     stripe.api_key = CFG.STRIPE_SECRET_KEY
 
-    products_db = db.scalars(sa.select(m.Product)).all()
+    product: s.ProductOut | None = db.scalars(sa.select(m.Product).where(m.Product.type_name == data.type_name)).first()
 
-    for product in products_db:
-        if product.type_name == data.type_name:
-            log(log.INFO, "Product [%s] already exists", product.type_name)
-            return product
+    if product:
+        log(log.INFO, "Product [%s] already exists", data.type_name)
+        return product
 
-    # creat product in stripe
-    res = stripe.Product.create(
-        name=data.type_name,
-        default_price_data={
-            "unit_amount": data.amount * 100,
-            "currency": data.currency,
-            "recurring": {"interval": data.recurring_interval},
-        },
-        expand=["default_price"],
-    )
+    res: s.StripeProductOut | None = get_stripe_product(data)
 
-    if res.default_price is not None and isinstance(res.default_price, stripe.Price):
-        log(log.INFO, "Product [%s] with name [%s] created in stripe ", res.id, data.type_name)
-
+    if res:
         type_name = data.type_name.lower()
 
         product = m.Product(
@@ -42,13 +30,14 @@ def create_product(data: s.ProductIn, db: Session) -> s.ProductOut | None:
             amount=data.amount,
             currency=data.currency,
             recurring_interval=data.recurring_interval,
-            stripe_product_id=res.id,
-            stripe_price_id=res.default_price.id,
+            stripe_product_id=res.stripe_product_id,
+            stripe_price_id=res.stripe_price_id,
             is_delete=data.is_delete if data.is_delete is not None else False,
         )
 
         db.add(product)
-        db.flush()
+        db.commit()
+        db.refresh(product)
 
         log(log.INFO, "Product [%s] with name [%s] created in db", product.uuid, data.type_name)
 
@@ -59,9 +48,45 @@ def create_product(data: s.ProductIn, db: Session) -> s.ProductOut | None:
                     product_id=product.id,
                 )
                 db.add(point)
-                db.flush()
+                db.commit()
+                db.refresh(product)
 
         return product
+
+    return None
+
+
+def get_stripe_product(data: s.ProductIn) -> s.StripeProductOut | None:
+    stripes_products = stripe.Product.list(active=True)
+
+    log(log.INFO, "Stripe products: [%s]", len(stripes_products.data))
+
+    if stripes_products.data:
+        products = [product for product in stripes_products if product.name == data.type_name]
+
+        if products and products[0].default_price is not None and isinstance(products[0].default_price, str):
+            return s.StripeProductOut(
+                stripe_product_id=products[0].id,
+                stripe_price_id=products[0].default_price,
+            )
+
+    res = stripe.Product.create(
+        name=data.type_name,
+        default_price_data={
+            "unit_amount": data.amount * 100,
+            "currency": data.currency,
+            "recurring": {"interval": data.recurring_interval},
+        },
+        expand=["default_price"],
+        metadata={"description": data.description},
+    )
+
+    if res and res.default_price is not None and isinstance(res.default_price, stripe.Price):
+        log(log.INFO, "Product [%s] with name [%s] created in stripe ", res.id, data.type_name)
+        return s.StripeProductOut(
+            stripe_product_id=res.id,
+            stripe_price_id=res.default_price.id,
+        )
 
     else:
         log(log.ERROR, "Failed to get price ID from Stripe product")

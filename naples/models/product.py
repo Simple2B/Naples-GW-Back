@@ -38,7 +38,11 @@ class Product(db.Model, ModelMixin):
 
     created_at: orm.Mapped[datetime] = orm.mapped_column(default=datetime_utc)
 
-    points: orm.Mapped[list["Point"]] = orm.relationship("Point", back_populates="product")
+    _points: orm.Mapped[list["Point"]] = orm.relationship("Point", back_populates="product")
+
+    @property
+    def points(self):
+        return [point.text for point in self._points]
 
     def __repr__(self):
         return f"<{self.id}: {self.uuid}>"

@@ -17,7 +17,7 @@ class Product(BaseModel):
     stripe_price_id: str = ""
 
     created_at: datetime
-    points: list
+    points: list[str]
 
     model_config = ConfigDict(
         from_attributes=True,
@@ -52,3 +52,8 @@ class ProductsOut(BaseModel):
     model_config = ConfigDict(
         from_attributes=True,
     )
+
+
+class StripeProductOut(BaseModel):
+    stripe_product_id: str
+    stripe_price_id: str

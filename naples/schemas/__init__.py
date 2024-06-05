@@ -74,5 +74,5 @@ from .billing import (
     CheckoutSessionOut,
 )
 
-from .product import Product, ProductIn, ProductOut, ProductsOut
+from .product import Product, ProductIn, ProductOut, ProductsOut, StripeProductOut
 from .point import Point, PointIn, PointOut, PointsOut
