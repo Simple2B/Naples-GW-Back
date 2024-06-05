@@ -65,14 +65,24 @@ def login(
     responses={
         status.HTTP_404_NOT_FOUND: {"description": "Invalid credentials"},
         status.HTTP_403_FORBIDDEN: {"description": "Admin user can not get API token"},
+        status.HTTP_400_BAD_REQUEST: {"description": "User not verified"},
     },
 )
 def get_token(auth_data: s.Auth, db=Depends(get_db)):
     """Logs in a user"""
     user = m.User.authenticate(auth_data.email, auth_data.password, session=db)
+
     if not user:
         log(log.ERROR, "User [%s] wrong email or password", auth_data.email)
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Invalid credentials")
+
+    if not user.is_verified:
+        log(log.ERROR, "User [%s] not verified", auth_data.email)
+
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="User not verified. Please verify your email"
+        )
+
     # admin user can not get API token
     if user.role == s.UserRole.ADMIN.value:
         log(log.ERROR, "User [%s] is an admin user", user.email)
