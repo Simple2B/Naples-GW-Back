@@ -20,7 +20,7 @@ def test_create_stripe_product_get_products(
         description="description",
         amount=1,
         currency="usd",
-        recurring_interval="month",
+        recurring_interval=s.ProductTypeRecurringInterval.MONTH.value,
         points=["point 1", "point 2"],
     )
 

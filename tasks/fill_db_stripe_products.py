@@ -21,7 +21,7 @@ def fill_db_stripe_products(with_print: bool = True):
                 description="1-3 Properties",
                 amount=14,
                 currency="usd",
-                recurring_interval="month",
+                recurring_interval=s.ProductTypeRecurringInterval.MONTH.value,
                 points=["Up to 3 active", "2 Unactive"],
             ),
             s.ProductIn(
@@ -29,7 +29,7 @@ def fill_db_stripe_products(with_print: bool = True):
                 description="4-10 Properties",
                 amount=29,
                 currency="usd",
-                recurring_interval="month",
+                recurring_interval=s.ProductTypeRecurringInterval.MONTH.value,
                 points=["Up to 10 active", "5 Unactive"],
             ),
             s.ProductIn(
@@ -37,7 +37,7 @@ def fill_db_stripe_products(with_print: bool = True):
                 description="11-30 Properties",
                 amount=49,
                 currency="usd",
-                recurring_interval="month",
+                recurring_interval=s.ProductTypeRecurringInterval.MONTH.value,
                 points=["Up to 30 active", "10 Unactive"],
             ),
         ]

@@ -75,7 +75,7 @@ def get_stripe_product(data: s.ProductIn) -> s.StripeProductOut | None:
         default_price_data={
             "unit_amount": data.amount * 100,
             "currency": data.currency,
-            "recurring": {"interval": data.recurring_interval},
+            "recurring": {"interval": data.recurring_interval},  # type: ignore
         },
         expand=["default_price"],
         metadata={"description": data.description},
