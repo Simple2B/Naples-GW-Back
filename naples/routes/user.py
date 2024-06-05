@@ -236,7 +236,7 @@ def change_user_password(
             message=msg,
             charset=CFG.CHARSET,
             mail_body_text=CFG.MAIL_BODY_TEXT,
-            mail_subject=CFG.MAIL_SUBJECT,
+            mail_subject=CFG.MAIL_SUBJECT_CHANGE_PASSWORD,
         )
         sendEmailAmazonSES(emailContent, ses_client=ses)
 

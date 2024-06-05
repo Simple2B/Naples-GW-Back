@@ -50,6 +50,7 @@ class BaseConfig(BaseSettings):
     MAIL_PASSWORD: str
     MAIL_DEFAULT_SENDER: str
     MAIL_SUBJECT: str = "Email Verification"
+    MAIL_SUBJECT_CHANGE_PASSWORD: str = "Change Password"
     MAIL_BODY_TEXT: str
 
     CHARSET: str = "UTF-8"
