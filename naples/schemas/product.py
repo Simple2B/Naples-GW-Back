@@ -1,10 +1,18 @@
 from datetime import datetime
+import enum
 
 from pydantic import BaseModel, ConfigDict
 from naples.config import config
 
 
 CFG = config()
+
+
+class ProductTypeRecurringInterval(enum.Enum):
+    DAY = "day"
+    WEEK = "week"
+    MONTH = "month"
+    YEAR = "year"
 
 
 class Product(BaseModel):
@@ -31,7 +39,7 @@ class ProductIn(BaseModel):
     is_delete: bool | None = None
     points: list[str] | None = None
     currency: str = "usd"
-    recurring_interval: str = "month"
+    recurring_interval: str = ProductTypeRecurringInterval.MONTH.value
 
     model_config = ConfigDict(
         from_attributes=True,

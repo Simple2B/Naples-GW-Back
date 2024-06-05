@@ -7,7 +7,6 @@ from typing import TYPE_CHECKING
 
 
 from naples.database import db
-from naples import schemas as s
 from .utils import ModelMixin, create_uuid, datetime_utc
 
 if TYPE_CHECKING:

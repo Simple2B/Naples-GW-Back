@@ -1,7 +1,6 @@
 from typing import Self
 from datetime import datetime
 
-from prompt_toolkit.key_binding.bindings import vi
 import sqlalchemy as sa
 from sqlalchemy import orm
 

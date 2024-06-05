@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 
 
 from naples.database import db
+from naples import schemas as s
 
 from .utils import ModelMixin, create_uuid, datetime_utc
 
@@ -28,7 +29,7 @@ class Product(db.Model, ModelMixin):
 
     currency: orm.Mapped[str] = orm.mapped_column(sa.String(8), nullable=False, default="usd")
 
-    recurring_interval: orm.Mapped[str] = orm.mapped_column(sa.String(32), nullable=False, default="month")
+    recurring_interval: orm.Mapped[str] = orm.mapped_column(default=s.ProductTypeRecurringInterval.MONTH.value)
 
     stripe_product_id: orm.Mapped[str] = orm.mapped_column(sa.String(128), nullable=True)
 
