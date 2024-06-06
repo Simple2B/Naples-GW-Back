@@ -10,6 +10,7 @@ from .user import (
     Users,
     EmailAmazonSESContent,
     UserForgotPasswordIn,
+    UserCreatePasswordIn,
 )
 from .token import Token, TokenData, TokenOut, Auth
 from .store import Store, StoreIn, StoreAboutUsDescription, StoreAboutUs, StoreOut, Stores, StoreUpdateIn
