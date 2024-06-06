@@ -71,6 +71,8 @@ class BaseConfig(BaseSettings):
 
     STRIPE_SUBSCRIPTION_TRIAL_PERIOD_DAYS: int = 14
 
+    MAIN_DOMAIN: str = "naples.simple2b.com"
+
     model_config = SettingsConfigDict(
         extra="allow",
         env_file=("project.env", ".env.dev", ".env"),
