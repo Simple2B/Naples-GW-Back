@@ -220,6 +220,8 @@ def change_user_password(
 
     hashed_password = make_hash(data.new_password)
 
+    log(log.INFO, f"For user {current_user.email} create password {hashed_password}")
+
     current_user.reset_password_uid = hashed_password
 
     db.commit()
@@ -280,7 +282,7 @@ def save_user_new_password(
     db.commit()
     db.refresh(user)
 
-    log(log.INFO, f"User {user.email} changed his password")
+    log(log.INFO, f"User {user.email} changed his password to {user.password_hash}")
 
     return user
 
