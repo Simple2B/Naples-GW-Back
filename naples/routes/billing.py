@@ -279,3 +279,52 @@ async def webhook_received(
         log(log.INFO, "Event not handled: %s", event_type)
 
     return
+
+
+@billing_router.post(
+    "/modify-subscription",
+    status_code=status.HTTP_200_OK,
+    responses={
+        status.HTTP_400_BAD_REQUEST: {"description": "User not created in stripe"},
+    },
+)
+def modify_subscription(
+    data: s.SubscriptionIn,
+    db: Session = Depends(get_db),
+    current_user: m.User = Depends(get_current_user),
+):
+    """Modify subscription"""
+
+    user_billing = db.scalar(sa.select(m.Billing).where(m.Billing.user_id == current_user.id))
+
+    if not user_billing:
+        stripe_user = stripe.Customer.create(email=current_user.email)
+
+        if not stripe_user:
+            log(log.ERROR, "User not created in stripe")
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User not created in stripe")
+
+        subscription_type = data.subscription_type
+
+        user_billing = m.Billing(
+            user_id=current_user.id,
+            customer_stripe_id=stripe_user.id,
+            type=subscription_type,
+        )
+
+        db.add(user_billing)
+        db.commit()
+        db.refresh(user_billing)
+
+    user_subscription = stripe.Subscription.retrieve(user_billing.subscription_id)
+
+    res = stripe.Subscription.modify(
+        user_subscription.id,
+        items=[
+            {"id": user_subscription.items.data[0].id, "price": data.product_price_id},
+        ],
+    )
+
+    res
+
+    return
