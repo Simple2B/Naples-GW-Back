@@ -210,7 +210,7 @@ def change_user_password(
     current_user: m.User = Depends(get_current_user),
     ses: SESClient = Depends(get_ses_client),
 ):
-    """Resets the user password"""
+    """Changes the user password"""
 
     user = m.User.authenticate(current_user.email, data.old_password, session=db)
 
@@ -250,6 +250,7 @@ def change_user_password(
 @user_router.get(
     "/change-password/{token}",
     status_code=status.HTTP_200_OK,
+    response_model=s.User,
     responses={
         status.HTTP_404_NOT_FOUND: {"description": "Invalid token"},
     },
@@ -258,7 +259,7 @@ def save_user_new_password(
     token: str,
     db: Session = Depends(get_db),
 ):
-    """Saves the new password"""
+    """Saves the new password after the user has changed it"""
 
     token_data: s.TokenData = verify_access_token(token, INVALID_CREDENTIALS_EXCEPTION)
 
@@ -281,7 +282,7 @@ def save_user_new_password(
 
     log(log.INFO, f"User {user.email} changed his password")
 
-    return
+    return user
 
 
 @user_router.post(

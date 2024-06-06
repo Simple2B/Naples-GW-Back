@@ -129,7 +129,7 @@ def sign_up(
     user_store = m.Store(
         user_id=new_user.id,
         email=new_user.email,
-        url=f"{new_user.uuid}.{CFG.WEB_SERVICE_NAME}",
+        url=f"https://{new_user.uuid}.{CFG.MAIN_DOMAIN}",
     )
 
     db.add(user_store)
