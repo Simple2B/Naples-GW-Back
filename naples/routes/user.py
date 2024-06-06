@@ -276,13 +276,15 @@ def save_user_new_password(
         log(log.ERROR, "User not found")
         raise Exception("User not found")
 
-    user.password_hash = user.reset_password_uid
+    password_hash = user.reset_password_uid
+
+    user.password_hash = password_hash
     user.reset_password_uid = ""
 
     db.commit()
     db.refresh(user)
 
-    log(log.INFO, f"User {user.email} changed his password to {user.password_hash}")
+    log(log.INFO, f"!!! User {user.email} changed his password to {user.password_hash}")
 
     return user
 
