@@ -28,6 +28,15 @@ class UserForgotPasswordIn(BaseModel):
     )
 
 
+class UserCreatePasswordIn(BaseModel):
+    password: str
+    token: str
+
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
+
+
 class UserSignIn(BaseUser):
     password: str
 
