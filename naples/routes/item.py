@@ -692,3 +692,88 @@ def delete_item_amenity(
     db.commit()
 
     log(log.INFO, "Amenity [%s] for item [%s] was deleted", amenity_uuid, item_uuid)
+
+
+@item_router.post(
+    "/{item_uuid}/video",
+    status_code=status.HTTP_201_CREATED,
+    response_model=s.ItemDetailsOut,
+    responses={
+        404: {"description": "Item not found"},
+    },
+)
+def upload_item_video(
+    item_uuid: str,
+    file: UploadFile,
+    db: Session = Depends(get_db),
+    current_store: m.Store = Depends(get_current_user_store),
+    s3_client: S3Client = Depends(get_s3_connect),
+):
+    """Upload video for item by UUID"""
+
+    item = current_store.get_item_by_uuid(item_uuid)
+
+    if not item:
+        log(log.ERROR, "Item [%s] not found", item_uuid)
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
+
+    extension = get_file_extension(file)
+
+    file_type = get_file_type(extension)
+
+    if file_type == s.FileType.UNKNOWN:
+        log(log.ERROR, "Unknown file extension [%s]", extension)
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Unknown file extension")
+
+    item_model = c.create_file(
+        file=file,
+        db=db,
+        s3_client=s3_client,
+        extension=extension,
+        store_url=current_store.url,
+        file_type=file_type,
+    )
+
+    item._videos.append(item_model)
+
+    db.commit()
+    db.refresh(item)
+
+    log(log.INFO, "Video for item [%s] was uploaded", item_uuid)
+
+    return s.ItemDetailsOut.model_validate(item)
+
+
+@item_router.delete(
+    "/{item_uuid}/video",
+    status_code=status.HTTP_204_NO_CONTENT,
+    responses={
+        404: {"description": "Item not found"},
+    },
+)
+def delete_item_video(
+    item_uuid: str,
+    video_url: str,
+    db: Session = Depends(get_db),
+    current_store: m.Store = Depends(get_current_user_store),
+):
+    """Delete video for item by url"""
+
+    log(log.INFO, "Deleting video [%s] for item [%s]", video_url, item_uuid)
+
+    item = current_store.get_item_by_uuid(item_uuid)
+
+    if not item:
+        log(log.ERROR, "Item [%s] not found", item_uuid)
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
+
+    video = next((v for v in item._videos if v.url == video_url), None)
+
+    if not video:
+        log(log.ERROR, "Video [%s] not found for item [%s]", video_url, item_uuid)
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Video not found")
+
+    video.mark_as_deleted()
+    db.commit()
+
+    log(log.INFO, "Video [%s] for item [%s] was deleted", video_url, item_uuid)

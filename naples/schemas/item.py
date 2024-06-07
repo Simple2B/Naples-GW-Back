@@ -123,6 +123,8 @@ class ItemDetailsOut(ItemOut):
 
     booked_dates: list[BookedDateOut]
 
+    videos_urls: list[str]
+
     description: str
     amenities: list[str]
     external_urls: ExternalUrls
