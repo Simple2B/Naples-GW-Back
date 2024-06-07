@@ -222,7 +222,7 @@ def change_user_password(
 
     log(log.INFO, f"For user {current_user.email} create password {hashed_password}")
 
-    current_user.reset_password_uid = hashed_password
+    current_user.change_password_hash = hashed_password
 
     db.commit()
     db.refresh(current_user)
@@ -276,10 +276,10 @@ def save_user_new_password(
         log(log.ERROR, "User not found")
         raise Exception("User not found")
 
-    password_hash = user.reset_password_uid
+    password_hash = user.change_password_hash
 
     user.password_hash = password_hash
-    user.reset_password_uid = ""
+    user.change_password_hash = ""
 
     db.commit()
     db.refresh(user)

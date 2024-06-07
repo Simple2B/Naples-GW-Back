@@ -143,9 +143,9 @@ def test_change_password(
     db_user: m.User | None = db.scalar(sa.select(m.User).where(m.User.email == user.email))
     assert db_user
 
-    assert db_user.password
+    assert db_user.password_hash != data.old_password
 
-    change_password = db_user.reset_password_uid
+    change_password = db_user.change_password_hash
     assert change_password
     db_user.password_hash = change_password
 

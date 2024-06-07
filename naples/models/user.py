@@ -55,6 +55,8 @@ class User(db.Model, ModelMixin):
         default="",
     )
 
+    change_password_hash: orm.Mapped[str] = orm.mapped_column(sa.String(256), default="", server_default="")
+
     store: orm.Mapped["Store"] = orm.relationship()
 
     avatar: orm.Mapped["File"] = orm.relationship()
