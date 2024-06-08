@@ -585,7 +585,7 @@ def test_update_item(
     assert not updated_item.external_urls.airbnb_url
 
 
-def test_upload_video(
+def test_upload_and_delete_video(
     client: TestClient,
     full_db: Session,
     headers: dict[str, str],
@@ -603,13 +603,47 @@ def test_upload_video(
         assert response.status_code == 201
 
         item = s.ItemDetailsOut.model_validate(response.json())
-        assert item.videos_urls
-        assert len(item.videos_urls) == 1
+        assert item.videos_links
+        assert len(item.videos_links) == 1
 
         delete_response = client.delete(
-            f"/api/items/{item.uuid}/video", headers=headers, params={"video_url": item.videos_urls[0]}
+            f"/api/items/{item.uuid}/video", headers=headers, params={"video_url": item.videos_links[0].url}
         )
         assert delete_response.status_code == 204
 
         full_db.refresh(item_model)
-        assert not item_model.videos_urls
+        assert not item_model.videos_links
+
+
+def test_upload_and_delete_youtube_link(
+    client: TestClient,
+    full_db: Session,
+    headers: dict[str, str],
+):
+    item_model = full_db.scalar(select(m.Item))
+    assert item_model
+
+    youtube_link = "https://www.youtube.com/watch?v=6JYIGclVQdw"
+
+    data = s.LinkIn(
+        item_uuid=item_model.uuid,
+        url=youtube_link,
+    )
+
+    response = client.post(
+        "/api/items/upload/link",
+        headers=headers,
+        json=data.model_dump(),
+    )
+    assert response.status_code == 201
+    assert s.ItemDetailsOut.model_validate(response.json())
+
+    res = client.delete(
+        f"/api/items/{item_model.uuid}/link",
+        headers=headers,
+        params={"link": youtube_link},
+    )
+
+    assert res.status_code == 204
+    full_db.refresh(item_model)
+    assert not item_model.videos_links

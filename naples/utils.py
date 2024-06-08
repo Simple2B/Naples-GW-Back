@@ -124,3 +124,11 @@ def delete_user_with_store(db: Session, user: m.User) -> None:
     db.delete(user)
     db.commit()
     return
+
+
+def get_link_type(link: str) -> str:
+    if s.LinkType.YouTubeVideo.value in link:
+        log(log.INFO, "link is youtube")
+        return s.LinkType.YouTubeVideo.value
+
+    return s.LinkType.UNKNOWN.value
