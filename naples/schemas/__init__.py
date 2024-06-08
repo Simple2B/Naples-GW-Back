@@ -19,6 +19,7 @@ from .item import (
     ItemIn,
     ItemOut,
     Items,
+    ItemVideoLinkOut,
     ItemsFilterDataIn,
     ItemsFilterDataOut,
     ItemDataIn,
@@ -77,3 +78,4 @@ from .billing import (
 
 from .product import Product, ProductTypeRecurringInterval, ProductIn, ProductOut, ProductsOut, StripeProductOut
 from .point import Point, PointIn, PointOut, PointsOut
+from .link import LinkType, Link, LinkIn, LinkOut, LinksOut

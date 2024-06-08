@@ -105,6 +105,16 @@ class ItemOut(BaseModel):
     )
 
 
+class ItemVideoLinkOut(BaseModel):
+    uuid: str
+    type: str
+    url: str
+
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
+
+
 class ItemDetailsOut(ItemOut):
     logo_url: str
     main_media: MainMedia | None = None
@@ -123,7 +133,7 @@ class ItemDetailsOut(ItemOut):
 
     booked_dates: list[BookedDateOut]
 
-    videos_urls: list[str]
+    videos_links: list[ItemVideoLinkOut]
 
     description: str
     amenities: list[str]
