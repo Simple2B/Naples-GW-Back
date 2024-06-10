@@ -1,5 +1,6 @@
 import enum
 from pydantic import BaseModel, ConfigDict
+from .billing import Billing
 
 
 class UserRole(enum.Enum):
@@ -28,6 +29,15 @@ class UserForgotPasswordIn(BaseModel):
     )
 
 
+class UserCreatePasswordIn(BaseModel):
+    password: str
+    token: str
+
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
+
+
 class UserSignIn(BaseUser):
     password: str
 
@@ -41,6 +51,8 @@ class User(BaseUser):
     uuid: str
     is_verified: bool = True
     store_url: str
+
+    billing: Billing | None = None
 
     model_config = ConfigDict(
         from_attributes=True,

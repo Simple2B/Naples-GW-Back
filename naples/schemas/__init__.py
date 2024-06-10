@@ -10,6 +10,7 @@ from .user import (
     Users,
     EmailAmazonSESContent,
     UserForgotPasswordIn,
+    UserCreatePasswordIn,
 )
 from .token import Token, TokenData, TokenOut, Auth
 from .store import Store, StoreIn, StoreAboutUsDescription, StoreAboutUs, StoreOut, Stores, StoreUpdateIn
@@ -18,6 +19,7 @@ from .item import (
     ItemIn,
     ItemOut,
     Items,
+    ItemVideoLinkOut,
     ItemsFilterDataIn,
     ItemsFilterDataOut,
     ItemDataIn,
@@ -68,11 +70,12 @@ from .store_url import (
     TraefikTLS,
 )
 from .billing import (
+    Billing,
     SubscriptionType,
     SubscriptionIn,
-    SubscriptionProductPricesOut,
     CheckoutSessionOut,
 )
 
 from .product import Product, ProductTypeRecurringInterval, ProductIn, ProductOut, ProductsOut, StripeProductOut
 from .point import Point, PointIn, PointOut, PointsOut
+from .link import LinkType, Link, LinkIn, LinkOut, LinksOut

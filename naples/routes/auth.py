@@ -17,6 +17,7 @@ from naples import models as m
 from naples import schemas as s
 from naples.logger import log
 from naples.database import get_db
+from naples.routes.utils import create_stripe_customer
 from naples.utils import createMsgEmail, delete_user_with_store, sendEmailAmazonSES
 from naples.config import config
 
@@ -129,13 +130,26 @@ def sign_up(
     user_store = m.Store(
         user_id=new_user.id,
         email=new_user.email,
-        url=f"{new_user.uuid}.{CFG.WEB_SERVICE_NAME}",
+        url=f"{new_user.uuid}.{CFG.MAIN_DOMAIN}",
     )
 
     db.add(user_store)
     db.commit()
 
     log(log.INFO, "Store for user [%s] created", new_user.email)
+
+    # create stripe customer
+    stripe_customer = create_stripe_customer(new_user)
+
+    user_billing = m.Billing(
+        user_id=new_user.id,
+        customer_stripe_id=stripe_customer.id,
+    )
+
+    db.add(user_billing)
+    db.commit()
+
+    log(log.INFO, "Billing for user [%s] created", new_user.email)
 
     token = s.Token(access_token=create_access_token(new_user.id))
 

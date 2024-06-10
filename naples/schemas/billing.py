@@ -1,4 +1,5 @@
 import enum
+from datetime import datetime
 from pydantic import BaseModel, ConfigDict
 from naples.config import config
 
@@ -12,23 +13,32 @@ class SubscriptionType(enum.Enum):
     PRO = "pro"
 
 
-class SubscriptionProductPricesOut(BaseModel):
-    starter_price_id: str
-    plus_price_id: str
-    pro_price_id: str
+class Billing(BaseModel):
+    uuid: str
+    type: str = ""
+    customer_stripe_id: str = ""
+    subscription_id: str = ""
+    subscription_start_date: datetime | None
+    subscription_end_date: datetime | None
+    subscription_status: str = ""
 
-    model_config = ConfigDict(arbitrary_types_allowed=True)
+    model_config = ConfigDict(
+        arbitrary_types_allowed=True,
+    )
 
 
 class SubscriptionIn(BaseModel):
-    subscription_type: str
-    product_price_id: str
+    stripe_price_id: str
 
-    model_config = ConfigDict(arbitrary_types_allowed=True)
+    model_config = ConfigDict(
+        arbitrary_types_allowed=True,
+    )
 
 
 class CheckoutSessionOut(BaseModel):
     id: str
-    url: str | None = None
+    url: str
 
-    model_config = ConfigDict(arbitrary_types_allowed=True)
+    model_config = ConfigDict(
+        arbitrary_types_allowed=True,
+    )

@@ -143,14 +143,15 @@ def test_change_password(
     db_user: m.User | None = db.scalar(sa.select(m.User).where(m.User.email == user.email))
     assert db_user
 
-    assert db_user.password
+    assert db_user.password_hash != data.old_password
+    assert not db_user.is_verified
 
-    change_password = db_user.reset_password_uid
-    assert change_password
-    db_user.password_hash = change_password
+    db_user.is_verified = True
 
     db.commit()
     db.refresh(db_user)
+
+    assert db_user.is_verified
 
     form_data = {"username": user.email, "password": data.new_password}
 

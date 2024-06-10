@@ -20,6 +20,7 @@ if TYPE_CHECKING:
     from .file import File
     from .booked_date import BookedDate
     from .contact_request import ContactRequest
+    from .link import Link
 
 
 class Item(db.Model, ModelMixin):
@@ -80,9 +81,31 @@ class Item(db.Model, ModelMixin):
     _floor_plans: orm.Mapped[list["FloorPlan"]] = orm.relationship(viewonly=True)
     _booked_dates: orm.Mapped[list["BookedDate"]] = orm.relationship(viewonly=True)
     _main_media: orm.Mapped["File"] = orm.relationship()
+
     _images: orm.Mapped[list["File"]] = orm.relationship(secondary="items_images")
+
     _documents: orm.Mapped[list["File"]] = orm.relationship(secondary="items_documents")
+
     _contact_requests: orm.Mapped[list["ContactRequest"]] = orm.relationship(viewonly=True)
+
+    _videos: orm.Mapped[list["File"]] = orm.relationship(secondary="items_videos")
+
+    _links: orm.Mapped[list["Link"]] = orm.relationship(secondary="items_links")
+
+    @property
+    def videos(self):
+        return [v for v in self._videos if not v.is_deleted]
+
+    @property
+    def links(self):
+        return [link for link in self._links if not link.is_deleted]
+
+    @property
+    def videos_links(self):
+        videos = [v for v in self._videos if not v.is_deleted]
+        links = [link for link in self._links if not link.is_deleted]
+
+        return videos + links
 
     @property
     def amenities(self) -> list[str]:
@@ -171,6 +194,8 @@ class Item(db.Model, ModelMixin):
             self.main_media.mark_as_deleted()
         for image in self.images:
             image.mark_as_deleted()
+        for video in self.videos:
+            video.mark_as_deleted()
 
     def __repr__(self):
         return f"<{self.uuid}:{self.name} >"

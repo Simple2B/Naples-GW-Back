@@ -25,14 +25,14 @@ class Billing(db.Model, ModelMixin):
 
     amount: orm.Mapped[int] = orm.mapped_column(nullable=False, default=0)
 
-    customer_stripe_id: orm.Mapped[str] = orm.mapped_column(sa.String(128), nullable=True)
+    customer_stripe_id: orm.Mapped[str] = orm.mapped_column(sa.String(128), default="")
 
-    subscription_id: orm.Mapped[str] = orm.mapped_column(sa.String(128), nullable=True)
+    subscription_id: orm.Mapped[str] = orm.mapped_column(sa.String(128), default="")
 
     subscription_start_date: orm.Mapped[datetime] = orm.mapped_column(nullable=True)
     subscription_end_date: orm.Mapped[datetime] = orm.mapped_column(nullable=True)
 
-    subscription_status: orm.Mapped[str] = orm.mapped_column(sa.String(32), nullable=True)
+    subscription_status: orm.Mapped[str] = orm.mapped_column(sa.String(32), default="")
 
     subscription_item_id: orm.Mapped[str] = orm.mapped_column(sa.String(128), nullable=True)
 

@@ -34,7 +34,11 @@ INVALID_CREDENTIALS_EXCEPTION = HTTPException(
 user_router = APIRouter(prefix="/users", tags=["Users"])
 
 
-@user_router.get("/me", status_code=status.HTTP_200_OK, response_model=s.User)
+@user_router.get(
+    "/me",
+    status_code=status.HTTP_200_OK,
+    response_model=s.User,
+)
 def get_current_user_profile(
     current_user: m.User = Depends(get_current_user),
 ):
@@ -210,7 +214,7 @@ def change_user_password(
     current_user: m.User = Depends(get_current_user),
     ses: SESClient = Depends(get_ses_client),
 ):
-    """Resets the user password"""
+    """Changes the user password"""
 
     user = m.User.authenticate(current_user.email, data.old_password, session=db)
 
@@ -218,9 +222,10 @@ def change_user_password(
         log(log.ERROR, f"User {current_user.email} entered wrong old password")
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Old password is incorrect")
 
-    hashed_password = make_hash(data.new_password)
+    user.is_verified = False
+    user.password = data.new_password
 
-    current_user.reset_password_uid = hashed_password
+    log(log.INFO, f"User {current_user.email} changed his password, verification required")
 
     db.commit()
     db.refresh(current_user)
@@ -250,6 +255,7 @@ def change_user_password(
 @user_router.get(
     "/change-password/{token}",
     status_code=status.HTTP_200_OK,
+    response_model=s.User,
     responses={
         status.HTTP_404_NOT_FOUND: {"description": "Invalid token"},
     },
@@ -258,7 +264,7 @@ def save_user_new_password(
     token: str,
     db: Session = Depends(get_db),
 ):
-    """Saves the new password"""
+    """Saves the new password after the user has changed it"""
 
     token_data: s.TokenData = verify_access_token(token, INVALID_CREDENTIALS_EXCEPTION)
 
@@ -273,15 +279,14 @@ def save_user_new_password(
         log(log.ERROR, "User not found")
         raise Exception("User not found")
 
-    user.password = user.reset_password_uid
-    user.reset_password_uid = ""
+    user.is_verified = True
 
     db.commit()
     db.refresh(user)
 
     log(log.INFO, f"User {user.email} changed his password")
 
-    return
+    return user
 
 
 @user_router.post(
@@ -333,3 +338,44 @@ def forgot_password(
     log(log.INFO, f"User {user.email} forgot his password")
 
     return user
+
+
+@user_router.post(
+    "/forgot_password/create",
+    status_code=status.HTTP_201_CREATED,
+    responses={
+        status.HTTP_404_NOT_FOUND: {"description": "User not found"},
+        status.HTTP_400_BAD_REQUEST: {"description": "Email not sent!"},
+    },
+)
+def forgot_password_create(
+    data: s.UserCreatePasswordIn,
+    db: Session = Depends(get_db),
+    ses: SESClient = Depends(get_ses_client),
+):
+    """Create new password when user forgot password"""
+
+    log(log.INFO, "User forgot password")
+
+    token_data: s.TokenData = verify_access_token(data.token, INVALID_CREDENTIALS_EXCEPTION)
+
+    user = db.scalar(
+        sa.select(m.User).where(
+            m.User.id == token_data.user_id,
+            m.User.is_deleted == sa.false(),
+        )
+    )
+
+    if not user:
+        log(log.ERROR, "User not found")
+        raise Exception("User not found")
+
+    hashed_password = make_hash(data.password)
+    user.password_hash = hashed_password
+
+    db.commit()
+    db.refresh(user)
+
+    log(log.INFO, f"User {user.email} changed his password")
+
+    return

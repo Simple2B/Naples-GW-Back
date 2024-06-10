@@ -19,7 +19,7 @@ from naples.dependency import get_current_user, get_current_store, get_current_u
 from naples.database import get_db
 
 from naples.config import config
-from naples.utils import get_file_extension
+from naples.utils import get_file_extension, get_link_type
 
 CFG = config()
 
@@ -692,3 +692,168 @@ def delete_item_amenity(
     db.commit()
 
     log(log.INFO, "Amenity [%s] for item [%s] was deleted", amenity_uuid, item_uuid)
+
+
+@item_router.post(
+    "/{item_uuid}/video",
+    status_code=status.HTTP_201_CREATED,
+    response_model=s.ItemDetailsOut,
+    responses={
+        404: {"description": "Item not found"},
+    },
+)
+def upload_item_video(
+    item_uuid: str,
+    file: UploadFile,
+    db: Session = Depends(get_db),
+    current_store: m.Store = Depends(get_current_user_store),
+    s3_client: S3Client = Depends(get_s3_connect),
+):
+    """Upload video for item by UUID"""
+
+    item = current_store.get_item_by_uuid(item_uuid)
+
+    if not item:
+        log(log.ERROR, "Item [%s] not found", item_uuid)
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
+
+    extension = get_file_extension(file)
+
+    file_type = get_file_type(extension)
+
+    if file_type == s.FileType.UNKNOWN:
+        log(log.ERROR, "Unknown file extension [%s]", extension)
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Unknown file extension")
+
+    item_model = c.create_file(
+        file=file,
+        db=db,
+        s3_client=s3_client,
+        extension=extension,
+        store_url=current_store.url,
+        file_type=file_type,
+    )
+
+    item._videos.append(item_model)
+
+    db.commit()
+    db.refresh(item)
+
+    log(log.INFO, "Video for item [%s] was uploaded", item_uuid)
+
+    return s.ItemDetailsOut.model_validate(item)
+
+
+@item_router.delete(
+    "/{item_uuid}/video",
+    status_code=status.HTTP_204_NO_CONTENT,
+    responses={
+        404: {"description": "Item not found"},
+    },
+)
+def delete_item_video(
+    item_uuid: str,
+    video_url: str,
+    db: Session = Depends(get_db),
+    current_store: m.Store = Depends(get_current_user_store),
+):
+    """Delete video for item by url"""
+
+    log(log.INFO, "Deleting video [%s] for item [%s]", video_url, item_uuid)
+
+    item = current_store.get_item_by_uuid(item_uuid)
+
+    if not item:
+        log(log.ERROR, "Item [%s] not found", item_uuid)
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
+
+    video = next((v for v in item._videos if v.url == video_url), None)
+
+    if not video:
+        log(log.ERROR, "Video [%s] not found for item [%s]", video_url, item_uuid)
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Video not found")
+
+    video.mark_as_deleted()
+    db.commit()
+
+    log(log.INFO, "Video [%s] for item [%s] was deleted", video_url, item_uuid)
+
+
+@item_router.post(
+    "/upload/link",
+    status_code=status.HTTP_201_CREATED,
+    response_model=s.ItemDetailsOut,
+    responses={
+        404: {"description": "Item not found"},
+        400: {"description": "Unknown link type"},
+    },
+)
+def upload_item_link(
+    data: s.LinkIn,
+    db: Session = Depends(get_db),
+    current_store: m.Store = Depends(get_current_user_store),
+):
+    """Upload link for item by UUID"""
+
+    item = current_store.get_item_by_uuid(data.item_uuid)
+
+    if not item:
+        log(log.ERROR, "Item [%s] not found", data.item_uuid)
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
+
+    # get type of link
+    link_type = get_link_type(data.url)
+
+    if link_type == s.LinkType.UNKNOWN.value:
+        log(log.ERROR, "Unknown link type [%s]", data.url)
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Unknown link type")
+
+    item_model = m.Link(
+        type=link_type,
+        url=data.url,
+    )
+
+    item._links.append(item_model)
+
+    db.commit()
+    db.refresh(item)
+
+    log(log.INFO, "Link for item [%s] was uploaded", data.item_uuid)
+
+    return s.ItemDetailsOut.model_validate(item)
+
+
+@item_router.delete(
+    "/{item_uuid}/link",
+    status_code=status.HTTP_204_NO_CONTENT,
+    responses={
+        404: {"description": "Item not found"},
+    },
+)
+def delete_item_link(
+    item_uuid: str,
+    link: str,
+    db: Session = Depends(get_db),
+    current_store: m.Store = Depends(get_current_user_store),
+):
+    """Delete link for item by url"""
+
+    log(log.INFO, "Deleting link [%s] for item [%s]", link, item_uuid)
+
+    item = current_store.get_item_by_uuid(item_uuid)
+
+    if not item:
+        log(log.ERROR, "Item [%s] not found", item_uuid)
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
+
+    db_link = next((db_link for db_link in item._links if db_link.url == link), None)
+
+    if not db_link:
+        log(log.ERROR, "Link [%s] not found for item [%s]", link, item_uuid)
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Link not found")
+
+    db_link.is_deleted = True
+    db_link.deleted_at = datetime.now()
+    db.commit()
+
+    log(log.INFO, "Link [%s] for item [%s] was deleted", link, item_uuid)
