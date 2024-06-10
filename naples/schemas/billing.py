@@ -22,6 +22,8 @@ class Billing(BaseModel):
     subscription_end_date: datetime | None
     subscription_status: str = ""
 
+    stripe_price_id: str = ""
+
     model_config = ConfigDict(
         arbitrary_types_allowed=True,
     )

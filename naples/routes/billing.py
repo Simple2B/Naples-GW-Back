@@ -66,8 +66,8 @@ def create_checkout_session(
         ],
         mode="subscription",
         customer=user_billing.customer_stripe_id,
-        success_url=f"{CFG.REDIRECT_URL}/success?session_id={{CHECKOUT_SESSION_ID}}",
-        cancel_url=f"{CFG.REDIRECT_URL}/cancel",
+        success_url=f"{CFG.REDIRECT_URL}/billing/success?session_id={{CHECKOUT_SESSION_ID}}",
+        cancel_url=f"{CFG.REDIRECT_URL}/billing/cancel",
         subscription_data={
             "trial_period_days": CFG.STRIPE_SUBSCRIPTION_TRIAL_PERIOD_DAYS,
             # TODO: add billing cycle anchor (if needed)

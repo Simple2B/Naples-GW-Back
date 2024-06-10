@@ -52,7 +52,7 @@ class User(BaseUser):
     is_verified: bool = True
     store_url: str
 
-    billing: Billing | None = None
+    billing: Billing
 
     model_config = ConfigDict(
         from_attributes=True,
