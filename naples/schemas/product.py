@@ -21,8 +21,8 @@ class Product(BaseModel):
     amount: int
     is_delete: bool
 
-    stripe_product_id: str = ""
-    stripe_price_id: str = ""
+    stripe_product_id: str
+    stripe_price_id: str
 
     created_at: datetime
     points: list[str]

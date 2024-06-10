@@ -29,6 +29,6 @@ class SubscriptionIn(BaseModel):
 
 class CheckoutSessionOut(BaseModel):
     id: str
-    url: str | None = None
+    url: str
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
