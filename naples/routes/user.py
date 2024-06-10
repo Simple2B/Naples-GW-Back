@@ -3,7 +3,6 @@ from fastapi import Depends, UploadFile, APIRouter, status
 from mypy_boto3_s3 import S3Client
 from botocore.exceptions import ClientError
 from mypy_boto3_ses import SESClient
-from stripe import billing
 
 
 from naples.dependency.get_user_store import get_current_user_store
