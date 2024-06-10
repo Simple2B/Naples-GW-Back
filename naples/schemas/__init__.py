@@ -70,9 +70,9 @@ from .store_url import (
     TraefikTLS,
 )
 from .billing import (
+    Billing,
     SubscriptionType,
     SubscriptionIn,
-    SubscriptionProductPricesOut,
     CheckoutSessionOut,
 )
 

@@ -34,7 +34,11 @@ INVALID_CREDENTIALS_EXCEPTION = HTTPException(
 user_router = APIRouter(prefix="/users", tags=["Users"])
 
 
-@user_router.get("/me", status_code=status.HTTP_200_OK, response_model=s.User)
+@user_router.get(
+    "/me",
+    status_code=status.HTTP_200_OK,
+    response_model=s.User,
+)
 def get_current_user_profile(
     current_user: m.User = Depends(get_current_user),
 ):
@@ -218,11 +222,10 @@ def change_user_password(
         log(log.ERROR, f"User {current_user.email} entered wrong old password")
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Old password is incorrect")
 
-    hashed_password = make_hash(data.new_password)
+    user.is_verified = False
+    user.password = data.new_password
 
-    log(log.INFO, f"For user {current_user.email} create password {hashed_password}")
-
-    current_user.change_password_hash = hashed_password
+    log(log.INFO, f"User {current_user.email} changed his password, verification required")
 
     db.commit()
     db.refresh(current_user)
@@ -276,15 +279,12 @@ def save_user_new_password(
         log(log.ERROR, "User not found")
         raise Exception("User not found")
 
-    password_hash = user.change_password_hash
-
-    user.password_hash = password_hash
-    user.change_password_hash = ""
+    user.is_verified = True
 
     db.commit()
     db.refresh(user)
 
-    log(log.INFO, f"!!! User {user.email} changed his password to {user.password_hash}")
+    log(log.INFO, f"User {user.email} changed his password")
 
     return user
 
