@@ -144,13 +144,14 @@ def test_change_password(
     assert db_user
 
     assert db_user.password_hash != data.old_password
+    assert not db_user.is_verified
 
-    change_password = db_user.change_password_hash
-    assert change_password
-    db_user.password_hash = change_password
+    db_user.is_verified = True
 
     db.commit()
     db.refresh(db_user)
+
+    assert db_user.is_verified
 
     form_data = {"username": user.email, "password": data.new_password}
 

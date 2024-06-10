@@ -10,35 +10,12 @@ from naples.dependency.user import get_current_user
 from naples import schemas as s, models as m
 from naples.config import config
 from naples.logger import log
+from naples.routes.utils import create_stripe_customer
 
 
 billing_router = APIRouter(prefix="/billings", tags=["Billings"])
 
 CFG = config()
-
-
-subscriptionPriceType = {
-    CFG.STRIPE_PRICE_STARTER_ID: s.SubscriptionType.STARTER.value,
-    CFG.STRIPE_PRICE_PLUS_ID: s.SubscriptionType.PLUS.value,
-    CFG.STRIPE_PRICE_PRO_ID: s.SubscriptionType.PRO.value,
-}
-
-
-# @billing_router.get("/products", response_model=s.SubscriptionProductPricesOut, status_code=status.HTTP_200_OK)
-# def get_products_prices(
-#     current_user: m.User = Depends(get_current_user),
-# ):
-#     """Get products prices"""
-
-#     prices_ids = s.SubscriptionProductPricesOut(
-#         starter_price_id=CFG.STRIPE_PRICE_STARTER_ID,
-#         plus_price_id=CFG.STRIPE_PRICE_PLUS_ID,
-#         pro_price_id=CFG.STRIPE_PRICE_PRO_ID,
-#     )
-
-#     log(log.INFO, "User [%s] get products prices", current_user.email)
-
-#     return prices_ids
 
 
 @billing_router.post(
@@ -59,13 +36,15 @@ def create_checkout_session(
     user_billing = db.scalar(sa.select(m.Billing).where(m.Billing.user_id == current_user.id))
 
     if not user_billing:
-        stripe_user = stripe.Customer.create(email=current_user.email)
+        stripe_user = create_stripe_customer(current_user)
 
-        if not stripe_user:
-            log(log.ERROR, "User not created in stripe")
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User not created in stripe")
+        product_db = db.scalar(sa.select(m.Product).where(m.Product.stripe_price_id == data.stripe_price_id))
 
-        subscription_type = data.subscription_type
+        if not product_db:
+            log(log.ERROR, "Product not found")
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Product not found")
+
+        subscription_type = product_db.type_name
 
         user_billing = m.Billing(
             user_id=current_user.id,
@@ -81,7 +60,7 @@ def create_checkout_session(
         payment_method_types=["card"],
         line_items=[
             {
-                "price": data.product_price_id,
+                "price": data.stripe_price_id,
                 "quantity": 1,
             }
         ],
@@ -95,6 +74,10 @@ def create_checkout_session(
             # "billing_cycle_anchor": 1672531200,
         },
     )
+
+    if not checkout_session.url:
+        log(log.ERROR, "User not created in stripe")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User not created in stripe")
 
     return s.CheckoutSessionOut(
         id=checkout_session.id,
@@ -204,7 +187,14 @@ async def webhook_received(
             return
 
         product_price = subscription["plan"]["id"]
-        subscription_type = subscriptionPriceType[product_price]
+
+        product_db = db.scalar(sa.select(m.Product).where(m.Product.stripe_price_id == product_price))
+
+        if not product_db:
+            log(log.ERROR, "Product not found")
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Product not found")
+
+        subscription_type = product_db.type_name
 
         stripe.Subscription.modify(
             db_billing.subscription_id,
@@ -251,7 +241,14 @@ async def webhook_received(
             db_billing.subscription_item_id = sub_item_id
 
             product_price = subscription["plan"]["id"]
-            subscription_type = subscriptionPriceType[product_price]
+
+            product_db = db.scalar(sa.select(m.Product).where(m.Product.stripe_price_id == product_price))
+
+            if not product_db:
+                log(log.ERROR, "Product not found")
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Product not found")
+
+            subscription_type = product_db.type_name
 
             db_billing.subscription_status = subscription["status"]
 
