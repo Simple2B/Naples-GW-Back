@@ -38,6 +38,13 @@ def db(test_data: s.TestData) -> Generator[orm.Session, None, None]:
         for test_user in test_data.test_users:
             user = create_test_user(test_user)
             session.add(user)
+            session.commit()
+
+            user_biiling = session.scalar(m.Billing.select().where(m.Billing.user_id == user.id))
+
+            if not user_biiling:
+                billing = m.Billing(user_id=user.id)
+                session.add(billing)
 
         for test_store in test_data.test_stores:
             store = create_store(test_store)

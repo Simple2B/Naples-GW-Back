@@ -57,6 +57,7 @@ def get_users(
 
     stmt: Executable = sa.select(m.User)
     db_users: Sequence[m.User] = db.scalars(stmt).all()
+
     users: list[s.User] = [
         s.User(
             id=user.id,
@@ -68,6 +69,16 @@ def get_users(
             role=user.role,
             avatar_url=user.avatar.url if user.avatar else "",
             store_url=user.store_url,
+            billing=s.Billing(
+                uuid=user.billing.uuid,
+                type=user.billing.type,
+                customer_stripe_id=user.billing.customer_stripe_id,
+                subscription_id=user.billing.subscription_id,
+                subscription_start_date=user.billing.subscription_start_date,
+                subscription_end_date=user.billing.subscription_end_date,
+                subscription_status=user.billing.subscription_status,
+                stripe_price_id=user.billing.stripe_price_id,
+            ),
         )
         for user in db_users
     ]
@@ -159,7 +170,29 @@ def upload_user_avatar(
     db.refresh(user_db)
 
     log(log.INFO, "Avatar uploaded for member {%s}", user_uuid)
-    return s.User.model_validate(user_db)
+
+    user = s.User(
+        id=user_db.id,
+        first_name=user_db.first_name,
+        last_name=user_db.last_name,
+        uuid=user_db.uuid,
+        email=user_db.email,
+        is_verified=user_db.is_verified,
+        role=user_db.role,
+        avatar_url=user_db.avatar.url,
+        store_url=user_db.store_url,
+        billing=s.Billing(
+            uuid=user_db.billing.uuid,
+            type=user_db.billing.type,
+            customer_stripe_id=user_db.billing.customer_stripe_id,
+            subscription_id=user_db.billing.subscription_id,
+            subscription_start_date=user_db.billing.subscription_start_date,
+            subscription_end_date=user_db.billing.subscription_end_date,
+            subscription_status=user_db.billing.subscription_status,
+            stripe_price_id=user_db.billing.stripe_price_id,
+        ),
+    )
+    return s.User.model_validate(user)
 
 
 @user_router.delete(

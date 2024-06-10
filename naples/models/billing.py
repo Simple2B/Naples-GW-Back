@@ -1,10 +1,10 @@
 from datetime import datetime
+import stripe
 
 import sqlalchemy as sa
 from sqlalchemy import orm
 
 from typing import TYPE_CHECKING
-
 
 from naples.database import db
 from .utils import ModelMixin, create_uuid, datetime_utc
@@ -41,6 +41,13 @@ class Billing(db.Model, ModelMixin):
     user_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey("users.id"))
 
     user: orm.Mapped["User"] = orm.relationship()
+
+    @property
+    def stripe_price_id(self):
+        if self.subscription_item_id:
+            res = stripe.Subscription.retrieve(self.subscription_item_id)
+            return res["items"]["data"][0]["price"]["id"]
+        return ""
 
     def __repr__(self):
         return f"<{self.id}: {self.uuid}>"
