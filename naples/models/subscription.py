@@ -38,6 +38,8 @@ class Subscription(db.Model, ModelMixin):
 
     user: orm.Mapped["User"] = orm.relationship()
 
+    # TODO: add last checked date, more then 3 days should be checked
+
     @property
     def stripe_price_id(self):
         if self.subscription_stripe_id:
