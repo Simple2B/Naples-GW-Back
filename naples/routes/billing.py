@@ -301,12 +301,13 @@ def modify_subscription(
             log(log.ERROR, "User not created in stripe")
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User not created in stripe")
 
-        subscription_type = data.subscription_type
+        # TODO: get subscription type from product
+        # subscription_type
 
         user_billing = m.Billing(
             user_id=current_user.id,
             customer_stripe_id=stripe_user.id,
-            type=subscription_type,
+            # type=subscription_type,
         )
 
         db.add(user_billing)
@@ -318,7 +319,7 @@ def modify_subscription(
     res = stripe.Subscription.modify(
         user_subscription.id,
         items=[
-            {"id": user_subscription.items.data[0].id, "price": data.product_price_id},
+            {"id": user_subscription.items.data[0].id, "price": data.stripe_price_id},
         ],
     )
 

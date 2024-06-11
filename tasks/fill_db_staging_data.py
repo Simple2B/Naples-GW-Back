@@ -3,6 +3,8 @@ from typing import Sequence
 from invoke import task
 from pathlib import Path
 
+from naples.routes.utils import create_stripe_customer
+
 
 sys.path = ["", ".."] + sys.path[1:]
 
@@ -41,6 +43,18 @@ def create_user_with_store():
                 new_user = create_user(user)
                 session.add(new_user)
                 log(log.INFO, "User [%s] created", new_user.email)
+                session.flush()
+
+            db_billing = session.query(m.Billing).filter(m.Billing.user_id == new_user.id).first()
+
+            if not db_billing:
+                stripe_customer = create_stripe_customer(new_user)
+                billing = m.Billing(
+                    user_id=new_user.id,
+                    customer_stripe_id=stripe_customer.id,
+                )
+                session.add(billing)
+                log(log.INFO, "Billing for user [%s] created", new_user.email)
                 session.flush()
 
         test_store_data = test_data.test_stores[0]
