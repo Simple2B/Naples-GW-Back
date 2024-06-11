@@ -37,8 +37,6 @@ class Product(db.Model, ModelMixin):
 
     is_deleted: orm.Mapped[bool] = orm.mapped_column(sa.Boolean, default=False)
 
-    is_delete: orm.Mapped[bool] = orm.mapped_column(sa.Boolean, default=False, nullable=True)
-
     created_at: orm.Mapped[datetime] = orm.mapped_column(default=datetime_utc)
 
     _points: orm.Mapped[list["Point"]] = orm.relationship("Point", back_populates="product")
