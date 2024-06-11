@@ -119,6 +119,7 @@ def create_portal_session(
     responses={
         status.HTTP_400_BAD_REQUEST: {"description": "Error verifying webhook signature"},
     },
+    include_in_schema=False,
 )
 async def webhook_received(
     request: Request,
@@ -171,6 +172,7 @@ async def webhook_received(
     elif event_type == "customer.subscription.deleted":
         db_subscription.subscription_stripe_id = ""
         db_subscription.status = ""
+        db_subscription.type = ""
         db_subscription.subscription_stripe_item_id = ""
         db_subscription.start_date = datetime(MINYEAR, 1, 1)
         db_subscription.end_date = datetime(MINYEAR, 1, 1)
@@ -251,6 +253,7 @@ async def webhook_received(
 @subscription_router.post(
     "/modify-subscription",
     status_code=status.HTTP_200_OK,
+    response_model=s.Subscription,
     responses={
         status.HTTP_400_BAD_REQUEST: {"description": "User not created in stripe"},
     },
@@ -273,8 +276,10 @@ def modify_subscription(
     res = stripe.Subscription.modify(
         user_stripe_subscription.id,
         items=[
-            {"id": user_subscription.items.data[0].id, "price": data.stripe_price_id},
+            {"id": user_subscription.subscription_stripe_item_id, "price": data.stripe_price_id},
         ],
     )
 
     log(log.INFO, "User subscription modified [%s]", res)
+
+    return user_subscription
