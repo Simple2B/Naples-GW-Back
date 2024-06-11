@@ -1,4 +1,5 @@
 import pytest
+from datetime import datetime, timedelta, UTC
 
 
 from typing import Generator
@@ -35,16 +36,26 @@ def db(test_data: s.TestData) -> Generator[orm.Session, None, None]:
     with db.Session() as session:
         db.Model.metadata.drop_all(bind=session.bind)
         db.Model.metadata.create_all(bind=session.bind)
+
         for test_user in test_data.test_users:
             user = create_test_user(test_user)
             session.add(user)
             session.commit()
 
-            user_biiling = session.scalar(m.Billing.select().where(m.Billing.user_id == user.id))
+            user_subscription = session.scalar(m.Subscription.select().where(m.Subscription.user_id == user.id))
 
-            if not user_biiling:
-                billing = m.Billing(user_id=user.id)
-                session.add(billing)
+            if not user_subscription:
+                start_date = datetime.now(UTC)
+                end_date = start_date + timedelta(days=30)
+                subscription = m.Subscription(
+                    user_id=user.id,
+                    customer_stripe_id=f"cus_{user.id}",
+                    start_date=start_date,
+                    end_date=end_date,
+                    status="trial",
+                )
+                session.add(subscription)
+                session.commit()
 
         for test_store in test_data.test_stores:
             store = create_store(test_store)
