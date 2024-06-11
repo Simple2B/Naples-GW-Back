@@ -7,22 +7,6 @@
       "email": "testemail1@gmail.com",
       "password": "user_1",
       "role": "user"
-    },
-    {
-      "first_name": "name_2",
-      "last_name": "surname_2",
-      "uuid": "1feab9bfb8424b399e887017d1815972",
-      "email": "testemail2@gmail.com",
-      "password": "user_2",
-      "role": "user"
-    },
-    {
-      "first_name": "name_3",
-      "last_name": "surname_3",
-      "uuid": "d5d9a500aab643f9b748ece58e71c878",
-      "email": "testemail3@gmail.com",
-      "password": "user_3",
-      "role": "user"
     }
   ],
   "test_stores": [
@@ -42,25 +26,6 @@
       "title_color": "#000000",
       "title_font_size": 24,
       "sub_title_value": "test_sub_title_value1",
-      "sub_title_color": "#000000",
-      "sub_title_font_size": 16
-    },
-    {
-      "uuid": "f53fecaf-c84a-4ac0-bfed-d6c945d91460",
-      "name": "test_store2",
-      "header": "Beautiful homes made for you",
-      "sub_header": "Your journey to finding the perfect property begins here. Explore our listings to find the home that matches your dreams.",
-      "url": "test2.naples.simple2b.net ",
-      "about_us": "test_about_us2",
-      "email": "store2@gmail.com",
-      "phone": "321221231",
-      "instagram_url": "test_instagram_url2",
-      "messenger_url": "test_messenger_url2",
-      "user_id": 2,
-      "title_value": "test_title_value2",
-      "title_color": "#000000",
-      "title_font_size": 24,
-      "sub_title_value": "test_sub_title_value2",
       "sub_title_color": "#000000",
       "sub_title_font_size": 16
     }
