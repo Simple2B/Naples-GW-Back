@@ -19,7 +19,7 @@ class Product(BaseModel):
     type_name: str
     description: str
     amount: int
-    is_delete: bool
+    is_deleted: bool
 
     stripe_product_id: str
     stripe_price_id: str
@@ -36,7 +36,7 @@ class ProductIn(BaseModel):
     type_name: str
     description: str
     amount: int
-    is_delete: bool | None = None
+    is_deleted: bool | None = None
     points: list[str] | None = None
     currency: str = "usd"
     recurring_interval: str = ProductTypeRecurringInterval.MONTH.value
@@ -65,3 +65,33 @@ class ProductsOut(BaseModel):
 class StripeProductOut(BaseModel):
     stripe_product_id: str
     stripe_price_id: str
+
+
+class ProductBase(BaseModel):
+    type_name: str
+    description: str
+    amount: int
+    is_deleted: bool
+
+    created_at: datetime
+    points: list[str]
+
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
+
+
+class ProductBaseOut(ProductBase):
+    uuid: str
+
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
+
+
+class ProductsBaseOut(BaseModel):
+    products: list[ProductBaseOut]
+
+    model_config = ConfigDict(
+        from_attributes=True,
+    )

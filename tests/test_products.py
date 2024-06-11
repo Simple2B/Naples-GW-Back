@@ -43,3 +43,7 @@ def test_create_stripe_product_get_products(
 
     assert db_product is not None
     assert db_product.type_name in response.text
+
+    response = client.get("/api/products/base")
+
+    assert response.status_code == 200
