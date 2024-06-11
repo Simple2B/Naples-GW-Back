@@ -1,5 +1,5 @@
 import stripe
-from datetime import UTC, datetime, MINYEAR
+from datetime import datetime, MINYEAR
 
 from fastapi import APIRouter, Depends, HTTPException, Header, Request, status
 from sqlalchemy.orm import Session
