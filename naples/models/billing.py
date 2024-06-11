@@ -44,8 +44,8 @@ class Billing(db.Model, ModelMixin):
 
     @property
     def stripe_price_id(self):
-        if self.subscription_item_id:
-            res = stripe.Subscription.retrieve(self.subscription_item_id)
+        if self.subscription_id:
+            res = stripe.Subscription.retrieve(self.subscription_id)
             return res["items"]["data"][0]["price"]["id"]
         return ""
 
