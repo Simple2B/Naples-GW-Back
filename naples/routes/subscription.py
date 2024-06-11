@@ -97,7 +97,7 @@ def create_portal_session(
     """Create a portal session"""
 
     session = stripe.billing_portal.Session.create(
-        customer=current_user.billing.customer_stripe_id,
+        customer=current_user.subscription.customer_stripe_id,
         return_url=CFG.REDIRECT_URL,
     )
 
