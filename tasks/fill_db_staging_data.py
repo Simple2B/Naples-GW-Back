@@ -1,4 +1,5 @@
 import sys
+from datetime import datetime, timedelta, UTC
 from typing import Sequence
 from invoke import task
 from pathlib import Path
@@ -45,16 +46,22 @@ def create_user_with_store():
                 log(log.INFO, "User [%s] created", new_user.email)
                 session.flush()
 
-            db_billing = session.query(m.Billing).filter(m.Billing.user_id == new_user.id).first()
+            db_subscription = session.query(m.Subscription).filter(m.Subscription.user_id == new_user.id).first()
 
-            if not db_billing:
+            if not db_subscription:
                 stripe_customer = create_stripe_customer(new_user)
-                billing = m.Billing(
+                start_date = datetime.now(UTC)
+                end_date = start_date + timedelta(days=30)
+
+                subscription = m.Subscription(
                     user_id=new_user.id,
                     customer_stripe_id=stripe_customer.id,
+                    start_date=start_date,
+                    end_date=end_date,
+                    status="trial",
                 )
-                session.add(billing)
-                log(log.INFO, "Billing for user [%s] created", new_user.email)
+                session.add(subscription)
+                log(log.INFO, "Subscription for user [%s] created", new_user.email)
                 session.flush()
 
         test_store_data = test_data.test_stores[0]
