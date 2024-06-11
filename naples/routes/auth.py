@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta, UTC
 from typing import Annotated
 from fastapi import Depends, APIRouter, status, HTTPException
 from fastapi.security import HTTPBasic, OAuth2PasswordRequestForm
@@ -141,15 +142,27 @@ def sign_up(
     # create stripe customer
     stripe_customer = create_stripe_customer(new_user)
 
-    user_billing = m.Billing(
+    start_date = datetime.now(UTC)
+    end_date = start_date + timedelta(days=CFG.STRIPE_SUBSCRIPTION_TRIAL_PERIOD_DAYS)
+
+    # subscription
+    user_subscription = m.Subscription(
         user_id=new_user.id,
         customer_stripe_id=stripe_customer.id,
+        start_date=start_date,
+        end_date=end_date,
+        status="trial",
     )
 
-    db.add(user_billing)
+    db.add(user_subscription)
     db.commit()
 
-    log(log.INFO, "Billing for user [%s] created", new_user.email)
+    log(
+        log.INFO,
+        "Subscription for user [%s] created with trial period [%s]",
+        new_user.email,
+        CFG.STRIPE_SUBSCRIPTION_TRIAL_PERIOD_DAYS,
+    )
 
     token = s.Token(access_token=create_access_token(new_user.id))
 

@@ -26,8 +26,11 @@ class Subscription(db.Model, ModelMixin):
     start_date: orm.Mapped[datetime] = orm.mapped_column(nullable=True)
     end_date: orm.Mapped[datetime] = orm.mapped_column(nullable=True)
 
-    stripe_id: orm.Mapped[str] = orm.mapped_column(sa.String(128), default="")
-    stripe_item_id: orm.Mapped[str] = orm.mapped_column(sa.String(128), nullable=True)
+    subscription_stripe_id: orm.Mapped[str] = orm.mapped_column(sa.String(128), default="")
+
+    subscription_stripe_item_id: orm.Mapped[str] = orm.mapped_column(sa.String(128), nullable=True)
+
+    customer_stripe_id: orm.Mapped[str] = orm.mapped_column(sa.String(128), default="")
 
     created_at: orm.Mapped[datetime] = orm.mapped_column(default=datetime_utc)
 
@@ -37,8 +40,8 @@ class Subscription(db.Model, ModelMixin):
 
     @property
     def stripe_price_id(self):
-        if self.stripe_id:
-            res = stripe.Subscription.retrieve(self.stripe_id)
+        if self.subscription_stripe_id:
+            res = stripe.Subscription.retrieve(self.subscription_stripe_id)
             return res["items"]["data"][0]["price"]["id"]
         return ""
 

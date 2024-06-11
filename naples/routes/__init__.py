@@ -19,7 +19,7 @@ from .floor_plan_marker import floor_plan_marker_router
 from .booked_date import booked_date_router
 from .amenity import amenities_router
 from .contact_request import contact_request_router
-from .billing import billing_router
+from .subscription import subscription_router
 from .product import product_router
 
 
@@ -38,7 +38,7 @@ router.include_router(floor_plan_marker_router)
 router.include_router(booked_date_router)
 router.include_router(amenities_router)
 router.include_router(contact_request_router)
-router.include_router(billing_router)
+router.include_router(subscription_router)
 router.include_router(product_router)
 
 CFG = config()

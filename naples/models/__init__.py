@@ -21,7 +21,7 @@ from .item_video import ItemVideo
 from .item_link import ItemLink
 from .item_document import ItemDocument
 from .contact_request import ContactRequest
-from .billing import Billing
+from .subscription import Subscription
 from .product import Product
 from .point import Point
 from .link import Link

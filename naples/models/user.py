@@ -13,7 +13,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from .store import Store
-    from .billing import Billing
+    from .subscription import Subscription
     from .file import File
 
 
@@ -59,7 +59,7 @@ class User(db.Model, ModelMixin):
 
     avatar: orm.Mapped["File"] = orm.relationship()
 
-    billing: orm.Mapped["Billing"] = orm.relationship(viewonly=True, back_populates="user")
+    subscription: orm.Mapped["Subscription"] = orm.relationship(viewonly=True, back_populates="user")
 
     @property
     def password(self):
