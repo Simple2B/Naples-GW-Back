@@ -1,5 +1,5 @@
 import stripe
-from datetime import datetime, MINYEAR
+from datetime import UTC, datetime, MINYEAR
 
 from fastapi import APIRouter, Depends, HTTPException, Header, Request, status
 from sqlalchemy.orm import Session
@@ -283,3 +283,55 @@ def modify_subscription(
     log(log.INFO, "User subscription modified [%s]", res)
 
     return user_subscription
+
+
+# TODO: cancel subscription
+# @subscription_router.post(
+#     "/cancel-subscription",
+#     status_code=status.HTTP_200_OK,
+#     response_model=s.Subscription,
+#     responses={
+#         status.HTTP_400_BAD_REQUEST: {"description": "User not created in stripe"},
+#     },
+# )
+# def cancel_subscription(
+#     db: Session = Depends(get_db),
+#     current_user: m.User = Depends(get_current_user),
+# ):
+#     """Cancel subscription"""
+
+#     user_subscription = db.scalar(sa.select(m.Subscription).where(m.Subscription.user_id == current_user.id))
+
+#     if not user_subscription:
+#         log(log.ERROR, "User subscription not found")
+#         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User subscription not found")
+
+#     user_stripe_subscription = stripe.Subscription.retrieve(user_subscription.subscription_stripe_id)
+
+#     if not user_stripe_subscription:
+#         log(log.ERROR, "User stripe subscription not found")
+#         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User stripe subscription not found")
+
+#     if user_stripe_subscription.status == "canceled":
+#         log(log.INFO, "User subscription already canceled [%s]", user_subscription.customer_stripe_id)
+#         return user_subscription
+
+#     res = stripe.Subscription.modify(
+#         user_stripe_subscription.id,
+#         cancel_at_period_end=True,
+#     )
+
+#     log(log.INFO, "User subscription cancelled [%s]", res)
+
+#     if res:
+#         user_subscription.subscription_stripe_id = ""
+#         user_subscription.status = ""
+#         user_subscription.type = ""
+#         user_subscription.subscription_stripe_item_id = ""
+#         user_subscription.start_date = datetime(MINYEAR, 1, 1)
+#         user_subscription.end_date = datetime(MINYEAR, 1, 1)
+#         db.commit()
+
+#         log(log.INFO, "User subscription canceled [%s]", user_subscription.customer_stripe_id)
+
+#     return user_subscription
