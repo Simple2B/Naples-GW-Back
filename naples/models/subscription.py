@@ -13,28 +13,24 @@ if TYPE_CHECKING:
     from .user import User
 
 
-class Billing(db.Model, ModelMixin):
-    __tablename__ = "billings"
+class Subscription(db.Model, ModelMixin):
+    __tablename__ = "subscriptions"
 
     id: orm.Mapped[int] = orm.mapped_column(primary_key=True)
     uuid: orm.Mapped[str] = orm.mapped_column(sa.String(32), default=create_uuid, unique=True)
 
     type: orm.Mapped[str] = orm.mapped_column(default="")
 
-    description: orm.Mapped[str] = orm.mapped_column(sa.String(128), nullable=False, default="")
+    status: orm.Mapped[str] = orm.mapped_column(sa.String(32), default="")
 
-    amount: orm.Mapped[int] = orm.mapped_column(nullable=False, default=0)
+    start_date: orm.Mapped[datetime] = orm.mapped_column(nullable=True)
+    end_date: orm.Mapped[datetime] = orm.mapped_column(nullable=True)
+
+    subscription_stripe_id: orm.Mapped[str] = orm.mapped_column(sa.String(128), default="")
+
+    subscription_stripe_item_id: orm.Mapped[str] = orm.mapped_column(sa.String(128), nullable=True)
 
     customer_stripe_id: orm.Mapped[str] = orm.mapped_column(sa.String(128), default="")
-
-    subscription_id: orm.Mapped[str] = orm.mapped_column(sa.String(128), default="")
-
-    subscription_start_date: orm.Mapped[datetime] = orm.mapped_column(nullable=True)
-    subscription_end_date: orm.Mapped[datetime] = orm.mapped_column(nullable=True)
-
-    subscription_status: orm.Mapped[str] = orm.mapped_column(sa.String(32), default="")
-
-    subscription_item_id: orm.Mapped[str] = orm.mapped_column(sa.String(128), nullable=True)
 
     created_at: orm.Mapped[datetime] = orm.mapped_column(default=datetime_utc)
 
@@ -44,8 +40,8 @@ class Billing(db.Model, ModelMixin):
 
     @property
     def stripe_price_id(self):
-        if self.subscription_id:
-            res = stripe.Subscription.retrieve(self.subscription_id)
+        if self.subscription_stripe_id:
+            res = stripe.Subscription.retrieve(self.subscription_stripe_id)
             return res["items"]["data"][0]["price"]["id"]
         return ""
 

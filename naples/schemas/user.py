@@ -1,6 +1,6 @@
 import enum
 from pydantic import BaseModel, ConfigDict
-from .billing import Billing
+from naples.schemas.subscription import SubscriptionOut
 
 
 class UserRole(enum.Enum):
@@ -52,7 +52,7 @@ class User(BaseUser):
     is_verified: bool = True
     store_url: str
 
-    billing: Billing
+    subscription: SubscriptionOut
 
     model_config = ConfigDict(
         from_attributes=True,
