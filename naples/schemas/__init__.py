@@ -72,6 +72,16 @@ from .store_url import (
 
 from .subscription import Subscription, SubscriptionIn, SubscriptionOut, CheckoutSessionOut
 
-from .product import Product, ProductTypeRecurringInterval, ProductIn, ProductOut, ProductsOut, StripeProductOut
+from .product import (
+    Product,
+    ProductTypeRecurringInterval,
+    ProductIn,
+    ProductOut,
+    ProductsOut,
+    StripeProductOut,
+    ProductBase,
+    ProductBaseOut,
+    ProductsBaseOut,
+)
 from .point import Point, PointIn, PointOut, PointsOut
 from .link import LinkType, Link, LinkIn, LinkOut, LinksOut

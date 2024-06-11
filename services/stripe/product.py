@@ -32,7 +32,7 @@ def create_product(data: s.ProductIn, db: Session) -> s.ProductOut | None:
             recurring_interval=data.recurring_interval,
             stripe_product_id=res.stripe_product_id,
             stripe_price_id=res.stripe_price_id,
-            is_delete=data.is_delete if data.is_delete is not None else False,
+            is_deleted=data.is_deleted if data.is_deleted is not None else False,
         )
 
         db.add(product)

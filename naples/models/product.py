@@ -35,7 +35,7 @@ class Product(db.Model, ModelMixin):
 
     stripe_price_id: orm.Mapped[str] = orm.mapped_column(sa.String(128), nullable=True)
 
-    is_delete: orm.Mapped[bool] = orm.mapped_column(sa.Boolean, default=False)
+    is_deleted: orm.Mapped[bool] = orm.mapped_column(sa.Boolean, default=False)
 
     created_at: orm.Mapped[datetime] = orm.mapped_column(default=datetime_utc)
 
