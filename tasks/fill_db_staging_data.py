@@ -4,7 +4,7 @@ from typing import Sequence
 from invoke import task
 from pathlib import Path
 
-from naples.routes.utils import create_stripe_customer
+from services.stripe.user import create_stripe_customer
 
 
 sys.path = ["", ".."] + sys.path[1:]

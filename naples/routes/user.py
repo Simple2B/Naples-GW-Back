@@ -4,7 +4,6 @@ from mypy_boto3_s3 import S3Client
 from botocore.exceptions import ClientError
 from mypy_boto3_ses import SESClient
 
-
 from naples.dependency.get_user_store import get_current_user_store
 from naples.hash_utils import make_hash
 from naples import controllers as c, models as m, schemas as s

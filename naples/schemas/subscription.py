@@ -18,6 +18,11 @@ class Subscription(BaseModel):
 
     stripe_price_id: str = ""
 
+    subscription_stripe_item_id: str | None
+
+    created_at: datetime
+    canceled_at: datetime | None = None
+
     model_config = ConfigDict(
         arbitrary_types_allowed=True,
     )
@@ -46,3 +51,31 @@ class CheckoutSessionOut(BaseModel):
     model_config = ConfigDict(
         arbitrary_types_allowed=True,
     )
+
+
+class StripePlan(BaseModel):
+    id: str
+
+
+class StripeItemData(BaseModel):
+    id: str
+
+
+class StripeItem(BaseModel):
+    data: list[StripeItemData]
+
+
+class StripeObject(BaseModel):
+    id: str
+    canceled_at: int | None
+    currency: str
+    current_period_end: int
+    current_period_start: int
+    customer: str
+    items: StripeItem
+    status: str
+    plan: StripePlan
+
+
+class StripeObjectSubscription(BaseModel):
+    object: StripeObject

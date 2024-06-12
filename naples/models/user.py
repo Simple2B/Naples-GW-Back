@@ -50,6 +50,7 @@ class User(db.Model, ModelMixin):
         sa.String(36),
         default="",
     )
+
     reset_password_uid: orm.Mapped[str] = orm.mapped_column(
         sa.String(64),
         default="",
@@ -59,7 +60,16 @@ class User(db.Model, ModelMixin):
 
     avatar: orm.Mapped["File"] = orm.relationship()
 
-    subscription: orm.Mapped["Subscription"] = orm.relationship(viewonly=True, back_populates="user")
+    subscriptions: orm.Mapped[list["Subscription"]] = orm.relationship(viewonly=True)
+
+    @property
+    def subscription(self):
+        # get last saved data in subscriptions
+        return self.subscriptions[-1] if self.subscriptions else None
+
+    @property
+    def customer_stripe_id(self) -> str:
+        return self.subscription.customer_stripe_id if self.subscription else ""
 
     @property
     def password(self):

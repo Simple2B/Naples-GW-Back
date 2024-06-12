@@ -34,9 +34,13 @@ class Subscription(db.Model, ModelMixin):
 
     created_at: orm.Mapped[datetime] = orm.mapped_column(default=datetime_utc)
 
+    canceled_at: orm.Mapped[datetime] = orm.mapped_column(nullable=True)
+
     user_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey("users.id"))
 
     user: orm.Mapped["User"] = orm.relationship()
+
+    last_checked_date: orm.Mapped[datetime] = orm.mapped_column(default=datetime_utc, server_default=sa.func.now())
 
     @property
     def stripe_price_id(self):

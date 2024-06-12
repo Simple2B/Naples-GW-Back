@@ -44,6 +44,7 @@ class Store(db.Model, ModelMixin):
         unique=True,
         nullable=False,
     )
+
     phone: orm.Mapped[str] = orm.mapped_column(sa.String(16), default="")
 
     instagram_url: orm.Mapped[str] = orm.mapped_column(sa.String(256), default="")
