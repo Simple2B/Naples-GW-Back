@@ -63,13 +63,13 @@ class User(db.Model, ModelMixin):
     subscriptions: orm.Mapped[list["Subscription"]] = orm.relationship(viewonly=True)
 
     @property
-    def customer_stripe_id(self):
-        return self.subscriptions[0].customer_stripe_id if self.subscriptions else ""
-
-    @property
     def subscription(self):
         # get last saved data in subscriptions
         return self.subscriptions[-1] if self.subscriptions else None
+
+    @property
+    def customer_stripe_id(self):
+        return self.subscription.customer_stripe_id if self.subscription else ""
 
     @property
     def password(self):
