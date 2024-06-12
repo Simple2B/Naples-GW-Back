@@ -1,4 +1,5 @@
 import stripe
+from fastapi import HTTPException, status
 
 from sqlalchemy.orm import Session
 import sqlalchemy as sa
@@ -54,6 +55,18 @@ def create_product(data: s.ProductIn, db: Session) -> s.ProductOut | None:
         return product
 
     return None
+
+
+def get_product_by_id(product_price: str, db: Session) -> s.Product:
+    """Get product by id"""
+
+    product_db = db.scalar(sa.select(m.Product).where(m.Product.stripe_price_id == product_price))
+
+    if not product_db:
+        log(log.ERROR, "Product not found")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Product not found, please contact support")
+
+    return s.Product.model_validate(product_db)
 
 
 def get_stripe_product(data: s.ProductIn) -> s.StripeProductOut | None:

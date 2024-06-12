@@ -10,11 +10,11 @@ from naples import schemas as s, models as m
 from naples.config import config
 from naples.logger import log
 from naples.routes.utils import (
-    create_stripe_customer,
-    get_product_by_id,
     get_user_last_data_subscription,
-    save_state_subscription_from_stripe,
 )
+from services.stripe.product import get_product_by_id
+from services.stripe.subscription import save_state_subscription_from_stripe
+from services.stripe.user import create_stripe_customer
 
 
 subscription_router = APIRouter(prefix="/subscription", tags=["Subscription"])

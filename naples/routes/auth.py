@@ -19,13 +19,12 @@ from naples import models as m
 from naples import schemas as s
 from naples.logger import log
 from naples.database import get_db
-from naples.routes.utils import (
-    create_stripe_customer,
-    get_product_by_id,
-    save_state_subscription_from_stripe,
-)
+
 from naples.utils import createMsgEmail, delete_user_with_store, sendEmailAmazonSES
 from naples.config import config
+from services.stripe.product import get_product_by_id
+from services.stripe.subscription import save_state_subscription_from_stripe
+from services.stripe.user import create_stripe_customer
 
 security = HTTPBasic()
 
