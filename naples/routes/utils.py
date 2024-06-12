@@ -1,27 +1,6 @@
-from sqlalchemy.orm import Session
-import sqlalchemy as sa
-
 import naples.schemas as s
 import naples.models as m
 from naples.logger import log
-
-
-def get_user_last_data_subscription(customer_stripe_id: str, db: Session) -> m.Subscription | None:
-    """Get user subscription"""
-
-    result: sa.ScalarResult = db.scalars(
-        sa.select(m.Subscription)
-        .where(m.Subscription.customer_stripe_id == customer_stripe_id)
-        .order_by(sa.desc(m.Subscription.created_at))
-    )
-
-    subscriptions = result.all()
-
-    if not subscriptions:
-        log(log.INFO, "No subscriptions found")
-        return None
-
-    return subscriptions[0]
 
 
 def get_user_data(user: m.User) -> s.User:

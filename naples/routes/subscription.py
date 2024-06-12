@@ -9,9 +9,7 @@ from naples.dependency.user import get_current_user
 from naples import schemas as s, models as m
 from naples.config import config
 from naples.logger import log
-from naples.routes.utils import (
-    get_user_last_data_subscription,
-)
+
 from services.stripe.product import get_product_by_id
 from services.stripe.subscription import save_state_subscription_from_stripe
 from services.stripe.user import create_stripe_customer
@@ -155,14 +153,14 @@ async def webhook_received(
         session = event_data["object"]
         log(log.INFO, "Checkout session [%s] completed", session["id"])
 
-        # if session["mode"] == "subscription":
-        #     subscription = stripe.Subscription.retrieve(session["subscription"])
+        if session["mode"] == "subscription":
+            subscription = stripe.Subscription.retrieve(session["subscription"])
 
-        #     product = get_product_by_id(subscription["plan"]["id"], db)
+            product = get_product_by_id(subscription["plan"]["id"], db)
 
-        #     user_subscription = save_state_subscription_from_stripe(subscription, product, db)
+            user_subscription = save_state_subscription_from_stripe(subscription, product, db)
 
-        #     log(log.INFO, "User subscription has status completed [%s]", user_subscription)
+            log(log.INFO, "User subscription has status completed [%s]", user_subscription)
 
     elif event_type == "invoice.paid":
         invoice = event_data["object"]
@@ -222,13 +220,11 @@ def modify_subscription(
 ):
     """Modify subscription"""
 
-    user_subscription = get_user_last_data_subscription(current_user.customer_stripe_id, db)
-
-    if not user_subscription:
+    if not current_user.subscription:
         log(log.ERROR, "User subscription not found")
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User subscription not found")
 
-    user_stripe_subscription = stripe.Subscription.retrieve(user_subscription.subscription_stripe_id)
+    user_stripe_subscription = stripe.Subscription.retrieve(current_user.subscription.subscription_stripe_id)
 
     if not user_stripe_subscription:
         log(log.ERROR, "User stripe subscription not found")
@@ -237,13 +233,13 @@ def modify_subscription(
     res = stripe.Subscription.modify(
         user_stripe_subscription.id,
         items=[
-            {"id": user_subscription.subscription_stripe_item_id, "price": data.stripe_price_id},
+            {"id": current_user.subscription.subscription_stripe_item_id, "price": data.stripe_price_id},
         ],
     )
 
     log(log.INFO, "User subscription modified [%s]", res)
 
-    return user_subscription
+    return current_user.subscription
 
 
 @subscription_router.post(
@@ -263,21 +259,19 @@ def cancel_subscription(
 
     product = get_product_by_id(data.stripe_price_id, db)
 
-    user_subscription = get_user_last_data_subscription(current_user.customer_stripe_id, db)
-
-    if not user_subscription:
+    if not current_user.subscription:
         log(log.ERROR, "User subscription not found")
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User subscription not found")
 
-    user_stripe_subscription = stripe.Subscription.retrieve(user_subscription.subscription_stripe_id)
+    user_stripe_subscription = stripe.Subscription.retrieve(current_user.subscription.subscription_stripe_id)
 
     if not user_stripe_subscription:
         log(log.ERROR, "User stripe subscription not found")
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User stripe subscription not found")
 
     if user_stripe_subscription.status == "canceled":
-        log(log.INFO, "User subscription already canceled [%s]", user_subscription.customer_stripe_id)
-        return user_subscription
+        log(log.INFO, "User subscription already canceled [%s]", current_user.subscription.customer_stripe_id)
+        return current_user.subscription
 
     res = stripe.Subscription.cancel(user_stripe_subscription.id)
 
