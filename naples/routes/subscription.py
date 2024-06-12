@@ -90,6 +90,7 @@ def create_checkout_session(
     status_code=status.HTTP_200_OK,
     responses={
         status.HTTP_400_BAD_REQUEST: {"description": "User not create portal session"},
+        status.HTTP_401_UNAUTHORIZED: {"description": "User not created in stripe"},
     },
 )
 def create_portal_session(
@@ -97,6 +98,10 @@ def create_portal_session(
     current_user: m.User = Depends(get_current_user),
 ):
     """Create a portal session"""
+
+    if not current_user.subscription:
+        log(log.ERROR, "User not created in stripe")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not created in stripe")
 
     session = stripe.billing_portal.Session.create(
         customer=current_user.subscription.customer_stripe_id,

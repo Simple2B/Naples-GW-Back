@@ -70,7 +70,17 @@ from .store_url import (
     TraefikTLS,
 )
 
-from .subscription import Subscription, SubscriptionIn, SubscriptionOut, CheckoutSessionOut
+from .subscription import (
+    Subscription,
+    SubscriptionIn,
+    SubscriptionOut,
+    CheckoutSessionOut,
+    StripeObjectSubscription,
+    StripeObject,
+    StripeItem,
+    StripeItemData,
+    StripePlan,
+)
 
 from .product import (
     Product,

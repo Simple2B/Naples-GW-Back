@@ -68,7 +68,7 @@ class User(db.Model, ModelMixin):
         return self.subscriptions[-1] if self.subscriptions else None
 
     @property
-    def customer_stripe_id(self):
+    def customer_stripe_id(self) -> str:
         return self.subscription.customer_stripe_id if self.subscription else ""
 
     @property
