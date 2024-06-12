@@ -73,6 +73,8 @@ class BaseConfig(BaseSettings):
 
     MAIN_DOMAIN: str = "naples.simple2b.com"
 
+    DAYS_BEFORE_UPDATE: int = 3
+
     model_config = SettingsConfigDict(
         extra="allow",
         env_file=("project.env", ".env.dev", ".env"),
