@@ -18,6 +18,11 @@ class Subscription(BaseModel):
 
     stripe_price_id: str = ""
 
+    subscription_stripe_item_id: str | None
+
+    created_at: datetime
+    canceled_at: datetime | None = None
+
     model_config = ConfigDict(
         arbitrary_types_allowed=True,
     )

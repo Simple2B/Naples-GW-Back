@@ -1,5 +1,4 @@
 import stripe
-from datetime import datetime, MINYEAR
 
 from fastapi import APIRouter, Depends, HTTPException, Header, Request, status
 from sqlalchemy.orm import Session
@@ -10,7 +9,12 @@ from naples.dependency.user import get_current_user
 from naples import schemas as s, models as m
 from naples.config import config
 from naples.logger import log
-from naples.routes.utils import create_stripe_customer, get_user_subscription
+from naples.routes.utils import (
+    create_stripe_customer,
+    get_product_by_id,
+    get_user_last_data_subscription,
+    save_state_subscription_from_stripe,
+)
 
 
 subscription_router = APIRouter(prefix="/subscription", tags=["Subscription"])
@@ -147,17 +151,18 @@ async def webhook_received(
 
     event_type = event["type"]
 
-    subscription = event_data["object"]
-
-    db_subscription: m.Subscription | None = get_user_subscription(subscription["customer"], db)
-
-    if not db_subscription:
-        log(log.ERROR, "User subscription not found")
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User subscription not found")
-
     if event_type == "checkout.session.completed":
         session = event_data["object"]
         log(log.INFO, "Checkout session [%s] completed", session["id"])
+
+        # if session["mode"] == "subscription":
+        #     subscription = stripe.Subscription.retrieve(session["subscription"])
+
+        #     product = get_product_by_id(subscription["plan"]["id"], db)
+
+        #     user_subscription = save_state_subscription_from_stripe(subscription, product, db)
+
+        #     log(log.INFO, "User subscription has status completed [%s]", user_subscription)
 
     elif event_type == "invoice.paid":
         invoice = event_data["object"]
@@ -170,84 +175,36 @@ async def webhook_received(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invoice payment failed")
 
     elif event_type == "customer.subscription.deleted":
-        db_subscription.subscription_stripe_id = ""
-        db_subscription.status = ""
-        db_subscription.type = ""
-        db_subscription.subscription_stripe_item_id = ""
-        db_subscription.start_date = datetime(MINYEAR, 1, 1)
-        db_subscription.end_date = datetime(MINYEAR, 1, 1)
-        db.commit()
+        subscription = event_data["object"]
 
-        log(log.INFO, "User subscription deleted [%s]", db_subscription.customer_stripe_id)
+        product = get_product_by_id(subscription["plan"]["id"], db)
+
+        # save deleted data subscription to db for user
+        user_subscription = save_state_subscription_from_stripe(subscription, product, db)
+        log(log.INFO, "User subscription has status deleted [%s]", user_subscription)
 
     elif event_type == "customer.subscription.updated":
-        product_price = subscription["plan"]["id"]
+        subscription = event_data["object"]
 
-        product_db = db.scalar(sa.select(m.Product).where(m.Product.stripe_price_id == product_price))
+        product = get_product_by_id(subscription["plan"]["id"], db)
 
-        if not product_db:
-            log(log.ERROR, "Product not found")
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Product not found")
+        # save updated data subscription to db for user
+        user_subscription = save_state_subscription_from_stripe(subscription, product, db)
 
-        subscription_type = product_db.type_name
-
-        stripe.Subscription.modify(
-            db_subscription.subscription_stripe_id,
-            items=[
-                {"id": subscription["items"]["data"][0].id, "price": product_price},
-            ],
-        )
-
-        log(log.INFO, "[stripe] user subscription updated [%s]", db_subscription.customer_stripe_id)
-
-        db_subscription.subscription_stripe_item_id = subscription["items"]["data"][0].id
-        db_subscription.status = subscription["status"]
-        db_subscription.start_date = datetime.fromtimestamp(subscription["current_period_start"])
-        db_subscription.end_date = datetime.fromtimestamp(subscription["current_period_end"])
-
-        db_subscription.type = subscription_type
-
-        db.commit()
-        db.refresh(db_subscription)
-
-        log(log.INFO, "[db] user [%s] subscription updated", db_subscription.customer_stripe_id)
+        log(log.INFO, "User subscription updated [%s]", user_subscription)
 
     elif event_type == "customer.subscription.created":
-        if not db_subscription.subscription_stripe_id:
-            db_subscription.subscription_stripe_id = subscription["id"]
+        subscription = event_data["object"]
 
-            sub_item_id = subscription["items"]["data"][0]["id"]
-            db_subscription.subscription_stripe_item_id = sub_item_id
+        product = get_product_by_id(subscription["plan"]["id"], db)
 
-            product_price = subscription["plan"]["id"]
+        # create new subscription for user
+        user_subscription = save_state_subscription_from_stripe(subscription, product, db)
 
-            product_db = db.scalar(sa.select(m.Product).where(m.Product.stripe_price_id == product_price))
-
-            if not product_db:
-                log(log.ERROR, "Product not found")
-                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Product not found")
-
-            subscription_type = product_db.type_name
-
-            db_subscription.status = subscription["status"]
-
-            current_period_start = datetime.fromtimestamp(subscription["current_period_start"])
-            db_subscription.start_date = current_period_start
-
-            current_period_end = datetime.fromtimestamp(subscription["current_period_end"])
-            db_subscription.end_date = current_period_end
-
-            db_subscription.type = subscription_type
-
-            db.commit()
-            db.refresh(db_subscription)
-
-            log(log.INFO, "[db] User [%s] subscription created", db_subscription)
+        log(log.INFO, "User subscription created [%s]", user_subscription)
 
     else:
         log(log.INFO, "Event not handled: %s", event_type)
-
-    return
 
 
 @subscription_router.post(
@@ -265,13 +222,17 @@ def modify_subscription(
 ):
     """Modify subscription"""
 
-    user_subscription = db.scalar(sa.select(m.Subscription).where(m.Subscription.user_id == current_user.id))
+    user_subscription = get_user_last_data_subscription(current_user.customer_stripe_id, db)
 
     if not user_subscription:
         log(log.ERROR, "User subscription not found")
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User subscription not found")
 
     user_stripe_subscription = stripe.Subscription.retrieve(user_subscription.subscription_stripe_id)
+
+    if not user_stripe_subscription:
+        log(log.ERROR, "User stripe subscription not found")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User stripe subscription not found")
 
     res = stripe.Subscription.modify(
         user_stripe_subscription.id,
@@ -294,12 +255,15 @@ def modify_subscription(
     },
 )
 def cancel_subscription(
+    data: s.SubscriptionIn,
     db: Session = Depends(get_db),
     current_user: m.User = Depends(get_current_user),
 ):
     """Cancel subscription"""
 
-    user_subscription = db.scalar(sa.select(m.Subscription).where(m.Subscription.user_id == current_user.id))
+    product = get_product_by_id(data.stripe_price_id, db)
+
+    user_subscription = get_user_last_data_subscription(current_user.customer_stripe_id, db)
 
     if not user_subscription:
         log(log.ERROR, "User subscription not found")
@@ -317,13 +281,8 @@ def cancel_subscription(
 
     res = stripe.Subscription.cancel(user_stripe_subscription.id)
 
+    user_subscription = save_state_subscription_from_stripe(res, product, db)
+
     log(log.INFO, "User subscription cancelled [%s]", res)
-
-    if res.status == "canceled":
-        user_subscription.status = res.status
-
-        db.commit()
-
-        log(log.INFO, "User subscription canceled [%s]", user_subscription.customer_stripe_id)
 
     return user_subscription

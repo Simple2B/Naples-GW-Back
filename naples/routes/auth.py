@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 import sqlalchemy as sa
 from botocore.exceptions import ClientError
 from mypy_boto3_ses import SESClient
+import stripe
 
 from naples.dependency import get_ses_client
 from naples.oauth2 import (
@@ -18,7 +19,11 @@ from naples import models as m
 from naples import schemas as s
 from naples.logger import log
 from naples.database import get_db
-from naples.routes.utils import create_stripe_customer
+from naples.routes.utils import (
+    create_stripe_customer,
+    get_product_by_id,
+    save_state_subscription_from_stripe,
+)
 from naples.utils import createMsgEmail, delete_user_with_store, sendEmailAmazonSES
 from naples.config import config
 
@@ -51,11 +56,24 @@ def login(
     if not user:
         log(log.ERROR, "User [%s] wrong username (email) or password", form_data.username)
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Invalid credentials")
+
     # admin user can not get API token
     if user.role == s.UserRole.ADMIN.value:
         log(log.ERROR, "User [%s] is an admin user", user.email)
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin user can not get API token")
     log(log.INFO, "User [%s] logged in", user.email)
+
+    # update last subscription in db with stripe data every 3 days
+    if user.subscription and user.subscription.last_checked_date < datetime.now() - timedelta(
+        days=CFG.DAYS_BEFORE_UPDATE
+    ):
+        stripe_subscription_data = stripe.Subscription.retrieve(user.subscription.subscription_stripe_id)
+
+        product = get_product_by_id(stripe_subscription_data["items"]["data"][0]["plan"]["id"], db)
+
+        save_state_subscription_from_stripe(user.subscription, product, db)
+
+        log(log.INFO, "Subscription state updated for user [%s]", user.email)
 
     return create_access_token_exp_datetime(user.id)
 
