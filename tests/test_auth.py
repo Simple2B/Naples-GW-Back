@@ -80,7 +80,7 @@ def test_sign_up(
 
     db_users: Sequence[m.User] = db.scalars(sa.select(m.User)).all()
 
-    assert len(db_users) == 6
+    assert len(db_users) == 4
 
 
 @mock_aws
