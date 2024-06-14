@@ -40,7 +40,7 @@ item_router = APIRouter(prefix="/items", tags=["Items"])
 def get_published_items(
     city_uuid: str | None = None,
     adults: int = 0,
-    rent_length: Annotated[Union[List[str], None], Query()] = None,
+    rent_length: Annotated[Union[List[s.RentalLength], None], Query()] = None,
     check_in: datetime | None = None,
     check_out: datetime | None = None,
     name: str | None = None,

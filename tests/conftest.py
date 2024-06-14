@@ -110,6 +110,101 @@ def client(db, requests_mock: Mocker) -> Generator[TestClient, None, None]:
 
         requests_mock.patch(f"{CFG.GODADDY_API_URL}/domains/{CFG.MAIN_DOMAIN}/records", json={"status_code": 200})
 
+        for email in ["doe@mail.com", "test_2@mail.com", "test_3@mail.com"]:
+            requests_mock.get(
+                f"https://api.stripe.com/v1/customers?email={email}",
+                json={
+                    "object": "list",
+                    "url": "/v1/customers",
+                    "has_more": False,
+                    "data": [
+                        {
+                            "id": "cus_NffrFeUfNV2Hib",
+                            "object": "customer",
+                            "address": None,
+                            "balance": 0,
+                            "created": 1680893993,
+                            "currency": None,
+                            "default_source": None,
+                            "delinquent": False,
+                            "description": None,
+                            "discount": None,
+                            "email": f"{email}",
+                            "invoice_prefix": "0759376C",
+                            "invoice_settings": {
+                                "custom_fields": None,
+                                "default_payment_method": None,
+                                "footer": None,
+                                "rendering_options": None,
+                            },
+                            "livemode": False,
+                            "metadata": {},
+                            "name": "Jenny Rosen",
+                            "next_invoice_sequence": 1,
+                            "phone": None,
+                            "preferred_locales": [],
+                            "shipping": None,
+                            "tax_exempt": "none",
+                            "test_clock": None,
+                        }
+                    ],
+                },
+            )
+
+        requests_mock.get(
+            "https://api.stripe.com/v1/products?active=true",
+            json={
+                "object": "list",
+                "url": "/v1/products",
+                "has_more": False,
+                "data": [
+                    {
+                        "id": "prod_NWjs8kKbJWmuuc",
+                        "object": "product",
+                        "active": True,
+                        "created": 1678833149,
+                        "default_price": None,
+                        "description": None,
+                        "images": [],
+                        "features": [],
+                        "livemode": False,
+                        "metadata": {},
+                        "name": "Gold Plan",
+                        "package_dimensions": None,
+                        "shippable": None,
+                        "statement_descriptor": None,
+                        "tax_code": None,
+                        "unit_label": None,
+                        "updated": 1678833149,
+                        "url": None,
+                    }
+                ],
+            },
+        )
+
+        requests_mock.post(
+            "https://api.stripe.com/v1/products?active=true",
+            json={
+                "id": "prod_NWjs8kKbJWmuuc",
+                "object": "product",
+                "active": True,
+                "created": 1678833149,
+                "default_price": None,
+                "description": "description",
+                "images": [],
+                "features": [],
+                "livemode": False,
+                "metadata": None,
+                "name": "test product",
+                "package_dimensions": None,
+                "shippable": None,
+                "statement_descriptor": None,
+                "tax_code": None,
+                "unit_label": None,
+                "updated": 1678833149,
+                "url": None,
+            },
+        )
         yield c
 
 
