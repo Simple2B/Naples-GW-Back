@@ -71,7 +71,16 @@ class BaseConfig(BaseSettings):
 
     STRIPE_SUBSCRIPTION_TRIAL_PERIOD_DAYS: int = 14
 
-    MAIN_DOMAIN: str = "naples.simple2b.com"
+    # GoDaddy
+    MAIN_DOMAIN: str
+    # https://api.ote-godaddy.com - for testing
+    # https://api.godaddy.com - for production
+    GODADDY_API_URL: str
+    GODADDY_API_KEY: str
+    GODADDY_API_SECRET: str
+    GODADDY_IP_ADDRESS: str
+    RECORD_TYPE: str = "A"
+    TTL: int = 600
 
     DAYS_BEFORE_UPDATE: int = 3
 

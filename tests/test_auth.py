@@ -1,7 +1,8 @@
 from typing import Sequence
 
-from fastapi.testclient import TestClient
+from unittest.mock import patch
 
+from fastapi.testclient import TestClient
 
 from sqlalchemy.orm import Session
 from mypy_boto3_ses import SESClient
