@@ -168,7 +168,6 @@ def sign_up(
         customer_stripe_id=stripe_customer.id,
         start_date=start_date,
         end_date=end_date,
-        status="trial",
     )
 
     db.add(user_subscription)

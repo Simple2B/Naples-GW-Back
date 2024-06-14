@@ -52,7 +52,6 @@ def db(test_data: s.TestData) -> Generator[orm.Session, None, None]:
                     customer_stripe_id=f"cus_{user.id}",
                     start_date=start_date,
                     end_date=end_date,
-                    status="trial",
                 )
                 session.add(subscription)
                 session.commit()

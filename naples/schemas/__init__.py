@@ -71,6 +71,7 @@ from .store_url import (
 )
 
 from .subscription import (
+    SubscriptionStatus,
     Subscription,
     SubscriptionIn,
     SubscriptionOut,

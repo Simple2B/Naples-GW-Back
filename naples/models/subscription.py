@@ -7,6 +7,7 @@ from sqlalchemy import orm
 from typing import TYPE_CHECKING
 
 from naples.database import db
+from naples import schemas as s
 from .utils import ModelMixin, create_uuid, datetime_utc
 
 if TYPE_CHECKING:
@@ -21,7 +22,7 @@ class Subscription(db.Model, ModelMixin):
 
     type: orm.Mapped[str] = orm.mapped_column(default="")
 
-    status: orm.Mapped[str] = orm.mapped_column(sa.String(32), default="")
+    status: orm.Mapped[str] = orm.mapped_column(sa.String(32), default=s.SubscriptionStatus.TRIALING.value)
 
     start_date: orm.Mapped[datetime] = orm.mapped_column(nullable=True)
     end_date: orm.Mapped[datetime] = orm.mapped_column(nullable=True)
