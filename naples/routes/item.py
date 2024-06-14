@@ -1,7 +1,7 @@
-from typing import Annotated, Sequence
+from typing import Annotated, List, Sequence, Union
 from datetime import datetime
 
-from fastapi import Depends, APIRouter, File, Form, UploadFile, status, HTTPException
+from fastapi import Depends, APIRouter, File, Form, Query, UploadFile, status, HTTPException
 from fastapi_pagination import Page, Params, paginate
 from mypy_boto3_s3 import S3Client
 
@@ -40,7 +40,7 @@ item_router = APIRouter(prefix="/items", tags=["Items"])
 def get_published_items(
     city_uuid: str | None = None,
     adults: int = 0,
-    rent_length: s.RentalLength | None = None,
+    rent_length: Annotated[Union[List[str], None], Query()] = None,
     check_in: datetime | None = None,
     check_out: datetime | None = None,
     name: str | None = None,
@@ -69,11 +69,11 @@ def get_published_items(
         stmt = stmt.where(m.Item.adults >= adults)
 
     if rent_length:
-        if rent_length == s.RentalLength.NIGHTLY:
+        if s.RentalLength.NIGHTLY.value in rent_length:
             stmt = stmt.where(m.Item.nightly.is_(True))
-        elif rent_length == s.RentalLength.MONTHLY:
+        if s.RentalLength.MONTHLY.value in rent_length:
             stmt = stmt.where(m.Item.monthly.is_(True))
-        elif rent_length == s.RentalLength.ANNUAL:
+        if s.RentalLength.ANNUAL.value in rent_length:
             stmt = stmt.where(m.Item.annual.is_(True))
 
     if check_in:

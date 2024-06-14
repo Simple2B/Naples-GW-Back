@@ -14,4 +14,3 @@ node_modules/
 
 .coverage
 .env
-test_godaddy.sh
