@@ -493,13 +493,20 @@ def test_item_list_with_filter(
 
     nightly_response = client.get(
         "/api/items",
-        params={"store_url": store_url, "rent_length": s.RentalLength.NIGHTLY.value},
+        params={
+            "store_url": store_url,
+            "rent_length": [
+                s.RentalLength.NIGHTLY.value,
+                s.RentalLength.MONTHLY.value,
+                s.RentalLength.ANNUAL.value,
+            ],
+        },
     )
     assert nightly_response.status_code == 200
 
     nightly_items = s.Items.model_validate(nightly_response.json()).items
 
-    assert len(nightly_items) == 3
+    assert len(nightly_items) == 1
 
 
 def test_update_item(
