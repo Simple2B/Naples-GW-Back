@@ -96,3 +96,10 @@ class DNSRecord(BaseModel):
     api_url: str
     api_key: str
     api_secret: str
+
+
+class DNSRecordOut(BaseModel):
+    type: str = "A"
+    name: str
+    data: str
+    ttl: int = 600

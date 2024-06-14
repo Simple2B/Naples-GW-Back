@@ -12,26 +12,49 @@ def check_subdomain_existence(subdomain, headers, url):
     response.raise_for_status()
 
     dns_records = response.json()
-    for record in dns_records:
-        if record["name"] == subdomain and record["type"] == "A":
+
+    if not dns_records:
+        return False
+
+    records = [
+        s.DNSRecordOut(
+            type=record["type"],
+            name=record["name"],
+            data=record["data"],
+            ttl=record["ttl"],
+        )
+        for record in dns_records
+    ]
+
+    for record in records:
+        if record.name == subdomain and record.type == "A":
             return True  # Subdomain found with type A record
 
     return False  # Subdomain not found or not of type A
 
 
-def add_dns_record(record: s.DNSRecord):
+def add_dns_record(subdomain: str):
     # URL for the GoDaddy API to add a DNS record
+
+    record = s.DNSRecord(
+        domain=CFG.MAIN_DOMAIN,
+        subdomain=subdomain,
+        record_type=CFG.RECORD_TYPE,
+        ttl=CFG.GO_DADDY_TTL,
+        value=CFG.GODADDY_IP_ADDRESS,
+        api_url=CFG.GODADDY_API_URL,
+        api_key=CFG.GODADDY_API_KEY,
+        api_secret=CFG.GODADDY_API_SECRET,
+    )
 
     url = f"{record.api_url}/domains/{record.domain}/records"
 
-    log(log.INFO, "URL: [%s]", url)
+    log(log.INFO, "[add_dns_record] URL: [%s]", url)
 
     headers = {
         "Authorization": f"sso-key {record.api_key}:{record.api_secret}",
         "Content-Type": "application/json",
     }
-
-    log(log.INFO, "Headers: [%s]", headers)
 
     res = check_subdomain_existence(record.subdomain, headers, url)
 
@@ -49,7 +72,7 @@ def add_dns_record(record: s.DNSRecord):
         }
     ]
 
-    log(log.INFO, "Payload: [%s]", payload)
+    log(log.DEBUG, "Payload: [%s]", payload)
 
     # Make the API request to add the DNS record
     response: requests.Response = requests.patch(url, json=payload, headers=headers)

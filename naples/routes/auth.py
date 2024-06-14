@@ -158,18 +158,7 @@ def sign_up(
     log(log.INFO, "Store for user [%s] created", new_user.email)
 
     # add dns for store url
-    dns_record = s.DNSRecord(
-        domain=CFG.MAIN_DOMAIN,
-        subdomain=new_user.uuid,
-        record_type=CFG.RECORD_TYPE,
-        ttl=CFG.GO_DADDY_TTL,
-        value=CFG.GODADDY_IP_ADDRESS,
-        api_url=CFG.GODADDY_API_URL,
-        api_key=CFG.GODADDY_API_KEY,
-        api_secret=CFG.GODADDY_API_SECRET,
-    )
-
-    add_dns_record(dns_record)
+    add_dns_record(new_user.uuid)
 
     log(log.INFO, "DNS record added for store [%s]", new_user.email)
 
