@@ -94,11 +94,15 @@ def get_stripe_product(data: s.ProductIn) -> s.StripeProductOut | None:
         metadata={"description": data.description},
     )
 
-    if res and res.default_price is not None and isinstance(res.default_price, stripe.Price):
+    if (
+        res
+        and res.default_price is not None
+        and (isinstance(res.default_price, stripe.Price) or isinstance(res.default_price, str))
+    ):
         log(log.INFO, "Product [%s] with name [%s] created in stripe ", res.id, data.type_name)
         return s.StripeProductOut(
             stripe_product_id=res.id,
-            stripe_price_id=res.default_price.id,
+            stripe_price_id=res.default_price.id if isinstance(res.default_price, stripe.Price) else res.default_price,
         )
 
     else:

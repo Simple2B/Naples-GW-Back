@@ -8,9 +8,13 @@ from mypy_boto3_s3 import S3Client
 from mypy_boto3_ses import SESClient
 from moto import mock_aws
 from moto.ses.models import SESBackend
-
+from requests_mock import Mocker
 
 from dotenv import load_dotenv
+import stripe
+
+# from unittest.mock import patch
+# from services.store.add_dns_record import add_dns_record
 
 
 load_dotenv("tests/test.env")
@@ -21,6 +25,11 @@ from fastapi.testclient import TestClient
 from naples.main import api
 from naples import models as m
 from naples import schemas as s
+
+from naples.config import config
+
+
+CFG = config("testing")
 
 
 MODULE_PATH = Path(__file__).parent
@@ -87,9 +96,122 @@ def full_db(db: orm.Session) -> Generator[orm.Session, None, None]:
 
 
 @pytest.fixture
-def client(db) -> Generator[TestClient, None, None]:
+def client(db, requests_mock: Mocker) -> Generator[TestClient, None, None]:
     """Returns a non-authorized test client for the API"""
     with TestClient(api) as c:
+        stores = db.scalars(m.Store.select())
+
+        # Mock requests
+        requests_mock.get(
+            f"{CFG.GODADDY_API_URL}/domains/{CFG.MAIN_DOMAIN}/records",
+            json=[
+                {
+                    "type": "A",
+                    "name": store.uuid,
+                    "data": "00.000.000.000",
+                    "ttl": 600,
+                }
+                for store in stores
+            ],
+        )
+
+        requests_mock.patch(f"{CFG.GODADDY_API_URL}/domains/{CFG.MAIN_DOMAIN}/records", json={"status_code": 200})
+
+        for email in ["doe@mail.com", "test_2@mail.com", "test_3@mail.com"]:
+            requests_mock.get(
+                f"https://api.stripe.com/v1/customers?email={email}",
+                json={
+                    "object": "list",
+                    "url": "/v1/customers",
+                    "has_more": False,
+                    "data": [
+                        {
+                            "id": "cus_NffrFeUfNV2Hib",
+                            "object": "customer",
+                            "address": None,
+                            "balance": 0,
+                            "created": 1680893993,
+                            "currency": None,
+                            "default_source": None,
+                            "delinquent": False,
+                            "description": None,
+                            "discount": None,
+                            "email": f"{email}",
+                            "invoice_prefix": "0759376C",
+                            "invoice_settings": {
+                                "custom_fields": None,
+                                "default_payment_method": None,
+                                "footer": None,
+                                "rendering_options": None,
+                            },
+                            "livemode": False,
+                            "metadata": {},
+                            "name": "Jenny Rosen",
+                            "next_invoice_sequence": 1,
+                            "phone": None,
+                            "preferred_locales": [],
+                            "shipping": None,
+                            "tax_exempt": "none",
+                            "test_clock": None,
+                        }
+                    ],
+                },
+            )
+
+        requests_mock.get(
+            "https://api.stripe.com/v1/products?active=true",
+            json={
+                "object": "list",
+                "url": "/v1/products",
+                "has_more": False,
+                "data": [
+                    {
+                        "id": "prod_NWjs8kKbJWmuuc",
+                        "object": "product",
+                        "active": True,
+                        "created": 1678833149,
+                        "default_price": None,
+                        "description": None,
+                        "images": [],
+                        "features": [],
+                        "livemode": False,
+                        "metadata": {},
+                        "name": "Gold Plan",
+                        "package_dimensions": None,
+                        "shippable": None,
+                        "statement_descriptor": None,
+                        "tax_code": None,
+                        "unit_label": None,
+                        "updated": 1678833149,
+                        "url": None,
+                    }
+                ],
+            },
+        )
+
+        requests_mock.post(
+            "https://api.stripe.com/v1/products",
+            json={
+                "id": "prod_NWjs8kKbJWmuuc",
+                "object": "product",
+                "active": True,
+                "created": 1678833149,
+                "default_price": "price_1PNL6qI7HDNT50q3WYkKCTGz",
+                "description": "description",
+                "images": [],
+                "features": [],
+                "livemode": False,
+                "metadata": None,
+                "name": "test product",
+                "package_dimensions": None,
+                "shippable": None,
+                "statement_descriptor": None,
+                "tax_code": None,
+                "unit_label": None,
+                "updated": 1678833149,
+                "url": None,
+            },
+        )
         yield c
 
 
@@ -146,57 +268,3 @@ def headers(
     token = create_access_token(user_id=user.id)
 
     yield dict(Authorization=f"Bearer {token}")
-
-
-@pytest.fixture
-def stripe_customer(
-    client: TestClient,
-    test_data: s.TestData,
-) -> Generator[str, None, None]:
-    """Returns an authorized test client for the API"""
-    import stripe
-
-    customer_list = stripe.Customer.list(email=test_data.test_users[0].email)
-
-    customer = None
-
-    if customer_list.data:
-        customer = customer_list.data[0]
-    else:
-        customer = stripe.Customer.create(email=test_data.test_users[0].email)
-
-    yield customer.id
-
-
-@pytest.fixture
-def stripe_checkout_session(
-    client: TestClient,
-    test_data: s.TestData,
-    stripe_customer: str,
-) -> Generator[dict[str, str], None, None]:
-    """Returns an authorized test client for the API"""
-    import stripe
-
-    # test product in stripe
-    stripe_product_price = "price_1PNL6qI7HDNT50q3WYkKCTGz"
-
-    checkout_session = stripe.checkout.Session.create(
-        payment_method_types=["card"],
-        line_items=[
-            {
-                "price": stripe_product_price,
-                "quantity": 1,
-            }
-        ],
-        mode="subscription",
-        customer=stripe_customer,
-        success_url="http://localhost:3000/success?session_id={{CHECKOUT_SESSION_ID}}",
-        cancel_url="http://localhost:3000/cancel",
-        subscription_data={
-            "trial_period_days": 5,
-        },
-    )
-    id = checkout_session.id
-    url = checkout_session.url if checkout_session.url else "http://localhost:3000/cancel"
-
-    yield dict(id=id, url=url)

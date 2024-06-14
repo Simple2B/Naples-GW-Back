@@ -2,7 +2,6 @@ from typing import Sequence
 
 from fastapi.testclient import TestClient
 
-
 from sqlalchemy.orm import Session
 from mypy_boto3_ses import SESClient
 from moto import mock_aws
