@@ -183,13 +183,13 @@ def client(db, requests_mock: Mocker) -> Generator[TestClient, None, None]:
         )
 
         requests_mock.post(
-            "https://api.stripe.com/v1/products?active=true",
+            "https://api.stripe.com/v1/products",
             json={
                 "id": "prod_NWjs8kKbJWmuuc",
                 "object": "product",
                 "active": True,
                 "created": 1678833149,
-                "default_price": None,
+                "default_price": "price_1PNL6qI7HDNT50q3WYkKCTGz",
                 "description": "description",
                 "images": [],
                 "features": [],
@@ -261,83 +261,3 @@ def headers(
     token = create_access_token(user_id=user.id)
 
     yield dict(Authorization=f"Bearer {token}")
-
-
-# @pytest.fixture
-# def stripe_customer(
-#     client: TestClient,
-#     test_data: s.TestData,
-# ) -> Generator[str, None, None]:
-#     """Returns an authorized test client for the API"""
-#     import stripe
-
-#     customer_list = stripe.Customer.list(email=test_data.test_users[0].email)
-
-#     customer = None
-
-#     if customer_list.data:
-#         customer = customer_list.data[0]
-#     else:
-#         customer = stripe.Customer.create(email=test_data.test_users[0].email)
-
-#     yield customer.id
-
-
-# @pytest.fixture
-# def stripe_checkout_session(
-#     client: TestClient,
-#     test_data: s.TestData,
-#     stripe_customer: str,
-# ) -> Generator[dict[str, str], None, None]:
-#     """Returns an authorized test client for the API"""
-#     import stripe
-
-#     # test product in stripe
-#     stripe_product_price = "price_1PNL6qI7HDNT50q3WYkKCTGz"
-
-#     checkout_session = stripe.checkout.Session.create(
-#         payment_method_types=["card"],
-#         line_items=[
-#             {
-#                 "price": stripe_product_price,
-#                 "quantity": 1,
-#             }
-#         ],
-#         mode="subscription",
-#         customer=stripe_customer,
-#         success_url="http://localhost:3000/success?session_id={{CHECKOUT_SESSION_ID}}",
-#         cancel_url="http://localhost:3000/cancel",
-#         subscription_data={
-#             "trial_period_days": 5,
-#         },
-#     )
-#     id = checkout_session.id
-#     url = checkout_session.url if checkout_session.url else "http://localhost:3000/cancel"
-
-#     yield dict(id=id, url=url)
-
-
-# @pytest.fixture
-# def godaddy() -> Generator[Response, None, None]:
-#     with patch("services.store.add_dns_record.requests.get") as mock_get:
-#         with patch("services.store.add_dns_record.requests.patch") as mock_patch:
-#             mock_get.return_value.ok = True
-#             mock_get.return_value.status_code = 200
-#             mock_patch.return_value.ok = True
-#             mock_patch.return_value.status_code = 200
-
-#             dns_record = s.DNSRecord(
-#                 domain="test.com",
-#                 subdomain="test",
-#                 record_type="A",
-#                 ttl=600,
-#                 value="@",
-#                 api_url="https://test.com/v1",
-#                 api_key="GODADDY_API_KEY",
-#                 api_secret="GODADDY_API_SECRET",
-#             )
-
-#             mock_get.return_value.json.return_value = [{"name": "test", "type": "A"}]
-
-#             result = add_dns_record(dns_record)
-#             yield result
