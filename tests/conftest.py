@@ -105,7 +105,15 @@ def client(db, requests_mock: Mocker) -> Generator[TestClient, None, None]:
         # Mock requests
         requests_mock.get(
             f"{CFG.GODADDY_API_URL}/domains/{CFG.MAIN_DOMAIN}/records",
-            json=[{"name": store.uuid, "type": "A", "ttl": 600, "value": "@"} for store in stores],
+            json=[
+                {
+                    "type": "A",
+                    "name": store.uuid,
+                    "data": "00.000.000.000",
+                    "ttl": 600,
+                }
+                for store in stores
+            ],
         )
 
         requests_mock.patch(f"{CFG.GODADDY_API_URL}/domains/{CFG.MAIN_DOMAIN}/records", json={"status_code": 200})
