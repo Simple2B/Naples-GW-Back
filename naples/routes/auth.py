@@ -162,7 +162,7 @@ def sign_up(
         domain=CFG.MAIN_DOMAIN,
         subdomain=new_user.uuid,
         record_type=CFG.RECORD_TYPE,
-        ttl=CFG.TTL,
+        ttl=CFG.GO_DADDY_TTL,
         value=CFG.GODADDY_IP_ADDRESS,
         api_url=CFG.GODADDY_API_URL,
         api_key=CFG.GODADDY_API_KEY,

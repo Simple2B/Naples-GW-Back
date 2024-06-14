@@ -80,7 +80,7 @@ class BaseConfig(BaseSettings):
     GODADDY_API_SECRET: str
     GODADDY_IP_ADDRESS: str
     RECORD_TYPE: str = "A"
-    TTL: int = 600
+    GO_DADDY_TTL: int = 600
 
     DAYS_BEFORE_UPDATE: int = 3
 
