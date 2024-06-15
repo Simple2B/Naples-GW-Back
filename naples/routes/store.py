@@ -14,6 +14,12 @@ from naples.dependency import get_current_user, get_current_user_store
 from naples.database import get_db
 from naples.utils import get_file_extension
 from naples.config import config
+from services.store.add_dns_record import (
+    check_main_domain,
+    check_subdomain_existence,
+    delete_godaddy_dns_record,
+    get_subdomain_from_url,
+)
 
 
 store_router = APIRouter(prefix="/stores", tags=["Stores"])
@@ -106,8 +112,20 @@ def update_store(
 ):
     if store.url is not None:
         log(log.INFO, "Updating url to [%s] for store [%s]", store.url, current_store.url)
-        # TODO: implement update of DNS list for server
+
+        if check_main_domain(store.url):
+            subdomain = get_subdomain_from_url(current_store.url)
+
+            godaddy_subdomain = check_subdomain_existence(subdomain)
+
+            if godaddy_subdomain and subdomain:
+                delete_godaddy_dns_record(subdomain)
+                log(log.INFO, "Subdomain [%s] deleted", subdomain)
+
         current_store.url = store.url
+
+        log(log.INFO, "store url  updated to [%s]", store.url)
+
     if store.email is not None:
         log(log.INFO, "Updating email to [%s] for store [%s]", store.email, current_store.url)
         current_store.email = store.email

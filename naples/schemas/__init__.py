@@ -69,7 +69,6 @@ from .store_url import (
     TraefikData,
     TraefikTLS,
     DNSRecord,
-    DNSRecordOut,
 )
 
 from .subscription import (

@@ -13,10 +13,6 @@ from requests_mock import Mocker
 from dotenv import load_dotenv
 import stripe
 
-# from unittest.mock import patch
-# from services.store.add_dns_record import add_dns_record
-
-
 load_dotenv("tests/test.env")
 
 # ruff: noqa: F401 E402
