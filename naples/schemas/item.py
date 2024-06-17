@@ -112,7 +112,7 @@ class ItemVideoLinkType(enum.Enum):
 
 class ItemVideoLinkOut(BaseModel):
     uuid: str
-    type: str = ItemVideoLinkType.S3BUCKET.value
+    type: ItemVideoLinkType
     url: str
 
     model_config = ConfigDict(
