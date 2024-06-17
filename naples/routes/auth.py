@@ -158,7 +158,13 @@ def sign_up(
     log(log.INFO, "Store for user [%s] created", new_user.email)
 
     # add dns for store url
-    add_godaddy_dns_record(new_user.uuid)
+    try:
+        add_godaddy_dns_record(new_user.uuid)
+    except Exception as e:
+        delete_user_with_store(db, new_user)
+        log(log.ERROR, "DNS record not added! [%s]", e)
+        log(log.INFO, "User [%s] user is not registered", new_user.email)
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="DNS record not added!")
 
     log(log.INFO, "DNS record added for store [%s]", new_user.email)
 

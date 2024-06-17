@@ -15,6 +15,7 @@ from naples.database import get_db
 from naples.utils import get_file_extension
 from naples.config import config
 from services.store.add_dns_record import (
+    add_godaddy_dns_record,
     check_main_domain,
     check_subdomain_existence,
     delete_godaddy_dns_record,
@@ -121,6 +122,9 @@ def update_store(
             if godaddy_subdomain and subdomain:
                 delete_godaddy_dns_record(subdomain)
                 log(log.INFO, "Subdomain [%s] deleted", subdomain)
+
+            # add new record with new url for the store in godaddy
+            add_godaddy_dns_record(store.url)
 
         current_store.url = store.url
 

@@ -122,24 +122,12 @@ def delete_godaddy_dns_record(subdomain: str):
         log(log.INFO, "Subdomain does not exist")
         return
 
-    # Payload for the API request
-    payload = [
-        {
-            "type": record.type,
-            "name": record.name,
-            "data": record.data,
-            "ttl": record.ttl,
-        }
-    ]
-
-    log(log.DEBUG, "Payload: [%s]", payload)
-
     # Make the API request to add the DNS record
-    response: requests.Response = requests.delete(url, json=payload, headers=headers)
+    response: requests.Response = requests.delete(f"{url}/{record.type}/{record.name}", headers=headers)
 
-    log(log.INFO, "Response: [%s]", response.text)
+    log(log.INFO, "Response: [%s]", response)
 
-    if response.status_code != 200:
+    if response.status_code != 204:
         raise HTTPException(status_code=500, detail=response.text)
 
     log(log.INFO, "DNS record deleted successfully")
