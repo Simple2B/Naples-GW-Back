@@ -651,3 +651,10 @@ def test_upload_and_delete_youtube_link(
     assert res.status_code == 204
     full_db.refresh(item_model)
     assert not item_model.videos_links
+
+    response = client.post(
+        f"/api/items/{item_model.uuid}/link",
+        headers=headers,
+        json=data.model_dump(),
+    )
+    assert response.status_code == 201
