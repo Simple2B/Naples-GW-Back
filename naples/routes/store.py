@@ -40,18 +40,35 @@ def get_stores_urls(
     db: Session = Depends(get_db),
 ):
     stores = db.scalars(sa.select(m.Store)).all()
+
+    if not stores:
+        log(log.ERROR, "Stores not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Stores not found")
+
+    data_stores = [
+        s.TraefikStoreData(
+            uuid=store.uuid,
+            subdomain=get_subdomain_from_url(store.url) or store.uuid,
+            store_url=store.url,
+        )
+        for store in stores
+        if store.url
+    ]
+
     traefik_http = s.TraefikHttp(
         routers={
-            store.uuid: s.TraefikRoute(
-                rule=f"Host(`{store.url}`)", service=store.uuid, tls=s.TraefikTLS(certResolver=CFG.CERT_RESOLVER)
+            store.subdomain: s.TraefikRoute(
+                rule=f"Host(`{store.store_url}`)",
+                service=store.subdomain,
+                tls=s.TraefikTLS(certResolver=CFG.CERT_RESOLVER),
             )
-            for store in stores
+            for store in data_stores
         },
         services={
-            store.uuid: s.TraefikService(
+            store.subdomain: s.TraefikService(
                 loadBalancer=s.TraefikLoadBalancer(servers=[s.TraefikServer(url=f"http://{CFG.WEB_SERVICE_NAME}")])
             )
-            for store in stores
+            for store in data_stores
         },
     )
     return s.TraefikData(http=traefik_http)

@@ -86,6 +86,16 @@ class TraefikData(BaseModel):
     )
 
 
+class TraefikStoreData(BaseModel):
+    uuid: str
+    subdomain: str
+    store_url: str
+
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
+
+
 class DNSRecord(BaseModel):
     type: str = "A"
     name: str

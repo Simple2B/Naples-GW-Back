@@ -68,6 +68,7 @@ from .store_url import (
     TraefikService,
     TraefikHttp,
     TraefikData,
+    TraefikStoreData,
     TraefikTLS,
     DNSRecord,
 )
