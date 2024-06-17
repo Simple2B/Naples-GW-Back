@@ -107,7 +107,7 @@ class ItemOut(BaseModel):
 
 class ItemVideoLinkType(enum.Enum):
     YOUTUBE = "youtube"
-    S3BUCKET = "s3bucket"
+    VIDEO = "video"
 
 
 class ItemVideoLinkOut(BaseModel):
