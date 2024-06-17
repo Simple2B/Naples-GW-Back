@@ -780,7 +780,7 @@ def delete_item_video(
 
 
 @item_router.post(
-    "/upload/link",
+    "/upload/{item_uuid}/link",
     status_code=status.HTTP_201_CREATED,
     response_model=s.ItemDetailsOut,
     responses={
@@ -789,16 +789,17 @@ def delete_item_video(
     },
 )
 def upload_item_link(
+    item_uuid: str,
     data: s.LinkIn,
     db: Session = Depends(get_db),
     current_store: m.Store = Depends(get_current_user_store),
 ):
     """Upload link for item by UUID"""
 
-    item = current_store.get_item_by_uuid(data.item_uuid)
+    item = current_store.get_item_by_uuid(item_uuid)
 
     if not item:
-        log(log.ERROR, "Item [%s] not found", data.item_uuid)
+        log(log.ERROR, "Item [%s] not found", item_uuid)
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
 
     # get type of link
@@ -818,7 +819,7 @@ def upload_item_link(
     db.commit()
     db.refresh(item)
 
-    log(log.INFO, "Link for item [%s] was uploaded", data.item_uuid)
+    log(log.INFO, "Link for item [%s] was uploaded", item_uuid)
 
     return s.ItemDetailsOut.model_validate(item)
 

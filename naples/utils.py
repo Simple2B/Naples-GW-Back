@@ -127,7 +127,7 @@ def delete_user_with_store(db: Session, user: m.User) -> None:
 
 
 def get_link_type(link: str) -> str:
-    if s.LinkType.YouTubeVideo.value in link:
+    if s.LinkType.YouTubeVideo.value in link or s.LinkType.YouTuVideo.value in link:
         log(log.INFO, "link is youtube")
         return s.LinkType.YouTubeVideo.value
 
