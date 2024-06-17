@@ -635,7 +635,7 @@ def test_upload_and_delete_youtube_link(
     data = s.LinkIn(url=youtube_link)
 
     response = client.post(
-        f"/api/items/upload/{item_model.uuid}/link",
+        f"/api/items/{item_model.uuid}/link",
         headers=headers,
         json=data.model_dump(),
     )

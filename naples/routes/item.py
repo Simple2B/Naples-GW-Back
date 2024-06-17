@@ -780,7 +780,7 @@ def delete_item_video(
 
 
 @item_router.post(
-    "/upload/{item_uuid}/link",
+    "/{item_uuid}/link",
     status_code=status.HTTP_201_CREATED,
     response_model=s.ItemDetailsOut,
     responses={
