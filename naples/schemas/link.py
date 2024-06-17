@@ -4,6 +4,7 @@ from pydantic import BaseModel, ConfigDict
 
 class LinkType(enum.Enum):
     YouTubeVideo = "youtube"
+    YouTuVideo = "youtu.be"
     UNKNOWN = "unknown"
 
 
@@ -17,7 +18,6 @@ class Link(BaseModel):
 
 
 class LinkIn(BaseModel):
-    item_uuid: str
     url: str
 
     model_config = ConfigDict(
