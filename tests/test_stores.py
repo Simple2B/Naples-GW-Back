@@ -274,6 +274,7 @@ def test_update_store(client: TestClient, headers: dict[str, str], full_db: Sess
         sub_title_font_size=12,
         about_us_description="This is a description",
         messenger_url="",
+        url=f"{store_model.uuid}.propertyroster.com",
     )
 
     response = client.patch("/api/stores/", headers=headers, content=update_data.model_dump_json())
