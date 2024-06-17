@@ -1,3 +1,4 @@
+from hmac import new
 from fastapi import Depends, APIRouter, UploadFile, status, HTTPException
 
 from mypy_boto3_s3 import S3Client
@@ -115,16 +116,22 @@ def update_store(
         log(log.INFO, "Updating url to [%s] for store [%s]", store.url, current_store.url)
 
         if check_main_domain(store.url):
+            new_subdomain = get_subdomain_from_url(store.url)
+
+            if not new_subdomain:
+                log(log.ERROR, "New subdomain not found for store [%s]", store.url)
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="New subdomain not found")
+
             subdomain = get_subdomain_from_url(current_store.url)
 
             godaddy_subdomain = check_subdomain_existence(subdomain)
 
             if godaddy_subdomain and subdomain:
                 delete_godaddy_dns_record(subdomain)
-                log(log.INFO, "Subdomain [%s] deleted", subdomain)
+                log(log.INFO, "Old subdomain [%s] deleted", subdomain)
 
-            # add new record with new url for the store in godaddy
-            add_godaddy_dns_record(store.url)
+                # add new record with new url for the store in godaddy
+                add_godaddy_dns_record(new_subdomain)
 
         current_store.url = store.url
 
