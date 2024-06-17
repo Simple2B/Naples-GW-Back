@@ -23,6 +23,7 @@ from .item import (
     ItemsFilterDataIn,
     ItemsFilterDataOut,
     ItemDataIn,
+    ItemVideoLinkType,
     ItemDetailsOut,
     RentalLength,
     ExternalUrls,
