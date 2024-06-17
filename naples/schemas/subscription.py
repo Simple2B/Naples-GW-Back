@@ -34,7 +34,7 @@ class Subscription(BaseModel):
     type: str = ""
     customer_stripe_id: str = ""
 
-    status: str = SubscriptionStatus.TRIALING.value
+    status: SubscriptionStatus
 
     start_date: datetime | None
     end_date: datetime | None
