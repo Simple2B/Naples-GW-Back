@@ -15,7 +15,7 @@ from naples.logger import log
 import sqlalchemy as sa
 from sqlalchemy.orm import Session
 
-from naples.dependency import get_current_user, get_current_store, get_current_user_store
+from naples.dependency import get_current_user, get_current_store, get_current_user_store, get_user_subscribe
 from naples.database import get_db
 
 from naples.config import config
@@ -47,6 +47,7 @@ def get_published_items(
     params: Params = Depends(),
     db: Session = Depends(get_db),
     current_store: m.Store = Depends(get_current_store),
+    subscription: m.Subscription = Depends(get_user_subscribe),
 ):
     """Get items by filters and pagination"""
 
@@ -112,6 +113,7 @@ def get_all_items(
     params: Params = Depends(),
     db: Session = Depends(get_db),
     current_store: m.Store = Depends(get_current_store),
+    subscription: m.Subscription = Depends(get_user_subscribe),
 ):
     """Get items by filters and pagination"""
 
@@ -147,6 +149,7 @@ def get_item_by_uuid(
     item_uuid: str,
     db: Session = Depends(get_db),
     current_store: m.Store = Depends(get_current_store),
+    subscription: m.Subscription = Depends(get_user_subscribe),
 ):
     """Get item by UUID"""
 
@@ -169,6 +172,7 @@ def get_item_by_uuid(
 def get_filters_data(
     db: Session = Depends(get_db),
     current_user_store: m.Store = Depends(get_current_store),
+    subscription: m.Subscription = Depends(get_user_subscribe),
 ):
     """Get data for filter items"""
 

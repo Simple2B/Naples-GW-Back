@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 
 from naples import models as m, schemas as s, controllers as c
 from naples.database import get_db
+from naples.dependency import get_user_subscribe
 from naples.dependency.get_user_store import get_current_user_store
 from naples.dependency.s3_client import get_s3_connect
 from naples.logger import log
@@ -17,7 +18,11 @@ floor_plan_router = APIRouter(prefix="/floor_plans", tags=["floor_plans"])
 
 
 @floor_plan_router.get("/{item_uuid}", response_model=s.FloorPlanListOut)
-def get_floor_plans_for_item(item_uuid: str, current_store: m.Store = Depends(get_current_store)):
+def get_floor_plans_for_item(
+    item_uuid: str,
+    current_store: m.Store = Depends(get_current_store),
+    subscription: m.Subscription = Depends(get_user_subscribe),
+):
     log(log.INFO, "Getting floor plans for item {%s} in store {%s}", item_uuid, current_store)
 
     item = current_store.get_item_by_uuid(item_uuid)
