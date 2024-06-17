@@ -136,7 +136,14 @@ def update_store(
 
             if not new_subdomain:
                 log(log.ERROR, "New subdomain not found for store [%s]", store.url)
-                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="New subdomain not found")
+                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="New subdomain not found")
+
+            # check if the new subdomain already exists in db
+            db_store = db.scalar(sa.select(m.Store).where(m.Store.url == store.url))
+
+            if db_store:
+                log(log.ERROR, "Store with url [%s] already exists", store.url)
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Store with url already exists")
 
             subdomain = get_subdomain_from_url(current_store.url)
 
