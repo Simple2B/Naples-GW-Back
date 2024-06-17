@@ -1,4 +1,3 @@
-from hmac import new
 from fastapi import Depends, APIRouter, UploadFile, status, HTTPException
 
 from mypy_boto3_s3 import S3Client

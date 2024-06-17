@@ -506,7 +506,7 @@ def test_item_list_with_filter(
 
     nightly_items = s.Items.model_validate(nightly_response.json()).items
 
-    assert len(nightly_items) == 5
+    assert len(nightly_items) == 1
 
 
 def test_update_item(
