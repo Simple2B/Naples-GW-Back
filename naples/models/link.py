@@ -19,7 +19,7 @@ class Link(db.Model, ModelMixin):
 
     type: orm.Mapped[str] = orm.mapped_column(sa.String(64))
 
-    url: orm.Mapped[str] = orm.mapped_column(sa.String(256), unique=True)
+    url: orm.Mapped[str] = orm.mapped_column(sa.String(256), default="", server_default="")
 
     is_deleted: orm.Mapped[bool] = orm.mapped_column(sa.Boolean, default=False)
 

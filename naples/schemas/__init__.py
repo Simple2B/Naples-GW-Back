@@ -23,6 +23,7 @@ from .item import (
     ItemsFilterDataIn,
     ItemsFilterDataOut,
     ItemDataIn,
+    ItemVideoLinkType,
     ItemDetailsOut,
     RentalLength,
     ExternalUrls,
@@ -67,9 +68,9 @@ from .store_url import (
     TraefikService,
     TraefikHttp,
     TraefikData,
+    TraefikStoreData,
     TraefikTLS,
     DNSRecord,
-    DNSRecordOut,
 )
 
 from .subscription import (

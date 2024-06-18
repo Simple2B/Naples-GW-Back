@@ -105,9 +105,14 @@ class ItemOut(BaseModel):
     )
 
 
+class ItemVideoLinkType(enum.Enum):
+    YOUTUBE = "youtube"
+    VIDEO = "video"
+
+
 class ItemVideoLinkOut(BaseModel):
     uuid: str
-    type: str
+    type: ItemVideoLinkType
     url: str
 
     model_config = ConfigDict(

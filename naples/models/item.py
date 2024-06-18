@@ -102,8 +102,24 @@ class Item(db.Model, ModelMixin):
 
     @property
     def videos_links(self):
-        videos = [v for v in self._videos if not v.is_deleted]
-        links = [link for link in self._links if not link.is_deleted]
+        videos = [
+            s.ItemVideoLinkOut(
+                url=v.url,
+                type=s.ItemVideoLinkType.VIDEO,
+                uuid=v.uuid,
+            )
+            for v in self._videos
+            if not v.is_deleted
+        ]
+        links = [
+            s.ItemVideoLinkOut(
+                url=link.url,
+                type=s.ItemVideoLinkType.YOUTUBE,
+                uuid=link.uuid,
+            )
+            for link in self._links
+            if not link.is_deleted
+        ]
 
         return videos + links
 

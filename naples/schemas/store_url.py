@@ -86,19 +86,17 @@ class TraefikData(BaseModel):
     )
 
 
-class DNSRecord(BaseModel):
-    domain: str
+class TraefikStoreData(BaseModel):
+    uuid: str
     subdomain: str
-    record_type: str = "A"
-    ttl: int = 600
-    value: str
+    store_url: str
 
-    api_url: str
-    api_key: str
-    api_secret: str
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
 
 
-class DNSRecordOut(BaseModel):
+class DNSRecord(BaseModel):
     type: str = "A"
     name: str
     data: str

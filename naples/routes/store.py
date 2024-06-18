@@ -14,6 +14,13 @@ from naples.dependency import get_current_user, get_current_user_store
 from naples.database import get_db
 from naples.utils import get_file_extension
 from naples.config import config
+from services.store.add_dns_record import (
+    add_godaddy_dns_record,
+    check_main_domain,
+    check_subdomain_existence,
+    delete_godaddy_dns_record,
+    get_subdomain_from_url,
+)
 
 
 store_router = APIRouter(prefix="/stores", tags=["Stores"])
@@ -33,18 +40,35 @@ def get_stores_urls(
     db: Session = Depends(get_db),
 ):
     stores = db.scalars(sa.select(m.Store)).all()
+
+    if not stores:
+        log(log.ERROR, "Stores not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Stores not found")
+
+    data_stores = [
+        s.TraefikStoreData(
+            uuid=store.uuid,
+            subdomain=get_subdomain_from_url(store.url) or store.uuid,
+            store_url=store.url,
+        )
+        for store in stores
+        if store.url
+    ]
+
     traefik_http = s.TraefikHttp(
         routers={
-            store.uuid: s.TraefikRoute(
-                rule=f"Host(`{store.url}`)", service=store.uuid, tls=s.TraefikTLS(certResolver=CFG.CERT_RESOLVER)
+            store.subdomain: s.TraefikRoute(
+                rule=f"Host(`{store.store_url}`)",
+                service=store.subdomain,
+                tls=s.TraefikTLS(certResolver=CFG.CERT_RESOLVER),
             )
-            for store in stores
+            for store in data_stores
         },
         services={
-            store.uuid: s.TraefikService(
+            store.subdomain: s.TraefikService(
                 loadBalancer=s.TraefikLoadBalancer(servers=[s.TraefikServer(url=f"http://{CFG.WEB_SERVICE_NAME}")])
             )
-            for store in stores
+            for store in data_stores
         },
     )
     return s.TraefikData(http=traefik_http)
@@ -106,8 +130,36 @@ def update_store(
 ):
     if store.url is not None:
         log(log.INFO, "Updating url to [%s] for store [%s]", store.url, current_store.url)
-        # TODO: implement update of DNS list for server
+
+        if check_main_domain(store.url):
+            new_subdomain = get_subdomain_from_url(store.url)
+
+            if not new_subdomain:
+                log(log.ERROR, "New subdomain not found for store [%s]", store.url)
+                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="New subdomain not found")
+
+            # check if the new subdomain already exists in db
+            db_store = db.scalar(sa.select(m.Store).where(m.Store.url == store.url))
+
+            if db_store:
+                log(log.ERROR, "Store with url [%s] already exists", store.url)
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Store with url already exists")
+
+            subdomain = get_subdomain_from_url(current_store.url)
+
+            godaddy_subdomain = check_subdomain_existence(subdomain)
+
+            if godaddy_subdomain and subdomain:
+                delete_godaddy_dns_record(subdomain)
+                log(log.INFO, "Old subdomain [%s] deleted", subdomain)
+
+                # add new record with new url for the store in godaddy
+                add_godaddy_dns_record(new_subdomain)
+
         current_store.url = store.url
+
+        log(log.INFO, "store url  updated to [%s]", store.url)
+
     if store.email is not None:
         log(log.INFO, "Updating email to [%s] for store [%s]", store.email, current_store.url)
         current_store.email = store.email

@@ -6,6 +6,7 @@ from pydantic_extra_types.color import Color
 
 from naples import schemas as s, models as m
 from naples.config import config
+from services.store.add_dns_record import get_subdomain_from_url
 
 
 CFG = config("testing")
@@ -274,6 +275,7 @@ def test_update_store(client: TestClient, headers: dict[str, str], full_db: Sess
         sub_title_font_size=12,
         about_us_description="This is a description",
         messenger_url="",
+        url=f"{store_model.uuid}.propertyroster.com",
     )
 
     response = client.patch("/api/stores/", headers=headers, content=update_data.model_dump_json())
@@ -323,10 +325,20 @@ def test_get_stores_urls(
 
     stores = s.TraefikData.model_validate(response.json())
 
-    for store in store_models:
-        assert store.uuid in stores.http.routers
-        assert stores.http.routers[store.uuid].rule == f"Host(`{store.url}`)"
-        assert stores.http.services[store.uuid].loadBalancer.servers[0].url == f"http://{CFG.WEB_SERVICE_NAME}"
+    data_stores = [
+        s.TraefikStoreData(
+            uuid=store.uuid,
+            subdomain=get_subdomain_from_url(store.url) or store.uuid,
+            store_url=store.url,
+        )
+        for store in store_models
+        if store.url
+    ]
+
+    for store in data_stores:
+        assert store.subdomain in stores.http.routers
+        assert stores.http.routers[store.subdomain].rule == f"Host(`{store.store_url}`)"
+        assert stores.http.services[store.subdomain].loadBalancer.servers[0].url == f"http://{CFG.WEB_SERVICE_NAME}"
 
 
 def test_upload_store_about_us_media(

@@ -70,11 +70,12 @@ def get_published_items(
         stmt = stmt.where(m.Item.adults >= adults)
 
     if rent_length:
-        if s.RentalLength.NIGHTLY.value in rent_length:
+        r_length = [r.value for r in rent_length]
+        if s.RentalLength.NIGHTLY.value in (r_length or rent_length):
             stmt = stmt.where(m.Item.nightly.is_(True))
-        if s.RentalLength.MONTHLY.value in rent_length:
+        if s.RentalLength.MONTHLY.value in r_length:
             stmt = stmt.where(m.Item.monthly.is_(True))
-        if s.RentalLength.ANNUAL.value in rent_length:
+        if s.RentalLength.ANNUAL.value in r_length:
             stmt = stmt.where(m.Item.annual.is_(True))
 
     if check_in:
@@ -784,7 +785,7 @@ def delete_item_video(
 
 
 @item_router.post(
-    "/upload/link",
+    "/{item_uuid}/link",
     status_code=status.HTTP_201_CREATED,
     response_model=s.ItemDetailsOut,
     responses={
@@ -793,16 +794,17 @@ def delete_item_video(
     },
 )
 def upload_item_link(
+    item_uuid: str,
     data: s.LinkIn,
     db: Session = Depends(get_db),
     current_store: m.Store = Depends(get_current_user_store),
 ):
     """Upload link for item by UUID"""
 
-    item = current_store.get_item_by_uuid(data.item_uuid)
+    item = current_store.get_item_by_uuid(item_uuid)
 
     if not item:
-        log(log.ERROR, "Item [%s] not found", data.item_uuid)
+        log(log.ERROR, "Item [%s] not found", item_uuid)
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
 
     # get type of link
@@ -822,7 +824,7 @@ def upload_item_link(
     db.commit()
     db.refresh(item)
 
-    log(log.INFO, "Link for item [%s] was uploaded", data.item_uuid)
+    log(log.INFO, "Link for item [%s] was uploaded", item_uuid)
 
     return s.ItemDetailsOut.model_validate(item)
 
