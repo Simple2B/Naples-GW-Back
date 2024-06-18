@@ -71,7 +71,8 @@ def get_published_items(
 
     if rent_length:
         r_length = [r.value for r in rent_length]
-        if s.RentalLength.NIGHTLY.value in (r_length or rent_length):
+        log(log.INFO, " === Rent length [%s]", r_length)
+        if s.RentalLength.NIGHTLY.value in r_length:
             stmt = stmt.where(m.Item.nightly.is_(True))
         if s.RentalLength.MONTHLY.value in r_length:
             stmt = stmt.where(m.Item.monthly.is_(True))
