@@ -55,7 +55,12 @@ def test_create_item(client: TestClient, full_db: Session, headers: dict[str, st
 def test_get_filters_data(client: TestClient, headers: dict[str, str], full_db: Session):
     store = full_db.scalar(select(m.Store))
     assert store
-    response = client.get("/api/items/filters/data", params={"store_url": store.url})
+    response = client.get(
+        "/api/items/filters/data",
+        params={
+            "store_url": store.url,
+        },
+    )
     assert response.status_code == 200
 
     filters_data = s.ItemsFilterDataOut.model_validate(response.json())
@@ -79,7 +84,14 @@ def test_get_items(client: TestClient, full_db: Session, headers: dict[str, str]
 
     store_url = store.url
     size = 3
-    response = client.get("/api/items", params={"store_url": store_url, "page": 1, "size": size})
+    response = client.get(
+        "/api/items",
+        params={
+            "store_url": store_url,
+            "page": 1,
+            "size": size,
+        },
+    )
     assert response.status_code == 200
 
     items = s.Items.model_validate(response.json()).items
@@ -90,7 +102,11 @@ def test_get_items(client: TestClient, full_db: Session, headers: dict[str, str]
 
     response = client.get(
         "/api/items",
-        params={"store_url": store_url, "page": 2, "size": size},
+        params={
+            "store_url": store_url,
+            "page": 2,
+            "size": size,
+        },
     )
     assert response.status_code == 200
 
@@ -105,14 +121,26 @@ def test_get_items(client: TestClient, full_db: Session, headers: dict[str, str]
     response = client.get(
         "/api/items",
         headers=headers,
-        params={"store_url": store.url, "page": 1, "size": size, "city_uuid": city_uuid},
+        params={
+            "store_url": store.url,
+            "page": 1,
+            "size": size,
+            "city_uuid": city_uuid,
+        },
     )
     assert response.status_code == 200
 
     response = client.get("/api/items", params={"store_url": store.url})
     assert response.status_code == 200
 
-    all_items_response = client.get("/api/items/all", params={"store_url": store.url, "page": 1, "size": 100})
+    all_items_response = client.get(
+        "/api/items/all",
+        params={
+            "store_url": store.url,
+            "page": 1,
+            "size": 100,
+        },
+    )
     assert all_items_response.status_code == 200
 
     all_items = s.Items.model_validate(all_items_response.json()).items
@@ -497,8 +525,6 @@ def test_item_list_with_filter(
             "store_url": store_url,
             "rent_length": [
                 s.RentalLength.NIGHTLY.value,
-                s.RentalLength.MONTHLY.value,
-                s.RentalLength.ANNUAL.value,
             ],
         },
     )
@@ -506,7 +532,7 @@ def test_item_list_with_filter(
 
     nightly_items = s.Items.model_validate(nightly_response.json()).items
 
-    assert len(nightly_items) == 1
+    assert len(nightly_items) == 3
 
 
 def test_update_item(

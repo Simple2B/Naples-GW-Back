@@ -69,12 +69,12 @@ def get_published_items(
         stmt = stmt.where(m.Item.adults >= adults)
 
     if rent_length:
-        r_length = [rent.value for rent in rent_length]
-        if s.RentalLength.NIGHTLY.value in r_length:
+        r_length = [r.value for r in rent_length]
+        if s.RentalLength.NIGHTLY.value in (r_length or rent_length):
             stmt = stmt.where(m.Item.nightly.is_(True))
-        if s.RentalLength.NIGHTLY.value in r_length:
+        if s.RentalLength.MONTHLY.value in r_length:
             stmt = stmt.where(m.Item.monthly.is_(True))
-        if s.RentalLength.NIGHTLY.value in r_length:
+        if s.RentalLength.ANNUAL.value in r_length:
             stmt = stmt.where(m.Item.annual.is_(True))
 
     if check_in:
