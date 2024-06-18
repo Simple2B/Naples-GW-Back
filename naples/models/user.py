@@ -60,7 +60,7 @@ class User(db.Model, ModelMixin):
 
     avatar: orm.Mapped["File"] = orm.relationship()
 
-    subscriptions: orm.Mapped[list["Subscription"]] = orm.relationship(viewonly=True)
+    subscriptions: orm.Mapped[list["Subscription"]] = orm.relationship(viewonly=True, order_by="desc(subscriptions.id)")
 
     @property
     def subscription(self):
