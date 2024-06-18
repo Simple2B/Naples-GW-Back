@@ -58,7 +58,7 @@ def create_user_with_store():
                     customer_stripe_id=stripe_customer.id,
                     start_date=start_date,
                     end_date=end_date,
-                    status="trial",
+                    status=s.SubscriptionStatus.TRIALING.value,
                 )
                 session.add(subscription)
                 log(log.INFO, "Subscription for user [%s] created", new_user.email)
