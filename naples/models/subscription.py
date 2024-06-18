@@ -24,18 +24,18 @@ class Subscription(db.Model, ModelMixin):
 
     status: orm.Mapped[str] = orm.mapped_column(sa.String(32), default=s.SubscriptionStatus.TRIALING.value)
 
-    start_date: orm.Mapped[datetime] = orm.mapped_column(nullable=True)
-    end_date: orm.Mapped[datetime] = orm.mapped_column(nullable=True)
+    start_date: orm.Mapped[datetime | None] = orm.mapped_column()
+    end_date: orm.Mapped[datetime | None] = orm.mapped_column()
 
     subscription_stripe_id: orm.Mapped[str] = orm.mapped_column(sa.String(128), default="")
 
-    subscription_stripe_item_id: orm.Mapped[str] = orm.mapped_column(sa.String(128), nullable=True)
+    subscription_stripe_item_id: orm.Mapped[str | None] = orm.mapped_column(sa.String(128))
 
     customer_stripe_id: orm.Mapped[str] = orm.mapped_column(sa.String(128), default="")
 
     created_at: orm.Mapped[datetime] = orm.mapped_column(default=datetime_utc)
 
-    canceled_at: orm.Mapped[datetime] = orm.mapped_column(nullable=True)
+    canceled_at: orm.Mapped[datetime | None] = orm.mapped_column()
 
     user_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey("users.id"))
 
