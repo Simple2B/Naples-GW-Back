@@ -40,7 +40,7 @@ item_router = APIRouter(prefix="/items", tags=["Items"])
 def get_published_items(
     city_uuid: str | None = None,
     adults: int = 0,
-    rent_length: Annotated[Union[List[str], None], Query()] = None,
+    rent_length: Annotated[Union[List[s.RentalLength], None], Query()] = None,
     check_in: datetime | None = None,
     check_out: datetime | None = None,
     name: str | None = None,
@@ -70,13 +70,13 @@ def get_published_items(
         stmt = stmt.where(m.Item.adults >= adults)
 
     if rent_length:
-        # r_length = [r.value for r in rent_length]
-        log(log.INFO, " === Rent length [%s]", rent_length)
-        if s.RentalLength.NIGHTLY.value in rent_length:
+        r_length = [r.value for r in rent_length]
+        log(log.INFO, " === Rent length [%s]", r_length)
+        if s.RentalLength.NIGHTLY.value in r_length:
             stmt = stmt.where(m.Item.nightly.is_(True))
-        if s.RentalLength.MONTHLY.value in rent_length:
+        if s.RentalLength.MONTHLY.value in r_length:
             stmt = stmt.where(m.Item.monthly.is_(True))
-        if s.RentalLength.ANNUAL.value in rent_length:
+        if s.RentalLength.ANNUAL.value in r_length:
             stmt = stmt.where(m.Item.annual.is_(True))
 
     if check_in:
