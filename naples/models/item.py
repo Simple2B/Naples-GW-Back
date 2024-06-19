@@ -146,7 +146,7 @@ class Item(db.Model, ModelMixin):
     @property
     def images(self):
         files_list = [i for i in self._images if not i.is_deleted]
-        files_list.sort(key=lambda file: file.updated_at, reverse=True)
+        files_list.sort(key=lambda file: file.updated_at)
         return files_list
 
     @property
