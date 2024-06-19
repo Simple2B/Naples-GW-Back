@@ -525,6 +525,7 @@ def test_item_list_with_filter(
             "store_url": store_url,
             "rent_length": [
                 s.RentalLength.NIGHTLY.value,
+                # s.RentalLength.MONTHLY.value,
             ],
         },
     )
