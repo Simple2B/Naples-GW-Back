@@ -77,6 +77,8 @@ class ItemUpdateIn(BaseModel):
     monthly: bool | None = None
     annual: bool | None = None
 
+    images_urls: list[str] | None = None
+
     model_config = ConfigDict(
         from_attributes=True,
     )

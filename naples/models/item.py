@@ -145,7 +145,9 @@ class Item(db.Model, ModelMixin):
 
     @property
     def images(self):
-        return [i for i in self._images if not i.is_deleted]
+        files_list = [i for i in self._images if not i.is_deleted]
+        files_list.sort(key=lambda file: file.updated_at, reverse=True)
+        return files_list
 
     @property
     def images_urls(self) -> list[str]:

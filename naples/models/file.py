@@ -29,6 +29,10 @@ class File(db.Model, ModelMixin):
 
     is_deleted: orm.Mapped[bool] = orm.mapped_column(sa.Boolean, default=False)
 
+    updated_at: orm.Mapped[datetime] = orm.mapped_column(
+        sa.DateTime, server_default=sa.func.now(), onupdate=sa.func.now()
+    )
+
     @property
     def url(self):
         return f"{CFG.AWS_S3_BUCKET_URL}{self.key}"
