@@ -12,16 +12,69 @@ from naples.config import config
 CFG = config("testing")
 
 
-def test_get_item(client: TestClient, full_db: Session, headers: dict[str, str], test_data: s.TestData):
+def test_get_item(
+    client: TestClient,
+    full_db: Session,
+    headers: dict[str, str],
+    test_data: s.TestData,
+    s3_client: S3Client,
+):
     store: m.Store | None = full_db.scalar(select(m.Store))
     assert store
 
     store_url: str = store.url
     item_uuid = store.items[0].uuid
-    response = client.get(f"/api/items/{item_uuid}?store_url={store_url}", headers=headers)
-    assert response.status_code == 200
-    item = s.ItemOut.model_validate(response.json())
-    assert item.uuid == store.items[0].uuid
+
+    with open("tests/house_example.png", "rb") as image:
+        response = client.post(
+            f"/api/items/{item_uuid}/image/",
+            headers=headers,
+            files={"image": ("test_1.png", image, "image/png")},
+        )
+        assert response.status_code == 201
+
+        response = client.post(
+            f"/api/items/{item_uuid}/image/",
+            headers=headers,
+            files={"image": ("test_2.jpeg", image, "image/jpeg")},
+        )
+        assert response.status_code == 201
+
+        response = client.post(
+            f"/api/items/{item_uuid}/image/",
+            headers=headers,
+            files={"image": ("test_3.png", image, "image/png")},
+        )
+        assert response.status_code == 201
+
+        item = s.ItemDetailsOut.model_validate(response.json())
+        assert item.images_urls
+
+        urls_images = store.items[0].images_urls
+
+        sorted_urls_images = [urls_images[2], urls_images[1], urls_images[0]]
+
+        item_data = s.ItemUpdateIn(images_urls=sorted_urls_images)
+
+        response = client.patch(
+            f"/api/items/{item_uuid}?store_url={store_url}",
+            headers=headers,
+            json=item_data.model_dump(),
+        )
+
+        response = client.get(
+            f"/api/items/{item_uuid}?store_url={store_url}",
+            headers=headers,
+            params={
+                "store_url": store_url,
+                "sorted_urls_images": sorted_urls_images,
+            },
+        )
+        assert response.status_code == 200
+
+        item = s.ItemDetailsOut.model_validate(response.json())
+        assert item.uuid == store.items[0].uuid
+        assert item.images_urls
 
 
 def test_create_item(client: TestClient, full_db: Session, headers: dict[str, str], test_data: s.TestData):
@@ -525,6 +578,7 @@ def test_item_list_with_filter(
             "store_url": store_url,
             "rent_length": [
                 s.RentalLength.NIGHTLY.value,
+                # s.RentalLength.MONTHLY.value,
             ],
         },
     )

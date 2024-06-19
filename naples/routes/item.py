@@ -1,3 +1,4 @@
+from time import sleep
 from typing import Annotated, Sequence
 from datetime import datetime
 
@@ -71,13 +72,17 @@ def get_published_items(
 
     if rent_length:
         r_length = [r.value for r in rent_length]
-        log(log.INFO, " === Rent length [%s]", r_length)
+        log(log.INFO, "Rent length [%s]", r_length)
+        conditions = []
         if s.RentalLength.NIGHTLY.value in r_length:
-            stmt = stmt.where(m.Item.nightly.is_(True))
+            conditions.append(m.Item.nightly.is_(True))
         if s.RentalLength.MONTHLY.value in r_length:
-            stmt = stmt.where(m.Item.monthly.is_(True))
+            conditions.append(m.Item.monthly.is_(True))
         if s.RentalLength.ANNUAL.value in r_length:
-            stmt = stmt.where(m.Item.annual.is_(True))
+            conditions.append(m.Item.annual.is_(True))
+
+        if conditions:
+            stmt = stmt.where(sa.or_(*conditions))
 
     if check_in:
         stmt = stmt.where(
@@ -149,6 +154,7 @@ def get_all_items(
 )
 def get_item_by_uuid(
     item_uuid: str,
+    # sorted_urls_images: Annotated[list[str], Query()] = [],
     db: Session = Depends(get_db),
     current_store: m.Store = Depends(get_current_store),
     subscription: m.Subscription = Depends(get_user_subscribe),
@@ -357,6 +363,20 @@ def update_item(
     if item_data.annual is not None:
         log(log.INFO, "Annual [%s] was updated for item [%s]", item_data.annual, item_uuid)
         item.annual = item_data.annual
+
+    if item_data.images_urls is not None:
+        log(log.INFO, "Images urls [%s] was updated for item [%s]", len(item_data.images_urls), item_uuid)
+
+        for url_image in item_data.images_urls:
+            # find files and update data of each file
+            key_url = url_image.replace(CFG.AWS_S3_BUCKET_URL, "")
+            file: m.File | None = db.scalar(sa.select(m.File).where(m.File.key == key_url))
+            # update date
+            if file:
+                file.updated_at = datetime.now()
+                db.commit()
+                db.refresh(file)
+                sleep(0.05)
 
     db.commit()
     db.refresh(item)
