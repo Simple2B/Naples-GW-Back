@@ -12,7 +12,13 @@ from naples.config import config
 CFG = config("testing")
 
 
-def test_get_item(client: TestClient, full_db: Session, headers: dict[str, str], test_data: s.TestData):
+def test_get_item(
+    client: TestClient,
+    full_db: Session,
+    headers: dict[str, str],
+    test_data: s.TestData,
+    s3_client: S3Client,
+):
     store: m.Store | None = full_db.scalar(select(m.Store))
     assert store
 
