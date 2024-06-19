@@ -1,4 +1,4 @@
-from typing import Annotated, List, Sequence, Union
+from typing import Annotated, Sequence
 from datetime import datetime
 
 from fastapi import Depends, APIRouter, File, Form, Query, UploadFile, status, HTTPException
@@ -38,9 +38,9 @@ item_router = APIRouter(prefix="/items", tags=["Items"])
     },
 )
 def get_published_items(
+    rent_length: Annotated[list[s.RentalLength], Query()] = [],
     city_uuid: str | None = None,
     adults: int = 0,
-    rent_length: Annotated[Union[List[s.RentalLength], None], Query()] = None,
     check_in: datetime | None = None,
     check_out: datetime | None = None,
     name: str | None = None,
