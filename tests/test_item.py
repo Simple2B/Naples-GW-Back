@@ -23,10 +23,11 @@ def test_get_item(client: TestClient, full_db: Session, headers: dict[str, str],
         response = client.post(
             f"/api/items/{item_uuid}/image/",
             headers=headers,
-            files={"image": ("test.png", image, "image/png")},
+            files={"image": ("house_example.png", image, "image/png")},
         )
         assert response.status_code == 201
 
+    with open("tests/test_avatar.jpeg", "rb") as image:
         response = client.post(
             f"/api/items/{item_uuid}/image/",
             headers=headers,
@@ -34,15 +35,16 @@ def test_get_item(client: TestClient, full_db: Session, headers: dict[str, str],
         )
         assert response.status_code == 201
 
+    with open("tests/house_example.png", "rb") as image:
         response = client.post(
             f"/api/items/{item_uuid}/image/",
             headers=headers,
-            files={"image": ("house_example.png", image, "image/png")},
+            files={"image": ("test.png", image, "image/png")},
         )
         assert response.status_code == 201
 
-        item = s.ItemDetailsOut.model_validate(response.json())
-        assert item.images_urls
+    item = s.ItemDetailsOut.model_validate(response.json())
+    assert item.images_urls
 
     urls_images = store.items[0].images_urls
 
