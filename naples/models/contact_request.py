@@ -26,7 +26,7 @@ class ContactRequest(db.Model):
     message: orm.Mapped[str] = orm.mapped_column(sa.Text)
     check_in: orm.Mapped[datetime] = orm.mapped_column()
     check_out: orm.Mapped[datetime] = orm.mapped_column()
-    status: orm.Mapped[str] = orm.mapped_column(sa.String(64), default=ContactRequestStatus.PENDING.value)
+    status: orm.Mapped[str] = orm.mapped_column(default=ContactRequestStatus.CREATED.value)
 
     is_deleted: orm.Mapped[bool] = orm.mapped_column(sa.Boolean, default=False)
 

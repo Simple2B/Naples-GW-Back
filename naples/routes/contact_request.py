@@ -88,7 +88,7 @@ async def update_contact_request_status(
         log(log.ERROR, "Contact request {%s} does not belong to store {%s}", contact_request.uuid, store.uuid)
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Contact request not found")
 
-    if contact_request.status != s.ContactRequestStatus.PENDING.value and data.status == s.ContactRequestStatus.PENDING:
+    if contact_request.status != s.ContactRequestStatus.CREATED.value and data.status == s.ContactRequestStatus.CREATED:
         log(log.ERROR, "Contact request {%s} is already processed", contact_request.uuid)
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Status downgrade is not allowed")
 

@@ -5,7 +5,7 @@ from pydantic import BaseModel, ConfigDict
 
 
 class ContactRequestStatus(Enum):
-    PENDING = "pending"
+    CREATED = "created"
     PROCESSED = "processed"
     REJECTED = "rejected"
 
