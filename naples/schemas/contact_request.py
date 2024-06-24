@@ -40,6 +40,7 @@ class ContactRequestUpdateIn(BaseModel):
 class ContactRequestOut(ContactRequestIn):
     uuid: str
     status: str
+    item_name: str | None = None
 
     model_config = ConfigDict(
         from_attributes=True,
