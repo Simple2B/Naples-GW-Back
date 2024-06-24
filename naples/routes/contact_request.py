@@ -52,11 +52,17 @@ async def get_contact_requests(
         sa.and_(m.ContactRequest.store_id == store.id, m.ContactRequest.is_deleted.is_(False))
     )
     if search:
+        items = db.scalars(
+            sa.select(m.Item).where(m.Item.store_id == store.id).where(m.Item.name.ilike(f"%{search}%"))
+        ).all()
+        item_ids = [item.id for item in items]
+
         stmt = stmt.where(
             sa.or_(
                 m.ContactRequest.first_name.ilike(f"%{search}%"),
                 m.ContactRequest.last_name.ilike(f"%{search}%"),
                 m.ContactRequest.email.ilike(f"%{search}%"),
+                m.ContactRequest.item_id.in_(item_ids),
             )
         )
     if status:
