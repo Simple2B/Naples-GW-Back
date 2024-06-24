@@ -33,6 +33,8 @@ def create_product(data: s.ProductIn, db: Session) -> s.ProductOut | None:
             stripe_product_id=res.stripe_product_id,
             stripe_price_id=res.stripe_price_id,
             is_deleted=data.is_deleted if data.is_deleted is not None else False,
+            max_items=data.max_items,
+            max_active_items=data.max_active_items,
         )
 
         db.add(product)
@@ -79,8 +81,8 @@ def get_stripe_product(data: s.ProductIn) -> s.StripeProductOut | None:
             "currency": data.currency,
             "recurring": {"interval": data.recurring_interval},  # type: ignore
         },
-        expand=["default_price"],
-        metadata={"max_active_items": data.max_active_items, "max_items": data.max_items},
+        expand=["default_price"],  # type: ignore
+        metadata={"max_active_items": data.max_active_items, "max_items": data.max_items},  # type: ignore
     )
 
     if (

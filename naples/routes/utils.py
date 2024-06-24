@@ -34,3 +34,35 @@ def get_user_data(user: m.User) -> s.User:
     log(log.INFO, f"User data: {user_data}")
 
     return s.User.model_validate(user_data)
+
+
+def get_product_data(product: m.Product) -> s.ProductOut:
+    return s.ProductOut(
+        uuid=product.uuid,
+        type_name=product.type_name,
+        amount=product.amount,
+        is_deleted=product.is_deleted,
+        stripe_product_id=product.stripe_product_id,
+        stripe_price_id=product.stripe_price_id,
+        created_at=product.created_at,
+        max_items=product.max_items,
+        max_active_items=product.max_active_items,
+        unactive_items=product.unactive_items,
+        description=product.description,
+        points=product.points,
+    )
+
+
+def get_base_product_data(product: m.Product) -> s.ProductBaseOut:
+    return s.ProductBaseOut(
+        uuid=product.uuid,
+        type_name=product.type_name,
+        amount=product.amount,
+        is_deleted=product.is_deleted,
+        created_at=product.created_at,
+        max_items=product.max_items,
+        max_active_items=product.max_active_items,
+        unactive_items=product.unactive_items,
+        description=product.description,
+        points=product.points,
+    )

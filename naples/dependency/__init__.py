@@ -7,3 +7,4 @@ from .realtor import get_realtor
 from .get_user_store import get_current_user_store
 from .ses_client import get_ses_client
 from .get_user_subscribe import get_user_subscribe
+from .admin import get_admin

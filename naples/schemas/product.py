@@ -28,6 +28,8 @@ class Product(BaseModel):
     max_items: int
     max_active_items: int
     unactive_items: int
+    description: str
+    points: list[str]
 
     model_config = ConfigDict(
         from_attributes=True,
@@ -80,6 +82,8 @@ class ProductBase(BaseModel):
     max_items: int
     max_active_items: int
     unactive_items: int
+    description: str
+    points: list[str]
 
     model_config = ConfigDict(
         from_attributes=True,

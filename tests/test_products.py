@@ -20,7 +20,7 @@ def test_create_stripe_product_get_products(
         amount=1,
         currency="usd",
         recurring_interval=s.ProductTypeRecurringInterval.MONTH.value,
-        max_items=2,
+        max_items=5,
         max_active_items=3,
     )
 

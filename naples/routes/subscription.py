@@ -106,6 +106,11 @@ def create_portal_session(
     session = stripe.billing_portal.Session.create(
         customer=current_user.subscription.customer_stripe_id,
         return_url=CFG.REDIRECT_URL,
+        # features={
+        #     "customer_update": {"allowed_updates": ["tax_id"], "enabled": "true"},  # type: ignore
+        #     "invoice_history": {"enabled": "true"},  # type: ignore
+        #     # "payment_method_update": {"enabled": false},
+        # },
     )
 
     if not session:

@@ -39,5 +39,13 @@ class Product(db.Model, ModelMixin):
     def unactive_items(self):
         return self.max_items - self.max_active_items
 
+    @property
+    def points(self):
+        return [f"Up to {self.max_active_items} active", f"{self.unactive_items} Unactive"]
+
+    @property
+    def description(self):
+        return f"{self.max_active_items} Properties"
+
     def __repr__(self):
         return f"<{self.id}: {self.uuid}>"

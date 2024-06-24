@@ -18,7 +18,6 @@ def fill_db_stripe_products(with_print: bool = True):
         stripe_products: list[s.ProductIn] = [
             s.ProductIn(
                 type_name="starter",
-                # description="1-3 Properties",
                 amount=14,
                 currency="usd",
                 recurring_interval=s.ProductTypeRecurringInterval.MONTH.value,
@@ -28,7 +27,6 @@ def fill_db_stripe_products(with_print: bool = True):
             ),
             s.ProductIn(
                 type_name="plus",
-                # description="4-10 Properties",
                 amount=29,
                 currency="usd",
                 recurring_interval=s.ProductTypeRecurringInterval.MONTH.value,
@@ -38,7 +36,6 @@ def fill_db_stripe_products(with_print: bool = True):
             ),
             s.ProductIn(
                 type_name="pro",
-                # description="11-30 Properties",
                 amount=49,
                 currency="usd",
                 recurring_interval=s.ProductTypeRecurringInterval.MONTH.value,
