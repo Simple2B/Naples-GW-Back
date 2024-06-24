@@ -17,7 +17,6 @@ class ProductTypeRecurringInterval(enum.Enum):
 
 class Product(BaseModel):
     type_name: str
-    description: str
     amount: int
     is_deleted: bool
 
@@ -25,7 +24,10 @@ class Product(BaseModel):
     stripe_price_id: str
 
     created_at: datetime
-    points: list[str]
+
+    max_items: int
+    max_active_items: int
+    unactive_items: int
 
     model_config = ConfigDict(
         from_attributes=True,
@@ -34,10 +36,11 @@ class Product(BaseModel):
 
 class ProductIn(BaseModel):
     type_name: str
-    description: str
     amount: int
     is_deleted: bool | None = None
-    points: list[str] | None = None
+    max_items: int
+    max_active_items: int
+
     currency: str = "usd"
     recurring_interval: str = ProductTypeRecurringInterval.MONTH.value
 
@@ -69,12 +72,14 @@ class StripeProductOut(BaseModel):
 
 class ProductBase(BaseModel):
     type_name: str
-    description: str
     amount: int
     is_deleted: bool
 
     created_at: datetime
-    points: list[str]
+
+    max_items: int
+    max_active_items: int
+    unactive_items: int
 
     model_config = ConfigDict(
         from_attributes=True,
