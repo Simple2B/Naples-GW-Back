@@ -141,7 +141,7 @@ def test_update_contact_request_status(client: TestClient, full_db: Session, hea
     assert res.status_code == 201
 
     contact_request = s.ContactRequestOut.model_validate(res.json())
-    assert contact_request.status == s.ContactRequestStatus.CREATED.value
+    assert contact_request.status == s.ContactRequestStatus.CREATED
 
     res = client.put(
         f"/api/contact_requests/{contact_request.uuid}",
@@ -151,7 +151,7 @@ def test_update_contact_request_status(client: TestClient, full_db: Session, hea
 
     assert res.status_code == 200
     updated_contact_request = s.ContactRequestOut.model_validate(res.json())
-    assert updated_contact_request.status == s.ContactRequestStatus.PROCESSED.value
+    assert updated_contact_request.status == s.ContactRequestStatus.PROCESSED
 
 
 def test_delete_contact_request(client: TestClient, full_db: Session, headers: dict[str, str]):

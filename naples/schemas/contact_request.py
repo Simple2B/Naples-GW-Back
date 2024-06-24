@@ -39,7 +39,7 @@ class ContactRequestUpdateIn(BaseModel):
 
 class ContactRequestOut(ContactRequestIn):
     uuid: str
-    status: str
+    status: ContactRequestStatus
     item_name: str | None = None
 
     model_config = ConfigDict(
