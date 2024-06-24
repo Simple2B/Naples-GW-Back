@@ -7,7 +7,7 @@ from sqlalchemy import orm
 from typing import TYPE_CHECKING
 
 from naples.database import db
-from naples import schemas as s, models as m
+from naples import schemas as s
 from .utils import ModelMixin, create_uuid, datetime_utc
 
 if TYPE_CHECKING:
@@ -49,13 +49,6 @@ class Subscription(db.Model, ModelMixin):
             res = stripe.Subscription.retrieve(self.subscription_stripe_id)
             return res["items"]["data"][0]["price"]["id"]
         return ""
-
-    # @property
-    # def product(self) -> m.Product | None:
-    #     product_db: m.Product | None = db.scalar(
-    #         sa.select(m.Product).where(m.Product.stripe_price_id == self.stripe_price_id)
-    #     )
-    #     return product_db
 
     def __repr__(self):
         return f"<{self.id}: {self.uuid}>"
