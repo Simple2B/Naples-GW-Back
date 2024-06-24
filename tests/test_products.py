@@ -12,7 +12,7 @@ CFG = config("testing")
 
 def test_create_stripe_product_get_products(
     client: TestClient,
-    headers: dict[str, str],
+    admin_headers: dict[str, str],
     full_db: Session,
 ):
     test_stripe_product = s.ProductIn(
@@ -26,7 +26,7 @@ def test_create_stripe_product_get_products(
 
     res = client.post(
         "/api/products/",
-        headers=headers,
+        headers=admin_headers,
         json=test_stripe_product.model_dump(),
     )
 
@@ -34,7 +34,7 @@ def test_create_stripe_product_get_products(
 
     response = client.get(
         "/api/products/",
-        headers=headers,
+        headers=admin_headers,
     )
 
     assert response.status_code == 200

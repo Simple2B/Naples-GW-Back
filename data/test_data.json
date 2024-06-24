@@ -7,6 +7,14 @@
       "email": "testemail1@gmail.com",
       "password": "user_1",
       "role": "user"
+    },
+    {
+      "first_name": "name_2",
+      "last_name": "surname_2",
+      "uuid": "353b9f0a430b4bbcaa8cbcbe186ec5f6",
+      "email": "testemail2@gmail.com",
+      "password": "user_2",
+      "role": "admin"
     }
   ],
   "test_stores": [
