@@ -46,5 +46,9 @@ class ContactRequest(db.Model):
     def item_uuid(self):
         return self.item.uuid if self.item else None
 
+    @property
+    def item_name(self):
+        return self.item.name if self.item else None
+
     def __repr__(self):
         return f"<ContactRequest [{self.uuid}]: Name - [{self.first_name} {self.last_name}]>"
