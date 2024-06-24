@@ -17,11 +17,11 @@ def test_create_stripe_product_get_products(
 ):
     test_stripe_product = s.ProductIn(
         type_name="test product",
-        description="description",
         amount=1,
         currency="usd",
         recurring_interval=s.ProductTypeRecurringInterval.MONTH.value,
-        points=["point 1", "point 2"],
+        max_items=2,
+        max_active_items=3,
     )
 
     res = client.post(

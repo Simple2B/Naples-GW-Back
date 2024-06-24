@@ -35,13 +35,14 @@ def get_products(
             s.ProductOut(
                 uuid=product.uuid,
                 type_name=product.type_name,
-                description=product.description,
                 amount=product.amount,
-                points=product.points,
                 is_deleted=product.is_deleted,
                 stripe_product_id=product.stripe_product_id,
                 stripe_price_id=product.stripe_price_id,
                 created_at=product.created_at,
+                max_items=product.max_items,
+                max_active_items=product.max_active_items,
+                unactive_items=product.unactive_items,
             )
             for product in products_db
         ]
@@ -72,11 +73,12 @@ def get_base_products(
             s.ProductBaseOut(
                 uuid=product.uuid,
                 type_name=product.type_name,
-                description=product.description,
                 amount=product.amount,
                 is_deleted=product.is_deleted,
                 created_at=product.created_at,
-                points=product.points,
+                max_items=product.max_items,
+                max_active_items=product.max_active_items,
+                unactive_items=product.unactive_items,
             )
             for product in products_db
         ]
