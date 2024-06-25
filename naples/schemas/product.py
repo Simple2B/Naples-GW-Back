@@ -25,11 +25,11 @@ class Product(BaseModel):
 
     created_at: datetime
 
-    # max_items: int
-    # max_active_items: int
-    # unactive_items: int
-    # description: str
-    # points: list[str]
+    max_items: int
+    max_active_items: int
+    unactive_items: int
+    description: str
+    points: list[str]
 
     model_config = ConfigDict(
         from_attributes=True,
@@ -40,8 +40,8 @@ class ProductIn(BaseModel):
     type_name: str
     amount: int
     is_deleted: bool | None = None
-    # max_items: int
-    # max_active_items: int
+    max_items: int
+    max_active_items: int
 
     currency: str = "usd"
     recurring_interval: str = ProductTypeRecurringInterval.MONTH.value
@@ -79,11 +79,11 @@ class ProductBase(BaseModel):
 
     created_at: datetime
 
-    # max_items: int
-    # max_active_items: int
-    # unactive_items: int
-    # description: str
-    # points: list[str]
+    max_items: int
+    max_active_items: int
+    unactive_items: int
+    description: str
+    points: list[str]
 
     model_config = ConfigDict(
         from_attributes=True,

@@ -32,20 +32,20 @@ class Product(db.Model, ModelMixin):
 
     created_at: orm.Mapped[datetime] = orm.mapped_column(default=datetime_utc)
 
-    # max_items: orm.Mapped[int] = orm.mapped_column(nullable=True, server_default="NULL")
-    # max_active_items: orm.Mapped[int] = orm.mapped_column(nullable=True, server_default="NULL")
+    max_items: orm.Mapped[int] = orm.mapped_column(default=1)
+    max_active_items: orm.Mapped[int] = orm.mapped_column(default=1)
 
-    # @property
-    # def unactive_items(self):
-    #     return self.max_items - self.max_active_items
+    @property
+    def unactive_items(self):
+        return self.max_items - self.max_active_items
 
-    # @property
-    # def points(self):
-    #     return [f"Up to {self.max_active_items} active", f"{self.unactive_items} Unactive"]
+    @property
+    def points(self):
+        return [f"Up to {self.max_active_items} active", f"{self.unactive_items} Unactive"]
 
-    # @property
-    # def description(self):
-    #     return f"{self.max_active_items} Properties"
+    @property
+    def description(self):
+        return f"{self.max_active_items} Properties"
 
     def __repr__(self):
         return f"<{self.id}: {self.uuid}>"
