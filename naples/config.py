@@ -86,7 +86,7 @@ class BaseConfig(BaseSettings):
 
     MAX_PRODUCTS: int = 3
 
-    MAX_ITEMS_TRIALING: int = 5
+    MAX_ITEMS_TRIALING: int = 6
     MAX_ACTIVE_ITEMS_TRIALING: int = 3
 
     model_config = SettingsConfigDict(

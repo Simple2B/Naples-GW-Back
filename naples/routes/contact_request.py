@@ -18,7 +18,7 @@ contact_request_router = APIRouter(prefix="/contact_requests", tags=["Contact Re
 )
 async def create_contact_request(
     contact_request: s.ContactRequestIn,
-    store: m.Store = Depends(d.get_current_user_store),
+    store: m.Store = Depends(d.get_current_store),
     db: Session = Depends(get_db),
 ):
     log(log.INFO, "Creating contact request for store {%s}", store.uuid)

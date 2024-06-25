@@ -22,7 +22,9 @@ def test_create_contact_request(client: TestClient, full_db: Session, headers: d
         check_out=datetime.now(),
     )
 
-    res = client.post("/api/contact_requests/", content=req_payload.model_dump_json(), headers=headers)
+    res = client.post(
+        f"/api/contact_requests?store_url={store.url}", content=req_payload.model_dump_json(), headers=headers
+    )
     assert res.status_code == 201
     contact_request = s.ContactRequestOut.model_validate(res.json())
 
@@ -52,7 +54,9 @@ def test_create_contact_request_for_item(client: TestClient, full_db: Session, h
         item_uuid=item.uuid,
     )
 
-    res = client.post("/api/contact_requests/", content=req_payload.model_dump_json(), headers=headers)
+    res = client.post(
+        f"/api/contact_requests?store_url={store.url}", content=req_payload.model_dump_json(), headers=headers
+    )
     assert res.status_code == 201
     contact_request = s.ContactRequestOut.model_validate(res.json())
 
@@ -136,7 +140,9 @@ def test_update_contact_request_status(client: TestClient, full_db: Session, hea
         check_out=datetime.now(),
     )
 
-    res = client.post("/api/contact_requests/", content=payload.model_dump_json(), headers=headers)
+    res = client.post(
+        f"/api/contact_requests?store_url={store.url}", content=payload.model_dump_json(), headers=headers
+    )
 
     assert res.status_code == 201
 
