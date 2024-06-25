@@ -32,8 +32,8 @@ class Product(db.Model, ModelMixin):
 
     created_at: orm.Mapped[datetime] = orm.mapped_column(default=datetime_utc)
 
-    max_items: orm.Mapped[int] = orm.mapped_column(default=1, server_default="1", nullable=True)
-    max_active_items: orm.Mapped[int] = orm.mapped_column(default=1, server_default="1", nullable=True)
+    max_items: orm.Mapped[int] = orm.mapped_column(nullable=True, server_default="NULL")
+    max_active_items: orm.Mapped[int] = orm.mapped_column(nullable=True, server_default="NULL")
 
     @property
     def unactive_items(self):
