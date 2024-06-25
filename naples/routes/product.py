@@ -7,7 +7,6 @@ from naples.dependency import get_current_user, get_admin
 from naples import schemas as s, models as m
 from naples.config import config
 from naples.logger import log
-from naples.routes.utils import get_base_product_data, get_product_data
 from services.stripe.product import create_product
 
 
@@ -31,7 +30,7 @@ def get_products(
 
     log(log.INFO, "User [%s] get products [%s] prices", current_user.email, len(products_db))
 
-    return s.ProductsOut(products=[get_product_data(product) for product in products_db])
+    return s.ProductsOut(products=[s.ProductOut.model_validate(product) for product in products_db])
 
 
 @product_router.get(
@@ -53,7 +52,7 @@ def get_base_products(
         log(log.INFO, "No products found")
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No products found")
 
-    return s.ProductsBaseOut(products=[get_base_product_data(product) for product in products_db])
+    return s.ProductsBaseOut(products=[s.ProductBaseOut.model_validate(product) for product in products_db])
 
 
 # TODO:  for admin users

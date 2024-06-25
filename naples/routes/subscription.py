@@ -103,14 +103,21 @@ def create_portal_session(
         log(log.ERROR, "User not created in stripe")
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not created in stripe")
 
+    # TODO: add configure for user portal
+    # configuration = stripe.billing_portal.Configuration.create(
+    #     business_profile={
+    #         "privacy_policy_url": "",
+    #         "terms_of_service_url": "",
+    #     },
+    #     features={
+    #         "customer_update": {"allowed_updates": ["email", "tax_id"], "enabled": True},
+    #         "invoice_history": {"enabled": True},
+    #     },
+    # )
+
     session = stripe.billing_portal.Session.create(
         customer=current_user.subscription.customer_stripe_id,
         return_url=CFG.REDIRECT_URL,
-        # features={
-        #     "customer_update": {"allowed_updates": ["tax_id"], "enabled": "true"},  # type: ignore
-        #     "invoice_history": {"enabled": "true"},  # type: ignore
-        #     # "payment_method_update": {"enabled": false},
-        # },
     )
 
     if not session:
