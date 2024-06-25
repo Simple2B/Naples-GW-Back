@@ -116,6 +116,7 @@ def create_portal_session(
                 "enabled": True,
             },
         },
+        default_return_url=f"{CFG.REDIRECT_URL}/dashboard/billing",
     )
 
     session = stripe.billing_portal.Session.create(
