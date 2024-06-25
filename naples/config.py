@@ -84,6 +84,11 @@ class BaseConfig(BaseSettings):
 
     DAYS_BEFORE_UPDATE: int = 3
 
+    MAX_PRODUCTS: int = 3
+
+    MAX_ITEMS_TRIALING: int = 5
+    MAX_ACTIVE_ITEMS_TRIALING: int = 3
+
     model_config = SettingsConfigDict(
         extra="allow",
         env_file=("project.env", ".env.dev", ".env"),

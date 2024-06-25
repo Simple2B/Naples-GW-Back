@@ -264,3 +264,21 @@ def headers(
     token = create_access_token(user_id=user.id)
 
     yield dict(Authorization=f"Bearer {token}")
+
+
+@pytest.fixture
+def admin_headers(
+    client: TestClient,
+    test_data: s.TestData,
+) -> Generator[dict[str, str], None, None]:
+    """Returns an authorized test client admin for the API"""
+    from naples.oauth2 import create_access_token
+    from naples.database import db
+
+    # get admin from db
+    with db.Session() as session:
+        user = session.scalar(m.User.select().where(m.User.role == s.UserRole.ADMIN.value))
+        assert user, "Admin not found"
+    token = create_access_token(user_id=user.id)
+
+    yield dict(Authorization=f"Bearer {token}")

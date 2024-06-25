@@ -4,23 +4,26 @@ from datetime import datetime
 
 from fastapi import Depends, APIRouter, File, Form, Query, UploadFile, status, HTTPException
 from fastapi_pagination import Page, Params, paginate
-from mypy_boto3_s3 import S3Client
-
-from naples.controllers.file import get_file_type
-from naples.dependency.s3_client import get_s3_connect
-import naples.models as m
-import naples.schemas as s
-from naples import controllers as c
-from naples.logger import log
-
 import sqlalchemy as sa
 from sqlalchemy.orm import Session
+from mypy_boto3_s3 import S3Client
 
-from naples.dependency import get_current_user, get_current_store, get_current_user_store, get_user_subscribe
+from naples import models as m, schemas as s
+from naples.dependency import (
+    get_current_user,
+    get_current_store,
+    get_current_user_store,
+    get_user_subscribe,
+    get_s3_connect,
+)
+from naples import controllers as c
 from naples.database import get_db
+from naples.routes.utils import check_user_subscription_options
+from naples.utils import get_file_extension, get_link_type
+from naples.logger import log
+
 
 from naples.config import config
-from naples.utils import get_file_extension, get_link_type
 
 CFG = config()
 
@@ -209,6 +212,7 @@ def get_filters_data(
     response_model=s.ItemOut,
     responses={
         404: {"description": "Store not found"},
+        403: {"description": "Max items limit reached"},
     },
 )
 def create_item(
@@ -223,6 +227,8 @@ def create_item(
     if not store:
         log(log.ERROR, "User [%s] has no store", current_user.email)
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User has no store")
+
+    check_user_subscription_options(store, db)
 
     realtor: m.Member | None = db.scalar(sa.select(m.Member).where(m.Member.uuid == new_item.realtor_uuid))
 
@@ -275,6 +281,8 @@ def update_item(
     if not item:
         log(log.ERROR, "Item [%s] not found for store [%s]", item_uuid, current_store.url)
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
+
+    check_user_subscription_options(current_store, db)
 
     if item_data.city_uuid is not None:
         city = db.scalar(sa.select(m.City).where(m.City.uuid == item_data.city_uuid))
@@ -438,7 +446,7 @@ def upload_item_main_media(
 
     extension = get_file_extension(main_media)
 
-    file_type = get_file_type(extension)
+    file_type = c.get_file_type(extension)
 
     if file_type == s.FileType.UNKNOWN:
         log(log.ERROR, "Unknown file extension [%s]", extension)
@@ -745,7 +753,7 @@ def upload_item_video(
 
     extension = get_file_extension(file)
 
-    file_type = get_file_type(extension)
+    file_type = c.get_file_type(extension)
 
     if file_type == s.FileType.UNKNOWN:
         log(log.ERROR, "Unknown file extension [%s]", extension)

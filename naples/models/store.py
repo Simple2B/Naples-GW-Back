@@ -107,6 +107,10 @@ class Store(db.Model, ModelMixin):
         return [item for item in self._items if not item.is_deleted]
 
     @property
+    def active_items(self):
+        return [item for item in self.items if item.stage == s.ItemStage.ACTIVE.value]
+
+    @property
     def logo_url(self):
         return self.logo.url if self.logo else ""
 

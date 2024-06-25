@@ -12,21 +12,21 @@ CFG = config("testing")
 
 def test_create_stripe_product_get_products(
     client: TestClient,
-    headers: dict[str, str],
+    admin_headers: dict[str, str],
     full_db: Session,
 ):
     test_stripe_product = s.ProductIn(
         type_name="test product",
-        description="description",
         amount=1,
         currency="usd",
         recurring_interval=s.ProductTypeRecurringInterval.MONTH.value,
-        points=["point 1", "point 2"],
+        max_items=5,
+        max_active_items=3,
     )
 
     res = client.post(
         "/api/products/",
-        headers=headers,
+        headers=admin_headers,
         json=test_stripe_product.model_dump(),
     )
 
@@ -34,7 +34,7 @@ def test_create_stripe_product_get_products(
 
     response = client.get(
         "/api/products/",
-        headers=headers,
+        headers=admin_headers,
     )
 
     assert response.status_code == 200

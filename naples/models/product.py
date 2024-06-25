@@ -3,16 +3,11 @@ from datetime import datetime
 import sqlalchemy as sa
 from sqlalchemy import orm
 
-from typing import TYPE_CHECKING
-
 
 from naples.database import db
 from naples import schemas as s
 
 from .utils import ModelMixin, create_uuid, datetime_utc
-
-if TYPE_CHECKING:
-    from .point import Point
 
 
 class Product(db.Model, ModelMixin):
@@ -22,8 +17,6 @@ class Product(db.Model, ModelMixin):
     uuid: orm.Mapped[str] = orm.mapped_column(sa.String(32), default=create_uuid, unique=True)
 
     type_name: orm.Mapped[str] = orm.mapped_column(default="")
-
-    description: orm.Mapped[str] = orm.mapped_column(sa.String(128), nullable=False, default="")
 
     amount: orm.Mapped[int] = orm.mapped_column(nullable=False, default=0)
 
@@ -39,11 +32,20 @@ class Product(db.Model, ModelMixin):
 
     created_at: orm.Mapped[datetime] = orm.mapped_column(default=datetime_utc)
 
-    _points: orm.Mapped[list["Point"]] = orm.relationship("Point", back_populates="product")
+    max_items: orm.Mapped[int] = orm.mapped_column(default=1)
+    max_active_items: orm.Mapped[int] = orm.mapped_column(default=1)
+
+    @property
+    def unactive_items(self):
+        return self.max_items - self.max_active_items
 
     @property
     def points(self):
-        return [point.text for point in self._points]
+        return [f"Up to {self.max_active_items} active", f"{self.unactive_items} Unactive"]
+
+    @property
+    def description(self):
+        return f"{self.max_active_items} Properties"
 
     def __repr__(self):
         return f"<{self.id}: {self.uuid}>"

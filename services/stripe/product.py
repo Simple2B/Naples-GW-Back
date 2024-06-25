@@ -27,13 +27,14 @@ def create_product(data: s.ProductIn, db: Session) -> s.ProductOut | None:
 
         product = m.Product(
             type_name=type_name,
-            description=data.description,
             amount=data.amount,
             currency=data.currency,
             recurring_interval=data.recurring_interval,
             stripe_product_id=res.stripe_product_id,
             stripe_price_id=res.stripe_price_id,
             is_deleted=data.is_deleted if data.is_deleted is not None else False,
+            max_items=data.max_items,
+            max_active_items=data.max_active_items,
         )
 
         db.add(product)
@@ -41,16 +42,6 @@ def create_product(data: s.ProductIn, db: Session) -> s.ProductOut | None:
         db.refresh(product)
 
         log(log.INFO, "Product [%s] with name [%s] created in db", product.uuid, data.type_name)
-
-        if data.points:
-            for point_text in data.points:
-                point = m.Point(
-                    text=point_text,
-                    product_id=product.id,
-                )
-                db.add(point)
-                db.commit()
-                db.refresh(product)
 
         return product
 
@@ -90,8 +81,8 @@ def get_stripe_product(data: s.ProductIn) -> s.StripeProductOut | None:
             "currency": data.currency,
             "recurring": {"interval": data.recurring_interval},  # type: ignore
         },
-        expand=["default_price"],
-        metadata={"description": data.description},
+        expand=["default_price"],  # type: ignore
+        metadata={"max_active_items": data.max_active_items, "max_items": data.max_items},  # type: ignore
     )
 
     if (

@@ -126,17 +126,13 @@ def test_get_items(client: TestClient, full_db: Session, headers: dict[str, str]
     store = full_db.scalar(select(m.Store))
     assert store
 
-    item = full_db.scalar(select(m.Item))
+    item = full_db.scalar(select(m.Item).where(m.Item.stage == s.ItemStage.DRAFT.value))
     assert item
 
     assert item.id in [i.id for i in store.items]
 
-    item.stage = s.ItemStage.DRAFT.value
-    full_db.commit()
-    full_db.refresh(item)
-
     store_url = store.url
-    size = 3
+    size = 2
     response = client.get(
         "/api/items",
         params={
@@ -149,7 +145,7 @@ def test_get_items(client: TestClient, full_db: Session, headers: dict[str, str]
 
     items = s.Items.model_validate(response.json()).items
     assert items
-    assert len(items) == size  # We have 5 items in the store, but only 4 are published
+    assert len(items) == size  # We have 5 items in the store, but only 3 are published
 
     assert item.uuid not in [i.uuid for i in items]
 
@@ -560,7 +556,7 @@ def test_item_list_with_filter(
     assert response.status_code == 200
 
     items = s.Items.model_validate(response.json()).items
-    assert len(items) == 5
+    assert len(items) == 3
 
     filet_response = client.get(
         "/api/items",
@@ -578,7 +574,6 @@ def test_item_list_with_filter(
             "store_url": store_url,
             "rent_length": [
                 s.RentalLength.NIGHTLY.value,
-                # s.RentalLength.MONTHLY.value,
             ],
         },
     )
@@ -586,7 +581,7 @@ def test_item_list_with_filter(
 
     nightly_items = s.Items.model_validate(nightly_response.json()).items
 
-    assert len(nightly_items) == 3
+    assert len(nightly_items) == 2
 
 
 def test_update_item(

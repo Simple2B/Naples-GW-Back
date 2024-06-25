@@ -7,6 +7,14 @@
       "email": "testemail1@gmail.com",
       "password": "user_1",
       "role": "user"
+    },
+    {
+      "first_name": "name_2",
+      "last_name": "surname_2",
+      "uuid": "353b9f0a430b4bbcaa8cbcbe186ec5f6",
+      "email": "testemail2@gmail.com",
+      "password": "user_2",
+      "role": "admin"
     }
   ],
   "test_stores": [
@@ -120,7 +128,7 @@
       "created_at": "2024-04-01T00:00:00Z",
       "address": "test_address4",
       "size": 1500,
-      "stage": "active",
+      "stage": "draft",
       "category": "rent",
       "type": "house",
       "latitude": "40.7282",
@@ -146,7 +154,7 @@
       "created_at": "2024-04-01T00:00:00Z",
       "address": "test_address5",
       "size": 1500,
-      "stage": "active",
+      "stage": "draft",
       "category": "rent",
       "type": "house",
       "latitude": "40.5795",

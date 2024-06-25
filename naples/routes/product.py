@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 import sqlalchemy as sa
 
 from naples.database import get_db
-from naples.dependency.user import get_current_user
+from naples.dependency import get_current_user, get_admin
 from naples import schemas as s, models as m
 from naples.config import config
 from naples.logger import log
@@ -30,22 +30,7 @@ def get_products(
 
     log(log.INFO, "User [%s] get products [%s] prices", current_user.email, len(products_db))
 
-    return s.ProductsOut(
-        products=[
-            s.ProductOut(
-                uuid=product.uuid,
-                type_name=product.type_name,
-                description=product.description,
-                amount=product.amount,
-                points=product.points,
-                is_deleted=product.is_deleted,
-                stripe_product_id=product.stripe_product_id,
-                stripe_price_id=product.stripe_price_id,
-                created_at=product.created_at,
-            )
-            for product in products_db
-        ]
-    )
+    return s.ProductsOut(products=[s.ProductOut.model_validate(product) for product in products_db])
 
 
 @product_router.get(
@@ -67,20 +52,7 @@ def get_base_products(
         log(log.INFO, "No products found")
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No products found")
 
-    return s.ProductsBaseOut(
-        products=[
-            s.ProductBaseOut(
-                uuid=product.uuid,
-                type_name=product.type_name,
-                description=product.description,
-                amount=product.amount,
-                is_deleted=product.is_deleted,
-                created_at=product.created_at,
-                points=product.points,
-            )
-            for product in products_db
-        ]
-    )
+    return s.ProductsBaseOut(products=[s.ProductBaseOut.model_validate(product) for product in products_db])
 
 
 # TODO:  for admin users
@@ -96,19 +68,20 @@ def create_stripe_product(
     data: s.ProductIn,
     db: Session = Depends(get_db),
     current_user: m.User = Depends(get_current_user),
+    admin: m.User = Depends(get_admin),
 ):
     """Create a product"""
 
-    # TODO: for admin users (add MAX_COUNT_PRODUCTS)
-    # query = db.scalar(sa.select(m.Product))
+    # TODO: for admin users
+    query = db.scalar(sa.select(m.Product))
 
-    # if query:
-    #     products = query.all()
+    if query:
+        products = query.all()
 
-    #     if len(products) > CFG.MAX_COUNT_PRODUCTS:
-    #         raise HTTPException(
-    #             status_code=status.HTTP_400_BAD_REQUEST, detail=f"Max count of products is {CFG.MAX_COUNT_PRODUCTS}"
-    #         )
+        if len(products) > CFG.MAX_PRODUCTS:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail=f"Max count of products is {CFG.MAX_PRODUCTS}"
+            )
 
     product: s.ProductOut | None = create_product(data, db)
 
