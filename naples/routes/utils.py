@@ -49,7 +49,7 @@ def check_user_subscription_max_items(store: m.Store, db: Session) -> m.Subscrip
     items: list[m.Item] = store.items
 
     if store.user.subscription.status == s.SubscriptionStatus.TRIALING.value:
-        if len(items) > CFG.MAX_ITEMS_TRIALING:
+        if len(items) >= CFG.MAX_ITEMS_TRIALING:
             log(log.INFO, f"Max items limit reached: {CFG.MAX_ITEMS_TRIALING} in trial mode")
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Max items limit reached")
 
@@ -67,7 +67,7 @@ def check_user_subscription_max_items(store: m.Store, db: Session) -> m.Subscrip
 
     max_items = product_db.max_items
 
-    if len(items) > max_items:
+    if len(items) >= max_items:
         log(log.INFO, f"Max items limit reached: {max_items}")
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Max items limit reached")
 
@@ -80,7 +80,7 @@ def check_user_subscription_max_active_items(store: m.Store, db: Session) -> m.S
     active_items: list[m.Item] = store.active_items
 
     if store.user.subscription.status == s.SubscriptionStatus.TRIALING.value:
-        if len(active_items) > CFG.MAX_ACTIVE_ITEMS_TRIALING:
+        if len(active_items) >= CFG.MAX_ACTIVE_ITEMS_TRIALING:
             log(log.INFO, f"Max active items limit reached: {CFG.MAX_ACTIVE_ITEMS_TRIALING} in trial mode")
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Max active items limit reached")
 
@@ -98,7 +98,7 @@ def check_user_subscription_max_active_items(store: m.Store, db: Session) -> m.S
 
     max_active_items = product_db.max_active_items
 
-    if len(active_items) > max_active_items:
+    if len(active_items) >= max_active_items:
         log(log.INFO, f"Max active items limit reached: {max_active_items}")
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Max active items limit reached")
 
