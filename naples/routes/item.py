@@ -18,7 +18,10 @@ from naples.dependency import (
 )
 from naples import controllers as c
 from naples.database import get_db
-from naples.routes.utils import check_user_subscription_options
+from naples.routes.utils import (
+    check_user_subscription_max_active_items,
+    check_user_subscription_max_items,
+)
 from naples.utils import get_file_extension, get_link_type
 from naples.logger import log
 
@@ -228,7 +231,7 @@ def create_item(
         log(log.ERROR, "User [%s] has no store", current_user.email)
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User has no store")
 
-    check_user_subscription_options(store, db)
+    check_user_subscription_max_items(store, db)
 
     realtor: m.Member | None = db.scalar(sa.select(m.Member).where(m.Member.uuid == new_item.realtor_uuid))
 
@@ -282,7 +285,7 @@ def update_item(
         log(log.ERROR, "Item [%s] not found for store [%s]", item_uuid, current_store.url)
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
 
-    check_user_subscription_options(current_store, db)
+    check_user_subscription_max_active_items(current_store, db)
 
     if item_data.city_uuid is not None:
         city = db.scalar(sa.select(m.City).where(m.City.uuid == item_data.city_uuid))
