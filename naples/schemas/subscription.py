@@ -31,13 +31,13 @@ class SubscriptionStatus(enum.Enum):
 
 
 class Subscription(BaseModel):
-    type: str = ""
+    type: str = "trial"
     customer_stripe_id: str = ""
 
     status: SubscriptionStatus
 
-    start_date: datetime | None
-    end_date: datetime | None
+    start_date: datetime
+    end_date: datetime
 
     subscription_stripe_id: str = ""
 
@@ -47,6 +47,7 @@ class Subscription(BaseModel):
 
     created_at: datetime
     canceled_at: datetime | None = None
+    amount: int = 0
 
     amount: int = 0
 
