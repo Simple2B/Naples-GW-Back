@@ -35,6 +35,7 @@ def get_user_data(user: m.User) -> s.User:
             subscription_stripe_item_id=user.subscription.subscription_stripe_item_id,
             created_at=user.subscription.created_at,
             canceled_at=user.subscription.canceled_at if user.subscription.canceled_at else None,
+            amount=user.subscription.amount,
         ),
     )
 
