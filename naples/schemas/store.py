@@ -106,3 +106,11 @@ class StoreAdminOut(BaseModel):
     model_config = ConfigDict(
         from_attributes=True,
     )
+
+
+class StoresAdminOut(BaseModel):
+    stores: list[StoreAdminOut]
+
+    model_config = ConfigDict(
+        from_attributes=True,
+    )

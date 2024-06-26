@@ -48,6 +48,8 @@ class Subscription(BaseModel):
     created_at: datetime
     canceled_at: datetime | None = None
 
+    amount: int = 0
+
     model_config = ConfigDict(
         arbitrary_types_allowed=True,
     )

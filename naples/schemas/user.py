@@ -1,3 +1,4 @@
+from datetime import datetime
 import enum
 from pydantic import BaseModel, ConfigDict
 from naples.schemas.subscription import SubscriptionOut, SubscriptionOutAdmin
@@ -50,6 +51,7 @@ class User(BaseUser):
     uuid: str
     is_verified: bool = True
     store_url: str
+
     role: UserRole
 
     subscription: SubscriptionOut
@@ -99,11 +101,20 @@ class UserOutAdmin(BaseModel):
     last_name: str
     email: str
     phone: str
-    created_at: str
+    created_at: datetime
     is_verified: bool
     role: UserRole
 
     subscription: SubscriptionOutAdmin
+
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
+
+
+class UserCoverUrlsInAdmin(BaseModel):
+    cover_url_image: str | None = None
+    cover_url_video: str | None = None
 
     model_config = ConfigDict(
         from_attributes=True,

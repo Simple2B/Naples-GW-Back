@@ -50,5 +50,12 @@ class Subscription(db.Model, ModelMixin):
             return res["items"]["data"][0]["price"]["id"]
         return ""
 
+    @property
+    def amount(self):
+        if self.subscription_stripe_id:
+            res = stripe.Subscription.retrieve(self.subscription_stripe_id)
+            return res["items"]["data"][0]["price"]["unit_amount"]
+        return 0
+
     def __repr__(self):
         return f"<{self.id}: {self.uuid}>"

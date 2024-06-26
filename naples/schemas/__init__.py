@@ -12,9 +12,20 @@ from .user import (
     UserForgotPasswordIn,
     UserCreatePasswordIn,
     UserOutAdmin,
+    UserCoverUrlsInAdmin,
 )
 from .token import Token, TokenData, TokenOut, Auth
-from .store import Store, StoreIn, StoreAboutUsDescription, StoreAboutUs, StoreOut, Stores, StoreUpdateIn
+from .store import (
+    Store,
+    StoreIn,
+    StoreAboutUsDescription,
+    StoreAboutUs,
+    StoreOut,
+    Stores,
+    StoreUpdateIn,
+    StoreAdminOut,
+    StoresAdminOut,
+)
 from .item import (
     ItemStage,
     ItemIn,

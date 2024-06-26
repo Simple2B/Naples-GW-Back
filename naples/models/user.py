@@ -62,9 +62,6 @@ class User(db.Model, ModelMixin):
 
     subscriptions: orm.Mapped[list["Subscription"]] = orm.relationship(viewonly=True, order_by="asc(Subscription.id)")
 
-    # url to view the cover
-    cover_url: orm.Mapped[str | None] = orm.mapped_column(sa.String(256))
-
     is_blocked: orm.Mapped[bool] = orm.mapped_column(default=False)
 
     @property
