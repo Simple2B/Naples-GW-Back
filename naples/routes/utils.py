@@ -20,7 +20,7 @@ def get_user_data(user: m.User) -> s.User:
         uuid=user.uuid,
         email=user.email,
         is_verified=user.is_verified,
-        role=user.role,
+        role=s.UserRole(user.role),
         avatar_url=user.avatar.url if user.avatar else "",
         store_url=user.store_url,
         subscription=s.SubscriptionOut(
