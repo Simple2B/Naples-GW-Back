@@ -1,6 +1,6 @@
 import enum
 from pydantic import BaseModel, ConfigDict
-from naples.schemas.subscription import SubscriptionOut
+from naples.schemas.subscription import SubscriptionOut, SubscriptionOutAdmin
 
 
 class UserRole(enum.Enum):
@@ -14,7 +14,7 @@ class BaseUser(BaseModel):
     email: str
     phone: str = ""
     avatar_url: str = ""
-    role: str = UserRole.USER.value
+    role: UserRole
 
     model_config = ConfigDict(
         from_attributes=True,
@@ -91,3 +91,20 @@ class EmailAmazonSESContent(BaseModel):
     mail_subject: str = ""
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
+
+
+# info about user for admin panel
+class UserOutAdmin(BaseModel):
+    first_name: str
+    last_name: str
+    email: str
+    phone: str
+    created_at: str
+    is_verified: bool
+    role: UserRole
+
+    subscription: SubscriptionOutAdmin
+
+    model_config = ConfigDict(
+        from_attributes=True,
+    )

@@ -302,3 +302,21 @@ def cancel_subscription(
     log(log.INFO, "User subscription cancelled [%s]", res)
 
     return user_subscription
+
+
+# TODO: for admin
+@subscription_router.get(
+    "",
+    status_code=status.HTTP_200_OK,
+    # response_model=list[s.Subscription],
+    responses={
+        status.HTTP_400_BAD_REQUEST: {"description": "User not created in stripe"},
+    },
+)
+def get_subscriptions(
+    data: s.SubscriptionIn,
+    db: Session = Depends(get_db),
+):
+    """Get subscriptions"""
+
+    pass

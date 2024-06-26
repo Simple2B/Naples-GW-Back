@@ -434,3 +434,25 @@ def delete_store_about_us_media(
     db.commit()
 
     log(log.INFO, "About us main media deleted for store [%s]", current_store.url)
+
+
+# get info store for admin
+@store_router.get(
+    "/{store_id}",
+    status_code=status.HTTP_200_OK,
+    response_model=s.StoreOut,
+    responses={
+        404: {"description": "Store not found"},
+    },
+)
+def get_info_store(
+    store_id: int,
+    db: Session = Depends(get_db),
+):
+    """Returns the store"""
+
+    store: m.Store | None = db.scalar(sa.select(m.Store).where(m.Store.id == store_id))
+    if not store:
+        log(log.ERROR, "Store [%s] not found", store_id)
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Store not found")
+    return store
