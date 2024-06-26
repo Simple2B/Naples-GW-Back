@@ -14,7 +14,6 @@ class BaseUser(BaseModel):
     email: str
     phone: str = ""
     avatar_url: str = ""
-    role: UserRole
 
     model_config = ConfigDict(
         from_attributes=True,
@@ -51,6 +50,7 @@ class User(BaseUser):
     uuid: str
     is_verified: bool = True
     store_url: str
+    role: UserRole
 
     subscription: SubscriptionOut
 
