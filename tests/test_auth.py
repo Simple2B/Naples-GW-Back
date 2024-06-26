@@ -27,7 +27,6 @@ new_user_1 = s.UserSignIn(
     last_name=LAST_USER,
     email=EMAIL,
     password=PASSWORD,
-    role=s.UserRole.USER.value,
 )
 
 EMAIL_2 = "test_2@mail.com"
@@ -38,7 +37,6 @@ new_user_2 = s.UserSignIn(
     last_name=LAST_USER,
     email=EMAIL_2,
     password=PASSWORD,
-    role=s.UserRole.USER.value,
 )
 
 new_user_3 = s.UserSignIn(
@@ -46,7 +44,6 @@ new_user_3 = s.UserSignIn(
     last_name=LAST_USER,
     email=EMAIL_3,
     password=PASSWORD,
-    role=s.UserRole.USER.value,
 )
 
 
