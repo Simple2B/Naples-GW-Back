@@ -25,3 +25,4 @@ from .subscription import Subscription
 from .product import Product
 from .point import Point
 from .link import Link
+from .metadata import Metadata

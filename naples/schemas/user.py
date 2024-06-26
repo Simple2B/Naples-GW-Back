@@ -102,7 +102,7 @@ class UserOutAdmin(BaseModel):
     email: str
     phone: str
     created_at: datetime
-    is_verified: bool
+    is_blocked: bool
     role: UserRole
 
     subscription: SubscriptionOutAdmin
