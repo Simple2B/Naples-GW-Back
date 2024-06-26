@@ -49,8 +49,6 @@ class Subscription(BaseModel):
     canceled_at: datetime | None = None
     amount: int = 0
 
-    amount: int = 0
-
     model_config = ConfigDict(
         arbitrary_types_allowed=True,
     )
