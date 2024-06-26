@@ -110,12 +110,3 @@ class UserOutAdmin(BaseModel):
     model_config = ConfigDict(
         from_attributes=True,
     )
-
-
-class UserCoverUrlsInAdmin(BaseModel):
-    cover_url_image: str | None = None
-    cover_url_video: str | None = None
-
-    model_config = ConfigDict(
-        from_attributes=True,
-    )

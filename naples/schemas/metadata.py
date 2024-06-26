@@ -8,3 +8,11 @@ class Metadata(BaseModel):
     model_config = ConfigDict(
         from_attributes=True,
     )
+
+
+class Metadaties(BaseModel):
+    metadaties: list[Metadata]
+
+    model_config = ConfigDict(
+        from_attributes=True,
+    )

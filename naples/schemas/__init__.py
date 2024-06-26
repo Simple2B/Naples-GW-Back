@@ -12,7 +12,6 @@ from .user import (
     UserForgotPasswordIn,
     UserCreatePasswordIn,
     UserOutAdmin,
-    UserCoverUrlsInAdmin,
 )
 from .token import Token, TokenData, TokenOut, Auth
 from .store import (
@@ -112,4 +111,4 @@ from .product import (
 )
 from .point import Point, PointIn, PointOut, PointsOut
 from .link import LinkType, Link, LinkIn, LinkOut, LinksOut
-from .metadata import Metadata
+from .metadata import Metadata, Metadaties

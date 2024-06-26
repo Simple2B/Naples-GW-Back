@@ -157,20 +157,3 @@ def test_change_password(
 
     response = client.post("/api/auth/login", data=form_data)
     assert response.status_code == 200
-
-
-# TODO: cover urls for template (only admin can update)
-def test_save_cover_urls(
-    client: TestClient,
-    db: Session,
-    admin_headers: dict[str, str],
-    test_data: s.TestData,
-):
-    user = test_data.test_users[0]
-
-    data = s.UserCoverUrlsInAdmin(
-        cover_url_image="cover_url_image",
-        cover_url_video="cover_url_video",
-    )
-
-    pass

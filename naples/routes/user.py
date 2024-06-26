@@ -4,7 +4,6 @@ from mypy_boto3_s3 import S3Client
 from botocore.exceptions import ClientError
 from mypy_boto3_ses import SESClient
 
-from naples.dependency.admin import get_admin
 from naples.dependency.get_user_store import get_current_user_store
 from naples.hash_utils import make_hash
 from naples import controllers as c, models as m, schemas as s
@@ -370,21 +369,3 @@ def forgot_password_create(
     log(log.INFO, f"User {user.email} changed his password")
 
     return
-
-
-# for admin panel
-@user_router.post(
-    "/cover_urls",
-    response_model=s.User,
-    status_code=status.HTTP_200_OK,
-    responses={},
-)
-def save_cover_urls(
-    data: s.UserCoverUrlsInAdmin,
-    db: Session = Depends(get_db),
-    curent_user: m.User = Depends(get_current_user),
-    admin: m.User = Depends(get_admin),
-):
-    """Updates the user cover urls"""
-
-    pass
