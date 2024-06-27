@@ -408,7 +408,8 @@ def test_get_stores_for_admin(
     admin_headers: dict[str, str],
 ):
     db_stores: Sequence[m.Store] = full_db.scalars(sa.select(m.Store)).all()
+    search = db_stores[0].user.email
 
-    response = client.get("/api/stores/", headers=admin_headers)
+    response = client.get(f"/api/stores?search={search}", headers=admin_headers)
     assert response.status_code == 200
     assert len(response.json()) == len(db_stores)

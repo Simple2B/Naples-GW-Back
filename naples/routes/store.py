@@ -445,11 +445,7 @@ def get_stores(
 ):
     """Returns the stores for the admin panel"""
 
-    stores: Sequence[m.Store] = db.scalars(sa.select(m.Store)).all()
-
-    if not stores:
-        log(log.ERROR, "Stores not found")
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Stores not found")
+    stmt = sa.select(m.Store)
 
     if search:
         users_db = db.scalars(
@@ -465,16 +461,20 @@ def get_stores(
                 )
             )
         ).all()
-        # users_emails = [user.email for user in users_db]
-        # users_phones = [user.phone for user in users_db]
+        users_ids = [user.id for user in users_db]
 
         stmt = sa.select(m.Store).where(
             sa.or_(
                 m.Store.url.ilike(f"%{search}%"),
-                # m.Store.email.ilike(f"%{search}%"),
-                # m.Store.phone.ilike(f"%{search}%"),
+                m.Store.user_id.in_(users_ids),
             )
         )
+
+    stores = db.scalars(stmt).all()
+
+    if not stores:
+        log(log.ERROR, "Stores not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Stores not found")
 
     stores_admin = [s.StoreAdminOut.model_validate(store) for store in stores]
 
