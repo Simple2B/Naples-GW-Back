@@ -4,6 +4,7 @@ from mypy_boto3_s3 import S3Client
 from botocore.exceptions import ClientError
 from mypy_boto3_ses import SESClient
 
+from naples.dependency.admin import get_admin
 from naples.dependency.get_user_store import get_current_user_store
 from naples.hash_utils import make_hash
 from naples import controllers as c, models as m, schemas as s
@@ -369,3 +370,52 @@ def forgot_password_create(
     log(log.INFO, f"User {user.email} changed his password")
 
     return
+
+
+@user_router.get(
+    "/{user_uuid}/subscriptions",
+    status_code=status.HTTP_200_OK,
+    response_model=s.UserSubscriptionHistoryAdmin,
+    responses={
+        status.HTTP_404_NOT_FOUND: {"description": "User not found"},
+        status.HTTP_400_BAD_REQUEST: {"description": "User subscription not found"},
+    },
+)
+def get_user_subscription_history(
+    user_uuid: str,
+    db: Session = Depends(get_db),
+    curent_user: m.User = Depends(get_current_user),
+    admin: m.User = Depends(get_admin),
+):
+    """Get user subscription history"""
+
+    user = db.scalar(sa.select(m.User).where(m.User.uuid == user_uuid))
+
+    if not user:
+        log(log.ERROR, "User not found")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User not found")
+
+    subscriptions = db.scalars(sa.select(m.Subscription).where(m.Subscription.user_id == user.id)).all()
+
+    if not subscriptions:
+        log(log.ERROR, "User subscription not found")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User subscription not found")
+
+    user_subscriptions_history = [
+        s.SubscriptionHistoryAdmin(
+            type=subscription.type,
+            status=s.SubscriptionStatus(subscription.status),
+            start_date=subscription.start_date,
+            end_date=subscription.end_date,
+            amount=subscription.amount,
+        )
+        for subscription in subscriptions
+    ]
+
+    return s.UserSubscriptionHistoryAdmin(
+        uuid=user.uuid,
+        first_name=user.first_name,
+        last_name=user.last_name,
+        store=s.StoreHistoryAdmin.model_validate(user.store),
+        subscriptions=user_subscriptions_history,
+    )

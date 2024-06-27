@@ -31,7 +31,7 @@ class SubscriptionStatus(enum.Enum):
 
 
 class Subscription(BaseModel):
-    type: str = "trial"
+    type: str = "trialing"
     customer_stripe_id: str = ""
 
     status: SubscriptionStatus
@@ -111,7 +111,21 @@ class StripeObjectSubscription(BaseModel):
 class SubscriptionOutAdmin(BaseModel):
     type: str = ""
     status: SubscriptionStatus
+    created_at: datetime
 
     model_config = ConfigDict(
         from_attributes=True,
+    )
+
+
+class SubscriptionHistoryAdmin(BaseModel):
+    type: str
+    status: SubscriptionStatus
+    start_date: datetime
+    end_date: datetime
+
+    amount: int
+
+    model_config = ConfigDict(
+        arbitrary_types_allowed=True,
     )

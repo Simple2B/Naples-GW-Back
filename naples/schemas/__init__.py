@@ -12,6 +12,8 @@ from .user import (
     UserForgotPasswordIn,
     UserCreatePasswordIn,
     UserOutAdmin,
+    StoreHistoryAdmin,
+    UserSubscriptionHistoryAdmin,
 )
 from .token import Token, TokenData, TokenOut, Auth
 from .store import (
@@ -96,6 +98,7 @@ from .subscription import (
     StripeItemData,
     StripePlan,
     SubscriptionOutAdmin,
+    SubscriptionHistoryAdmin,
 )
 
 from .product import (

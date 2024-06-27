@@ -97,8 +97,6 @@ class Stores(BaseModel):
 
 class StoreAdminOut(BaseModel):
     url: str
-    email: str = ""
-    phone: str = ""
     items_count: int = 0
 
     user: UserOutAdmin
