@@ -173,7 +173,7 @@ def test_get_subscription_history(
     assert response.status_code == 200
 
 
-def test_user_is_blocked(
+def test_block_user(
     client: TestClient,
     db: Session,
     admin_headers: dict[str, str],
@@ -181,10 +181,9 @@ def test_user_is_blocked(
 ):
     data = s.UserIsBlockedIn(
         uuid=test_data.test_users[0].uuid,
-        is_blocked=True,
     )
     response = client.patch(
-        "/api/users/is_blocked",
+        "/api/users/block",
         headers=admin_headers,
         json=data.model_dump(),
     )

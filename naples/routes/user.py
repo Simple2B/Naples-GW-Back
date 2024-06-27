@@ -423,11 +423,11 @@ def get_user_subscription_history(
 
 
 @user_router.patch(
-    "/is_blocked",
+    "/block",
     status_code=status.HTTP_200_OK,
     response_model=s.User,
 )
-def user_is_blocked(
+def block_user(
     data: s.UserIsBlockedIn,
     db: Session = Depends(get_db),
     current_user: m.User = Depends(get_current_user),
