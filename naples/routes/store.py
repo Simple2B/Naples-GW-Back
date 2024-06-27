@@ -1,4 +1,3 @@
-from typing import Sequence
 from fastapi import Depends, APIRouter, UploadFile, status, HTTPException
 
 from mypy_boto3_s3 import S3Client
@@ -441,10 +440,37 @@ def get_stores(
     db: Session = Depends(get_db),
     curent_user: m.User = Depends(get_current_user),
     admin: m.User = Depends(get_admin),
+    search: str | None = None,
+    subscription_status: s.ContactRequestStatus | None = None,
 ):
     """Returns the stores for the admin panel"""
 
-    stores: Sequence[m.Store] = db.scalars(sa.select(m.Store)).all()
+    stmt = sa.select(m.Store)
+
+    if search:
+        users_db = db.scalars(
+            sa.select(m.User).where(
+                sa.and_(
+                    m.User.is_deleted.is_(False),
+                    sa.or_(
+                        m.User.email.ilike(f"%{search}%"),
+                        m.User.phone.ilike(f"%{search}%"),
+                        m.User.first_name.ilike(f"%{search}%"),
+                        m.User.last_name.ilike(f"%{search}%"),
+                    ),
+                )
+            )
+        ).all()
+        users_ids = [user.id for user in users_db]
+
+        stmt = sa.select(m.Store).where(
+            sa.or_(
+                m.Store.url.ilike(f"%{search}%"),
+                m.Store.user_id.in_(users_ids),
+            )
+        )
+
+    stores = db.scalars(stmt).all()
 
     if not stores:
         log(log.ERROR, "Stores not found")
