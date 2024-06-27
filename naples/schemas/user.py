@@ -135,7 +135,7 @@ class UserSubscriptionHistoryAdmin(BaseModel):
 
     store: StoreHistoryAdmin
 
-    subscriptions: list[SubscriptionHistoryAdmin]
+    # subscriptions: list[SubscriptionHistoryAdmin]
 
     model_config = ConfigDict(
         from_attributes=True,
