@@ -31,7 +31,7 @@ class SubscriptionStatus(enum.Enum):
 
 
 class Subscription(BaseModel):
-    type: str = "trialing"
+    type: str
     customer_stripe_id: str = ""
 
     status: SubscriptionStatus
@@ -47,7 +47,7 @@ class Subscription(BaseModel):
 
     created_at: datetime
     canceled_at: datetime | None = None
-    amount: int = 0
+    amount: int
 
     model_config = ConfigDict(
         arbitrary_types_allowed=True,

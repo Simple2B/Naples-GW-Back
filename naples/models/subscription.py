@@ -54,7 +54,7 @@ class Subscription(db.Model, ModelMixin):
     def amount(self):
         if self.subscription_stripe_id:
             res = stripe.Subscription.retrieve(self.subscription_stripe_id)
-            return res["items"]["data"][0]["price"]["unit_amount"]
+            return res["items"]["data"][0]["price"]["unit_amount"] / 100
         return 0
 
     def __repr__(self):
