@@ -440,6 +440,7 @@ def get_stores(
     db: Session = Depends(get_db),
     curent_user: m.User = Depends(get_current_user),
     admin: m.User = Depends(get_admin),
+    search: str | None = None,
 ):
     """Returns the stores for the admin panel"""
 
@@ -450,5 +451,8 @@ def get_stores(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Stores not found")
 
     stores_admin = [s.StoreAdminOut.model_validate(store) for store in stores]
+
+    if search:
+        stores_admin = [store for store in stores_admin if search.lower() in store.url.lower()]
 
     return s.StoresAdminOut(stores=stores_admin)

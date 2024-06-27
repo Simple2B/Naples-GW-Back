@@ -97,6 +97,7 @@ class EmailAmazonSESContent(BaseModel):
 
 # info about user for admin panel
 class UserOutAdmin(BaseModel):
+    uuid: str
     first_name: str
     last_name: str
     email: str
@@ -135,6 +136,15 @@ class UserSubscriptionHistoryAdmin(BaseModel):
     store: StoreHistoryAdmin
 
     subscriptions: list[SubscriptionHistoryAdmin]
+
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
+
+
+class UserIsBlockedIn(BaseModel):
+    uuid: str
+    is_blocked: bool
 
     model_config = ConfigDict(
         from_attributes=True,

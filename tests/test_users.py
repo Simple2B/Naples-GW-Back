@@ -171,3 +171,21 @@ def test_get_subscription_history(
         headers=admin_headers,
     )
     assert response.status_code == 200
+
+
+def test_user_is_blocked(
+    client: TestClient,
+    db: Session,
+    admin_headers: dict[str, str],
+    test_data: s.TestData,
+):
+    data = s.UserIsBlockedIn(
+        uuid=test_data.test_users[0].uuid,
+        is_blocked=True,
+    )
+    response = client.patch(
+        "/api/users/is_blocked",
+        headers=admin_headers,
+        json=data.model_dump(),
+    )
+    assert response.status_code == 200

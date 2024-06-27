@@ -109,7 +109,7 @@ class StripeObjectSubscription(BaseModel):
 
 # info about subscription for admin panel
 class SubscriptionOutAdmin(BaseModel):
-    type: str = ""
+    type: str
     status: SubscriptionStatus
     created_at: datetime
 
