@@ -144,7 +144,6 @@ class UserSubscriptionHistoryAdmin(BaseModel):
 
 class UserIsBlockedIn(BaseModel):
     uuid: str
-    is_blocked: bool
 
     model_config = ConfigDict(
         from_attributes=True,

@@ -1,4 +1,6 @@
+from typing import Sequence
 from fastapi import Depends, APIRouter, UploadFile, status, HTTPException
+from fastapi_pagination import Page, Params, paginate
 
 from mypy_boto3_s3 import S3Client
 from sqlalchemy.orm import Session
@@ -431,7 +433,7 @@ def delete_store_about_us_media(
 @store_router.get(
     "/",
     status_code=status.HTTP_200_OK,
-    response_model=s.StoresAdminOut,
+    response_model=Page[s.StoreAdminOut],
     responses={
         status.HTTP_404_NOT_FOUND: {"description": "Stores not found"},
     },
@@ -440,27 +442,33 @@ def get_stores(
     db: Session = Depends(get_db),
     curent_user: m.User = Depends(get_current_user),
     admin: m.User = Depends(get_admin),
+    params: Params = Depends(),
     search: str | None = None,
-    subscription_status: s.ContactRequestStatus | None = None,
+    subscription_status: s.SubscriptionStatus | None = None,
 ):
     """Returns the stores for the admin panel"""
 
     stmt = sa.select(m.Store)
 
+    stmt_user = sa.select(m.User).where(m.User.is_deleted.is_(False))
+
+    stmt_subscription = sa.select(m.Subscription)
+
     if search:
-        users_db = db.scalars(
-            sa.select(m.User).where(
-                sa.and_(
-                    m.User.is_deleted.is_(False),
-                    sa.or_(
-                        m.User.email.ilike(f"%{search}%"),
-                        m.User.phone.ilike(f"%{search}%"),
-                        m.User.first_name.ilike(f"%{search}%"),
-                        m.User.last_name.ilike(f"%{search}%"),
-                    ),
-                )
+        stmt_user = sa.select(m.User).where(
+            sa.and_(
+                m.User.is_deleted.is_(False),
+                sa.or_(
+                    m.User.email.ilike(f"%{search}%"),
+                    m.User.phone.ilike(f"%{search}%"),
+                    m.User.first_name.ilike(f"%{search}%"),
+                    m.User.last_name.ilike(f"%{search}%"),
+                ),
             )
-        ).all()
+        )
+
+        users_db = db.scalars(stmt_user).all()
+
         users_ids = [user.id for user in users_db]
 
         stmt = sa.select(m.Store).where(
@@ -470,12 +478,24 @@ def get_stores(
             )
         )
 
-    stores = db.scalars(stmt).all()
+    if subscription_status:
+        if subscription_status == s.SubscriptionStatus.ACTIVE:
+            stmt_subscription = stmt_subscription.where(
+                sa.and_(
+                    m.Subscription.status == subscription_status.value,
+                )
+            )
+        else:
+            stmt_subscription = stmt_subscription.where(m.Subscription.status != s.SubscriptionStatus.ACTIVE.value)
 
-    if not stores:
-        log(log.ERROR, "Stores not found")
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Stores not found")
+        subscriptions = db.scalars(stmt_subscription).all()
 
-    stores_admin = [s.StoreAdminOut.model_validate(store) for store in stores]
+        users_ids = [subscription.user_id for subscription in subscriptions]
 
-    return s.StoresAdminOut(stores=stores_admin)
+        stmt = stmt.where(m.Store.user_id.in_(users_ids))
+
+    db_stores = db.scalars(stmt).all()
+
+    stores: Sequence[s.StoreAdminOut] = [s.StoreAdminOut.model_validate(store) for store in db_stores]
+
+    return paginate(stores, params)

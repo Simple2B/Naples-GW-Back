@@ -441,7 +441,9 @@ def user_is_blocked(
         log(log.ERROR, "User not found")
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 
-    user.is_blocked = data.is_blocked
+    is_blocked = user.is_blocked
+
+    user.is_blocked = not is_blocked
 
     db.commit()
     db.refresh(user)
