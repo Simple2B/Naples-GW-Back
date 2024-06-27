@@ -1,3 +1,4 @@
+from typing import Sequence
 from fastapi import Depends, APIRouter, UploadFile, status, HTTPException
 from fastapi_pagination import Page, Params, paginate
 
