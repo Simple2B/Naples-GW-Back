@@ -441,6 +441,7 @@ def get_stores(
     curent_user: m.User = Depends(get_current_user),
     admin: m.User = Depends(get_admin),
     search: str | None = None,
+    subscription_status: s.ContactRequestStatus | None = None,
 ):
     """Returns the stores for the admin panel"""
 
@@ -450,9 +451,31 @@ def get_stores(
         log(log.ERROR, "Stores not found")
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Stores not found")
 
-    stores_admin = [s.StoreAdminOut.model_validate(store) for store in stores]
-
     if search:
-        stores_admin = [store for store in stores_admin if search.lower() in store.url.lower()]
+        users_db = db.scalars(
+            sa.select(m.User).where(
+                sa.and_(
+                    m.User.is_deleted.is_(False),
+                    sa.or_(
+                        m.User.email.ilike(f"%{search}%"),
+                        m.User.phone.ilike(f"%{search}%"),
+                        m.User.first_name.ilike(f"%{search}%"),
+                        m.User.last_name.ilike(f"%{search}%"),
+                    ),
+                )
+            )
+        ).all()
+        # users_emails = [user.email for user in users_db]
+        # users_phones = [user.phone for user in users_db]
+
+        stmt = sa.select(m.Store).where(
+            sa.or_(
+                m.Store.url.ilike(f"%{search}%"),
+                # m.Store.email.ilike(f"%{search}%"),
+                # m.Store.phone.ilike(f"%{search}%"),
+            )
+        )
+
+    stores_admin = [s.StoreAdminOut.model_validate(store) for store in stores]
 
     return s.StoresAdminOut(stores=stores_admin)
