@@ -1,5 +1,6 @@
 from typing import Sequence
 from fastapi import Depends, UploadFile, APIRouter, status
+from fastapi_pagination import Page, Params, paginate
 from mypy_boto3_s3 import S3Client
 from botocore.exceptions import ClientError
 from mypy_boto3_ses import SESClient
@@ -374,9 +375,39 @@ def forgot_password_create(
 
 # for admin panel
 @user_router.get(
-    "/{user_uuid}/subscriptions",
+    "/{user_uuid}/user_history",
     status_code=status.HTTP_200_OK,
     response_model=s.UserSubscriptionHistoryAdmin,
+    responses={
+        status.HTTP_404_NOT_FOUND: {"description": "User not found"},
+    },
+)
+def get_user_history(
+    user_uuid: str,
+    db: Session = Depends(get_db),
+    curent_user: m.User = Depends(get_current_user),
+    admin: m.User = Depends(get_admin),
+):
+    """Get user subscription history"""
+
+    user = db.scalar(sa.select(m.User).where(m.User.uuid == user_uuid))
+
+    if not user:
+        log(log.ERROR, "User not found")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User not found")
+
+    return s.UserSubscriptionHistoryAdmin(
+        uuid=user.uuid,
+        first_name=user.first_name,
+        last_name=user.last_name,
+        store=s.StoreHistoryAdmin.model_validate(user.store),
+    )
+
+
+@user_router.get(
+    "/{user_uuid}/subscriptions",
+    status_code=status.HTTP_200_OK,
+    response_model=Page[s.SubscriptionHistoryAdmin],
     responses={
         status.HTTP_404_NOT_FOUND: {"description": "User not found"},
         status.HTTP_400_BAD_REQUEST: {"description": "User subscription not found"},
@@ -385,6 +416,7 @@ def forgot_password_create(
 def get_user_subscription_history(
     user_uuid: str,
     db: Session = Depends(get_db),
+    params: Params = Depends(),
     curent_user: m.User = Depends(get_current_user),
     admin: m.User = Depends(get_admin),
 ):
@@ -413,13 +445,7 @@ def get_user_subscription_history(
         for subscription in subscriptions
     ]
 
-    return s.UserSubscriptionHistoryAdmin(
-        uuid=user.uuid,
-        first_name=user.first_name,
-        last_name=user.last_name,
-        store=s.StoreHistoryAdmin.model_validate(user.store),
-        subscriptions=user_subscriptions_history,
-    )
+    return paginate(user_subscriptions_history, params)
 
 
 @user_router.patch(

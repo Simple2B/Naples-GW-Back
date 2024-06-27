@@ -1,7 +1,7 @@
 from datetime import datetime
 import enum
 from pydantic import BaseModel, ConfigDict
-from naples.schemas.subscription import SubscriptionHistoryAdmin, SubscriptionOut, SubscriptionOutAdmin
+from naples.schemas.subscription import SubscriptionOut, SubscriptionOutAdmin
 
 
 class UserRole(enum.Enum):
@@ -134,8 +134,6 @@ class UserSubscriptionHistoryAdmin(BaseModel):
     last_name: str
 
     store: StoreHistoryAdmin
-
-    subscriptions: list[SubscriptionHistoryAdmin]
 
     model_config = ConfigDict(
         from_attributes=True,
