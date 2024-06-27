@@ -285,8 +285,6 @@ def update_item(
         log(log.ERROR, "Item [%s] not found for store [%s]", item_uuid, current_store.url)
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
 
-    check_user_subscription_max_active_items(current_store, db)
-
     if item_data.city_uuid is not None:
         city = db.scalar(sa.select(m.City).where(m.City.uuid == item_data.city_uuid))
         if not city:
@@ -320,6 +318,7 @@ def update_item(
         item.longitude = item_data.longitude
 
     if item_data.stage is not None:
+        check_user_subscription_max_active_items(current_store, item, db)
         log(log.INFO, "Stage [%s] was updated for item [%s]", item_data.stage, item_uuid)
         item.stage = item_data.stage.value
 
