@@ -77,12 +77,29 @@ def test_get_item(
         assert item.images_urls
 
 
-def test_create_item(client: TestClient, full_db: Session, headers: dict[str, str], test_data: s.TestData):
+def test_create_item(
+    client: TestClient,
+    full_db: Session,
+    headers: dict[str, str],
+    test_data: s.TestData,
+):
     city: m.City | None = full_db.scalar(select(m.City))
     assert city
     test_realtor = full_db.scalar(select(m.Member))
-
     assert test_realtor
+
+    # stores_db = full_db.scalars(select(m.Store)).all()
+    # store = stores_db[0]
+    # # add subscription to user with store
+    # subscription = m.Subscription(
+    #     type=s.SubscriptionStatus.ACTIVE.value,
+    #     status=s.SubscriptionStatus.ACTIVE.value,
+    #     subscription_stripe_id="sub_1PWKkCI7HDNT50q3w1u0yh6x",
+    #     user_id=store.user_id,
+    # )
+    # full_db.add(subscription)
+    # full_db.commit()
+    # full_db.refresh(subscription)
 
     test_item = s.ItemIn(
         name="Test Item",

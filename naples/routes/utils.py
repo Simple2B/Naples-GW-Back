@@ -55,11 +55,13 @@ def check_user_subscription_max_items(store: m.Store, db: Session):
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Max items limit reached")
 
     stripe_price_id = store.user.subscription.stripe_price_id
+
     if not stripe_price_id:
         log(log.INFO, "Stripe price id not found")
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Subscription not found")
 
     product_db: m.Product | None = db.scalar(sa.select(m.Product).where(m.Product.stripe_price_id == stripe_price_id))
+
     if not product_db:
         log(log.INFO, "Product not found")
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
