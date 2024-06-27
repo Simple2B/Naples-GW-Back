@@ -480,11 +480,7 @@ def get_stores(
 
     if subscription_status:
         if subscription_status == s.SubscriptionStatus.ACTIVE:
-            stmt_subscription = stmt_subscription.where(
-                sa.and_(
-                    m.Subscription.status == subscription_status.value,
-                )
-            )
+            stmt_subscription = stmt_subscription.where(m.Subscription.status == subscription_status.value)
         else:
             stmt_subscription = stmt_subscription.where(m.Subscription.status != s.SubscriptionStatus.ACTIVE.value)
 
