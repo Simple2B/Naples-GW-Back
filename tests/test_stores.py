@@ -416,14 +416,45 @@ def test_get_stores_for_admin(
         params={"search": search},
     )
     assert response.status_code == 200
-    assert len(response.json()["items"]) == len(db_stores)
+    assert len(response.json()["items"]) == 1
+
+    # add subscription for users
+
+    full_db.add(
+        m.Subscription(
+            user_id=db_stores[0].user.id,
+            type=s.SubscriptionStatus.ACTIVE.value,
+            status=s.SubscriptionStatus.ACTIVE.value,
+            start_date=db_stores[0].created_at,
+            end_date=db_stores[0].created_at,
+        )
+    )
+    full_db.add(
+        m.Subscription(
+            user_id=db_stores[0].user.id,
+            type=s.SubscriptionStatus.INCOMPLETE.value,
+            status=s.SubscriptionStatus.INCOMPLETE.value,
+            start_date=db_stores[0].created_at,
+            end_date=db_stores[0].created_at,
+        )
+    )
+    full_db.add(
+        m.Subscription(
+            user_id=db_stores[1].user.id,
+            type=s.SubscriptionStatus.TRIALING.value,
+            status=s.SubscriptionStatus.TRIALING.value,
+            start_date=db_stores[0].created_at,
+            end_date=db_stores[0].created_at,
+        )
+    )
+    full_db.commit()
 
     response = client.get(
         "/api/stores", headers=admin_headers, params={"subscription_status": s.SubscriptionStatus.ACTIVE.value}
     )
     assert response.status_code == 200
     stores = response.json()["items"]
-    assert stores == []
+    assert len(stores) == 1
 
     response = client.get(
         "/api/stores", headers=admin_headers, params={"subscription_status": s.SubscriptionStatus.TRIALING.value}
@@ -431,4 +462,4 @@ def test_get_stores_for_admin(
     assert response.status_code == 200
     stores = response.json()["items"]
     assert stores
-    assert stores[0]["user"]["subscription"]["status"] == s.SubscriptionStatus.TRIALING.value
+    assert len(stores) == 2

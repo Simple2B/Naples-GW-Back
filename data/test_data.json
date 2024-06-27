@@ -36,6 +36,25 @@
       "sub_title_value": "test_sub_title_value1",
       "sub_title_color": "#000000",
       "sub_title_font_size": 16
+    },
+    {
+      "uuid": "6915ad0f-392e-444d-96b1-f04dba7e691f",
+      "name": "test_store2",
+      "header": "This homes made for you",
+      "sub_header": "Your journey to finding the perfect property begins here. Explore our listings to find the home that matches your dreams.",
+      "url": "site_2.propertyroster.com",
+      "about_us": "Email, call, or complete the form to discover more about the properties",
+      "email": "testemail2@gmail.com",
+      "phone": "323223233",
+      "instagram_url": "test_instagram_url2",
+      "messenger_url": "test_messenger_url12",
+      "user_id": 2,
+      "title_value": "test_title_value2",
+      "title_color": "#000000",
+      "title_font_size": 24,
+      "sub_title_value": "test_sub_title_value2",
+      "sub_title_color": "#000000",
+      "sub_title_font_size": 16
     }
   ],
   "test_items": [
