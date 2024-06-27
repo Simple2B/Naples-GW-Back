@@ -97,7 +97,7 @@ class Stores(BaseModel):
 
 class StoreAdminOut(BaseModel):
     url: str
-    items_count: int = 0
+    items_count: int
 
     user: UserOutAdmin
 
