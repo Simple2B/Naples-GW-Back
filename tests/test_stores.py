@@ -1,3 +1,4 @@
+from typing import Sequence
 from mypy_boto3_s3 import S3Client
 import sqlalchemy as sa
 from sqlalchemy.orm import Session
@@ -399,3 +400,15 @@ def test_upload_store_about_us_media(
     assert not db_store.about_us_main_media
     assert not store_model.about_us_main_media
     assert store_model.main_media.original_name == "main_media_test.jpg"
+
+
+def test_get_stores_for_admin(
+    client: TestClient,
+    full_db: Session,
+    admin_headers: dict[str, str],
+):
+    db_stores: Sequence[m.Store] = full_db.scalars(sa.select(m.Store)).all()
+
+    response = client.get("/api/stores/", headers=admin_headers)
+    assert response.status_code == 200
+    assert len(response.json()) == len(db_stores)

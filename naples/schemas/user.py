@@ -1,6 +1,7 @@
+from datetime import datetime
 import enum
 from pydantic import BaseModel, ConfigDict
-from naples.schemas.subscription import SubscriptionOut
+from naples.schemas.subscription import SubscriptionHistoryAdmin, SubscriptionOut, SubscriptionOutAdmin
 
 
 class UserRole(enum.Enum):
@@ -50,6 +51,7 @@ class User(BaseUser):
     uuid: str
     is_verified: bool = True
     store_url: str
+
     role: UserRole
 
     subscription: SubscriptionOut
@@ -91,3 +93,49 @@ class EmailAmazonSESContent(BaseModel):
     mail_subject: str = ""
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
+
+
+# info about user for admin panel
+class UserOutAdmin(BaseModel):
+    first_name: str
+    last_name: str
+    email: str
+    phone: str
+    created_at: datetime
+    is_blocked: bool
+    role: UserRole
+
+    subscription: SubscriptionOutAdmin
+
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
+
+
+# for admin panel
+class StoreHistoryAdmin(BaseModel):
+    url: str
+    items_count: int
+    created_at: datetime
+    email: str
+    phone: str
+    instagram_url: str
+    messenger_url: str
+
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
+
+
+class UserSubscriptionHistoryAdmin(BaseModel):
+    uuid: str
+    first_name: str
+    last_name: str
+
+    store: StoreHistoryAdmin
+
+    subscriptions: list[SubscriptionHistoryAdmin]
+
+    model_config = ConfigDict(
+        from_attributes=True,
+    )

@@ -75,6 +75,7 @@ def check_user_subscription_max_items(store: m.Store, db: Session) -> m.Subscrip
     return store.user.subscription
 
 
+# TODO: add only for status item
 def check_user_subscription_max_active_items(store: m.Store, db: Session) -> m.Subscription:
     """Check user subscription max active items"""
 

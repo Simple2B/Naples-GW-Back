@@ -1,3 +1,4 @@
+from typing import Sequence
 from fastapi import Depends, APIRouter, UploadFile, status, HTTPException
 
 from mypy_boto3_s3 import S3Client
@@ -5,6 +6,7 @@ from sqlalchemy.orm import Session
 import sqlalchemy as sa
 
 from naples.controllers.file import get_file_type
+from naples.dependency.admin import get_admin
 from naples.dependency.s3_client import get_s3_connect
 from naples import controllers as c, models as m, schemas as s
 
@@ -93,17 +95,6 @@ def get_store(
         log(log.ERROR, "Store [%s] not found", store_url)
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Store not found")
     return store
-
-
-# TODO: implement this route with Depends from admin
-# @store_router.get("/", status_code=status.HTTP_200_OK, response_model=s.Stores)
-# def get_stores(
-#     db: Session = Depends(get_db),
-#     current_user: m.User = Depends(get_current_user),
-# ):
-#     query = sa.select(m.Store)
-#     stores: Sequence[m.Store] = db.scalars(query).all()
-#     return s.Stores(stores=cast(list, stores))
 
 
 @store_router.post("/", status_code=status.HTTP_201_CREATED, response_model=s.StoreOut)
@@ -434,3 +425,30 @@ def delete_store_about_us_media(
     db.commit()
 
     log(log.INFO, "About us main media deleted for store [%s]", current_store.url)
+
+
+# get info stores for admin panel
+@store_router.get(
+    "/",
+    status_code=status.HTTP_200_OK,
+    response_model=s.StoresAdminOut,
+    responses={
+        status.HTTP_404_NOT_FOUND: {"description": "Stores not found"},
+    },
+)
+def get_stores(
+    db: Session = Depends(get_db),
+    curent_user: m.User = Depends(get_current_user),
+    admin: m.User = Depends(get_admin),
+):
+    """Returns the stores for the admin panel"""
+
+    stores: Sequence[m.Store] = db.scalars(sa.select(m.Store)).all()
+
+    if not stores:
+        log(log.ERROR, "Stores not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Stores not found")
+
+    stores_admin = [s.StoreAdminOut.model_validate(store) for store in stores]
+
+    return s.StoresAdminOut(stores=stores_admin)

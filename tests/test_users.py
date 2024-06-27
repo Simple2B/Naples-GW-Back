@@ -157,3 +157,17 @@ def test_change_password(
 
     response = client.post("/api/auth/login", data=form_data)
     assert response.status_code == 200
+
+
+# for admin only
+def test_get_subscription_history(
+    client: TestClient,
+    db: Session,
+    admin_headers: dict[str, str],
+    test_data: s.TestData,
+):
+    response = client.get(
+        f"/api/users/{test_data.test_users[0].uuid}/subscriptions",
+        headers=admin_headers,
+    )
+    assert response.status_code == 200

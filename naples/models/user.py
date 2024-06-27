@@ -62,6 +62,8 @@ class User(db.Model, ModelMixin):
 
     subscriptions: orm.Mapped[list["Subscription"]] = orm.relationship(viewonly=True, order_by="asc(Subscription.id)")
 
+    is_blocked: orm.Mapped[bool] = orm.mapped_column(default=False, server_default=sa.sql.expression.false())
+
     @property
     def subscription(self):
         # get last saved data in subscriptions

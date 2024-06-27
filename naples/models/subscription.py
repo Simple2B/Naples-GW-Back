@@ -24,8 +24,8 @@ class Subscription(db.Model, ModelMixin):
 
     status: orm.Mapped[str] = orm.mapped_column(sa.String(32), default=s.SubscriptionStatus.TRIALING.value)
 
-    start_date: orm.Mapped[datetime | None] = orm.mapped_column()
-    end_date: orm.Mapped[datetime | None] = orm.mapped_column()
+    start_date: orm.Mapped[datetime] = orm.mapped_column(default=datetime_utc, server_default=sa.func.now())
+    end_date: orm.Mapped[datetime] = orm.mapped_column(default=datetime_utc, server_default=sa.func.now())
 
     subscription_stripe_id: orm.Mapped[str] = orm.mapped_column(sa.String(128), default="")
 
