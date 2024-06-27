@@ -26,6 +26,8 @@ class BaseConfig(BaseSettings):
     ADMIN_USERNAME: str
     ADMIN_EMAIL: str
     ADMIN_PASSWORD: str
+    ADMIN_FIRST_NAME: str
+    ADMIN_LAST_NAME: str
 
     # API
     JWT_SECRET: str

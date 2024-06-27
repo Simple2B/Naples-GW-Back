@@ -16,6 +16,7 @@ from naples.dependency import get_current_user, get_current_user_store
 from naples.database import get_db
 from naples.utils import get_file_extension
 from naples.config import config
+
 from services.store.add_dns_record import (
     add_godaddy_dns_record,
     check_main_domain,
