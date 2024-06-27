@@ -97,6 +97,7 @@ class EmailAmazonSESContent(BaseModel):
 
 # info about user for admin panel
 class UserOutAdmin(BaseModel):
+    uuid: str
     first_name: str
     last_name: str
     email: str
