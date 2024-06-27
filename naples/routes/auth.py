@@ -104,10 +104,10 @@ def get_token(auth_data: s.Auth, db=Depends(get_db)):
         )
 
     # admin user can not get API token
-    if user.role == s.UserRole.ADMIN.value:
-        log(log.ERROR, "User [%s] is an admin user", user.email)
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin user can not get API token")
-    log(log.INFO, "User [%s] logged in", user.email)
+    # if user.role == s.UserRole.ADMIN.value:
+    #     log(log.ERROR, "User [%s] is an admin user", user.email)
+    #     raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin user can not get API token")
+    # log(log.INFO, "User [%s] logged in", user.email)
 
     return create_access_token_exp_datetime(user.id)
 

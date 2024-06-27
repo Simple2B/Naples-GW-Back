@@ -25,6 +25,7 @@ def create_admin(with_print: bool = True):
             email=CFG.ADMIN_EMAIL,
             password=CFG.ADMIN_PASSWORD,
             role=s.UserRole.ADMIN.value,
+            is_verified=True,
         )
 
         session.add(admin)
