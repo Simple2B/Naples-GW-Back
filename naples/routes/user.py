@@ -372,6 +372,7 @@ def forgot_password_create(
     return
 
 
+# for admin panel
 @user_router.get(
     "/{user_uuid}/subscriptions",
     status_code=status.HTTP_200_OK,
@@ -419,3 +420,34 @@ def get_user_subscription_history(
         store=s.StoreHistoryAdmin.model_validate(user.store),
         subscriptions=user_subscriptions_history,
     )
+
+
+@user_router.patch(
+    "/block",
+    status_code=status.HTTP_200_OK,
+    response_model=s.User,
+)
+def block_user(
+    data: s.UserIsBlockedIn,
+    db: Session = Depends(get_db),
+    current_user: m.User = Depends(get_current_user),
+    admin: m.User = Depends(get_admin),
+):
+    """Block or unblock user"""
+
+    user = db.scalar(sa.select(m.User).where(m.User.uuid == data.uuid))
+
+    if not user:
+        log(log.ERROR, "User not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+
+    is_blocked = user.is_blocked
+
+    user.is_blocked = not is_blocked
+
+    db.commit()
+    db.refresh(user)
+
+    log(log.INFO, f"User {user.email} is blocked - {user.is_blocked}")
+
+    return user

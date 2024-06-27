@@ -57,10 +57,10 @@ def login(
         log(log.ERROR, "User [%s] wrong username (email) or password", form_data.username)
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Invalid credentials")
 
-    # admin user can not get API token
-    if user.role == s.UserRole.ADMIN.value:
-        log(log.ERROR, "User [%s] is an admin user", user.email)
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin user can not get API token")
+    # TODO: admin user can not get API token
+    # if user.role == s.UserRole.ADMIN.value:
+    #     log(log.ERROR, "User [%s] is an admin user", user.email)
+    #     raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin user can not get API token")
     log(log.INFO, "User [%s] logged in", user.email)
 
     # update last subscription in db with stripe data every 3 days

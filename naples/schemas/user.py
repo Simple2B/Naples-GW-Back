@@ -140,3 +140,11 @@ class UserSubscriptionHistoryAdmin(BaseModel):
     model_config = ConfigDict(
         from_attributes=True,
     )
+
+
+class UserIsBlockedIn(BaseModel):
+    uuid: str
+
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
