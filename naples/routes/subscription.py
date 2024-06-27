@@ -121,7 +121,7 @@ def create_portal_session(
 
     session = stripe.billing_portal.Session.create(
         customer=current_user.subscription.customer_stripe_id,
-        return_url=CFG.REDIRECT_URL,
+        return_url=f"{CFG.REDIRECT_URL}/dashboard/billing",
         configuration=configuration.id,
     )
 
