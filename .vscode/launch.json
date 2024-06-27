@@ -24,6 +24,16 @@
       "justMyCode": false
     },
     {
+      "name": "Create ADMIN",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "invoke",
+      "args": [
+        "create-admin"
+      ],
+      "justMyCode": true
+    },
+    {
       "name": "Fill db with locations (all USA states)",
       "type": "debugpy",
       "request": "launch",
