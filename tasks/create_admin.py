@@ -1,3 +1,4 @@
+from datetime import UTC, datetime, timedelta
 import sys
 from invoke import task
 
@@ -25,11 +26,28 @@ def create_admin(with_print: bool = True):
             email=CFG.ADMIN_EMAIL,
             password=CFG.ADMIN_PASSWORD,
             role=s.UserRole.ADMIN.value,
+            is_verified=True,
         )
-
         session.add(admin)
         session.commit()
-
+        session.refresh(admin)
         log(log.INFO, "Admin user [%s] created", CFG.ADMIN_EMAIL)
+
+        start_date = datetime.now(UTC)
+        end_date = start_date + timedelta(days=30)
+
+        subscription = m.Subscription(
+            type="trialing",
+            user_id=admin.id,
+            customer_stripe_id="",
+            start_date=start_date,
+            end_date=end_date,
+            status=s.SubscriptionStatus.TRIALING.value,
+        )
+
+        log(log.INFO, "Subscription for admin user [%s] created", CFG.ADMIN_EMAIL)
+
+        session.add(subscription)
+        session.commit()
 
         return admin
