@@ -13,7 +13,7 @@ from .user import (
     UserCreatePasswordIn,
     UserOutAdmin,
     StoreHistoryAdmin,
-    UserSubscriptionHistoryAdmin,
+    UserHistoryAdmin,
     UserIsBlockedIn,
 )
 from .token import Token, TokenData, TokenOut, Auth

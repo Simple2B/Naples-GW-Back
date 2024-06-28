@@ -128,10 +128,12 @@ class StoreHistoryAdmin(BaseModel):
     )
 
 
-class UserSubscriptionHistoryAdmin(BaseModel):
+class UserHistoryAdmin(BaseModel):
     uuid: str
     first_name: str
     last_name: str
+    avatar_url: str
+    is_blocked: bool
 
     store: StoreHistoryAdmin
 

@@ -377,7 +377,7 @@ def forgot_password_create(
 @user_router.get(
     "/{user_uuid}/user_history",
     status_code=status.HTTP_200_OK,
-    response_model=s.UserSubscriptionHistoryAdmin,
+    response_model=s.UserHistoryAdmin,
     responses={
         status.HTTP_404_NOT_FOUND: {"description": "User not found"},
     },
@@ -396,10 +396,12 @@ def get_user_history(
         log(log.ERROR, "User not found")
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User not found")
 
-    return s.UserSubscriptionHistoryAdmin(
+    return s.UserHistoryAdmin(
         uuid=user.uuid,
         first_name=user.first_name,
         last_name=user.last_name,
+        avatar_url=user.avatar_url,
+        is_blocked=user.is_blocked,
         store=s.StoreHistoryAdmin.model_validate(user.store),
     )
 
@@ -416,7 +418,7 @@ def get_user_history(
 def get_user_subscription_history(
     user_uuid: str,
     db: Session = Depends(get_db),
-    params: Params = Depends(),
+    params: Params = Depends(),  # add total parameter
     curent_user: m.User = Depends(get_current_user),
     admin: m.User = Depends(get_admin),
 ):
@@ -445,7 +447,7 @@ def get_user_subscription_history(
         for subscription in subscriptions
     ]
 
-    return paginate(user_subscriptions_history, params)
+    return paginate(user_subscriptions_history, params, length_function=lambda x: len(x))
 
 
 @user_router.patch(
