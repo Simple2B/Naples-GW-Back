@@ -231,7 +231,11 @@ def create_item(
         log(log.ERROR, "User [%s] has no store", current_user.email)
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User has no store")
 
-    check_user_subscription_max_items(store, db)
+    res = check_user_subscription_max_items(store, db)
+
+    if not res:
+        log(log.ERROR, "Max items limit reached")
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Max items limit reached")
 
     realtor: m.Member | None = db.scalar(sa.select(m.Member).where(m.Member.uuid == new_item.realtor_uuid))
 
@@ -285,8 +289,6 @@ def update_item(
         log(log.ERROR, "Item [%s] not found for store [%s]", item_uuid, current_store.url)
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
 
-    check_user_subscription_max_active_items(current_store, db)
-
     if item_data.city_uuid is not None:
         city = db.scalar(sa.select(m.City).where(m.City.uuid == item_data.city_uuid))
         if not city:
@@ -320,6 +322,9 @@ def update_item(
         item.longitude = item_data.longitude
 
     if item_data.stage is not None:
+        res = check_user_subscription_max_active_items(current_store, item, db)
+        if not res:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Max active items limit reached")
         log(log.INFO, "Stage [%s] was updated for item [%s]", item_data.stage, item_uuid)
         item.stage = item_data.stage.value
 

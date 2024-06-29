@@ -2,9 +2,11 @@ from fastapi.testclient import TestClient
 from mypy_boto3_s3 import S3Client
 from sqlalchemy.orm import Session
 from sqlalchemy import select
+import sqlalchemy as sa
 
 from naples import schemas as s
 from naples import models as m
+
 
 from naples.config import config
 
@@ -77,11 +79,15 @@ def test_get_item(
         assert item.images_urls
 
 
-def test_create_item(client: TestClient, full_db: Session, headers: dict[str, str], test_data: s.TestData):
+def test_create_item(
+    client: TestClient,
+    full_db: Session,
+    headers: dict[str, str],
+    test_data: s.TestData,
+):
     city: m.City | None = full_db.scalar(select(m.City))
     assert city
     test_realtor = full_db.scalar(select(m.Member))
-
     assert test_realtor
 
     test_item = s.ItemIn(
@@ -103,6 +109,30 @@ def test_create_item(client: TestClient, full_db: Session, headers: dict[str, st
         headers=headers,
     )
     assert response.status_code == 201
+
+    test_item = s.ItemIn(
+        name="Test Item active - 4",
+        description="Test Description",
+        address="Test Address",
+        size=100,
+        bedrooms_count=2,
+        bathrooms_count=1,
+        stage=s.ItemStage.ACTIVE.value,
+        city_uuid=city.uuid,
+        realtor_uuid=test_realtor.uuid,
+        adults=5,
+    )
+
+    response = client.post(
+        "/api/items/",
+        json=test_item.model_dump(),
+        headers=headers,
+    )
+    # Max items limit reached
+    assert response.status_code == 403
+    store_db = full_db.scalar(sa.select(m.Store))
+    assert store_db
+    assert len(store_db.items) == CFG.MAX_ITEMS_TRIALING
 
 
 def test_get_filters_data(client: TestClient, headers: dict[str, str], full_db: Session):
