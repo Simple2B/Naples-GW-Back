@@ -44,15 +44,18 @@ def get_user_data(user: m.User) -> s.User:
     return s.User.model_validate(user_data)
 
 
-def check_user_subscription_max_items(store: m.Store, db: Session):
+def check_user_subscription_max_items(store: m.Store, db: Session) -> bool:
     """Check user subscription max items"""
 
     items: list[m.Item] = store.items
 
     if store.user.subscription.status == s.SubscriptionStatus.TRIALING.value:
-        if len(items) > CFG.MAX_ITEMS_TRIALING:
+        log(log.INFO, f"subscription status: {store.user.subscription.status}")
+        if len(items) >= CFG.MAX_ITEMS_TRIALING:
+            log(log.INFO, f"len items: {len(items)}")
             log(log.INFO, f"Max items limit reached: {CFG.MAX_ITEMS_TRIALING} in trial mode")
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Max items limit reached")
+            return False
+        return True
 
     stripe_price_id = store.user.subscription.stripe_price_id
 
@@ -68,13 +71,14 @@ def check_user_subscription_max_items(store: m.Store, db: Session):
 
     max_items = product_db.max_items
 
-    if len(items) > max_items:
+    if len(items) >= max_items:
         log(log.INFO, f"Max items limit reached: {max_items}")
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Max items limit reached")
+        return False
+    return True
 
 
 # add only for status item
-def check_user_subscription_max_active_items(store: m.Store, item: m.Item, db: Session):
+def check_user_subscription_max_active_items(store: m.Store, item: m.Item, db: Session) -> bool:
     """Check user subscription max active items"""
 
     active_items: list[m.Item] = store.active_items
@@ -84,7 +88,8 @@ def check_user_subscription_max_active_items(store: m.Store, item: m.Item, db: S
         if len(active_items) > CFG.MAX_ACTIVE_ITEMS_TRIALING:
             if item.id not in active_items_ids:
                 log(log.INFO, f"Max active items limit reached: {CFG.MAX_ACTIVE_ITEMS_TRIALING} in trial mode")
-                raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Max active items limit reached")
+                return False
+        return True
 
     stripe_price_id = store.user.subscription.stripe_price_id
     if not stripe_price_id:
@@ -101,4 +106,5 @@ def check_user_subscription_max_active_items(store: m.Store, item: m.Item, db: S
     if len(active_items) > max_active_items:
         if item.id not in active_items_ids:
             log(log.INFO, f"Max active items limit reached: {max_active_items}")
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Max active items limit reached")
+            return False
+    return True
