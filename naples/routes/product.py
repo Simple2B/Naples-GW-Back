@@ -53,7 +53,9 @@ def get_base_products(
         log(log.INFO, "No products found")
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No products found")
 
-    return s.ProductsBaseOut(products=[s.ProductBaseOut.model_validate(product) for product in products_db])
+    return s.ProductsBaseOut(
+        products=[s.ProductBaseOut.model_validate(product) for product in products_db],
+    )
 
 
 # TODO:  for admin users

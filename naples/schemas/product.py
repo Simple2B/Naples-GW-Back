@@ -33,9 +33,8 @@ class Product(BaseModel):
 
     max_items: int
     max_active_items: int
+    min_items: int
     inactive_items: int
-    description: str
-    points: list[str]
 
     model_config = ConfigDict(
         from_attributes=True,
@@ -90,9 +89,9 @@ class ProductBase(BaseModel):
 
     max_items: int
     max_active_items: int
+
+    min_items: int
     inactive_items: int
-    description: str
-    points: list[str]
 
     model_config = ConfigDict(
         from_attributes=True,
@@ -113,6 +112,14 @@ class ProductsBaseOut(BaseModel):
     model_config = ConfigDict(
         from_attributes=True,
     )
+
+
+# class ProductsDictBaseOut(BaseModel):
+#     class ProductModel(RootModel[Dict[str, ProductBaseOut]]):
+#         def __getattr__(self, item: str):
+#             return self.root.__getitem__(item)
+
+#     products: ProductModel
 
 
 class ProductModify(BaseModel):
