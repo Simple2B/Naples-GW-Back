@@ -213,15 +213,16 @@ async def webhook_received(
 
         log(log.INFO, "User subscription updated [%s]", user_subscription)
 
-    elif event_type == "customer.subscription.created":
-        subscription = event_data["object"]
+    # TODO: handle customer.subscription.created (subscription created on event subscription updated)
+    # elif event_type == "customer.subscription.created":
+    #     subscription = event_data["object"]
 
-        product = get_product_by_id(subscription["plan"]["id"], db)
+    #     product = get_product_by_id(subscription["plan"]["id"], db)
 
-        # create new subscription for user
-        user_subscription = save_state_subscription_from_stripe(subscription, product, db)
+    #     # create new subscription for user
+    #     user_subscription = save_state_subscription_from_stripe(subscription, product, db)
 
-        log(log.INFO, "User subscription created [%s]", user_subscription)
+    #     log(log.INFO, "User subscription created [%s]", user_subscription)
 
     else:
         log(log.INFO, "Event not handled: %s", event_type)

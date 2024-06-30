@@ -16,7 +16,7 @@ def get_admin(user: m.User = Depends(get_current_user)) -> m.User:
     if not user.role == s.UserRole.ADMIN.value:
         log(log.INFO, "User wasn`t authorized")
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
+            status_code=status.HTTP_401_UNAUTHORIZED,
             detail="User was not authorized",
         )
     return user
