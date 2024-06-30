@@ -112,6 +112,8 @@ from .product import (
     ProductBase,
     ProductBaseOut,
     ProductsBaseOut,
+    ProductType,
+    ProductModify,
 )
 from .point import Point, PointIn, PointOut, PointsOut
 from .link import LinkType, Link, LinkIn, LinkOut, LinksOut

@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 import sqlalchemy as sa
+import stripe
 
 from naples.database import get_db
 from naples.dependency import get_current_user, get_admin
@@ -55,6 +56,7 @@ def get_base_products(
     return s.ProductsBaseOut(products=[s.ProductBaseOut.model_validate(product) for product in products_db])
 
 
+# for admin panel
 # TODO:  for admin users
 @product_router.post(
     "/",
@@ -93,3 +95,100 @@ def create_stripe_product(
     log(log.INFO, "User [%s] created product [%s]", current_user.email, product.uuid)
 
     return product
+
+
+# for admin panel
+@product_router.patch(
+    "/product",
+    status_code=status.HTTP_200_OK,
+    response_model=s.Product,
+    responses={
+        status.HTTP_404_NOT_FOUND: {"description": "Product not found"},
+    },
+)
+def update_product(
+    data: s.ProductModify,
+    db: Session = Depends(get_db),
+    current_user: m.User = Depends(get_current_user),
+    admin: m.User = Depends(get_admin),
+):
+    """Update product"""
+
+    product_db: m.Product | None = db.scalar(
+        sa.select(m.Product).where(m.Product.stripe_price_id == data.stripe_price_id)
+    )
+
+    if not product_db:
+        log(log.INFO, "Product not found in db")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
+
+    if data.amount:
+        # create new price on stripe and add as defaulte price to stripe product
+        # update product in db with new stripe price id and amount
+
+        # modify product default price in stripe
+        try:
+            product_stripe_response = stripe.Product.retrieve(product_db.stripe_product_id)
+
+            log(log.INFO, "Product [%s] retrieved from stripe", product_stripe_response.name)
+
+            # get list of prices for product
+            prices = stripe.Price.list(active=True, product=product_db.stripe_product_id)
+
+            # get amouts and price id of prices
+            prices_data = {price.unit_amount: price.id for price in prices}
+
+            price_response_id = ""
+
+            # check if such amont already exists
+            if data.amount * 100 in prices_data:
+                price_response_id = prices_data[data.amount * 100]
+                log(log.INFO, "Price for product [%s] already exists", product_db.type_name)
+            else:
+                price_response = stripe.Price.create(
+                    currency="usd",
+                    unit_amount=data.amount * 100,
+                    recurring={"interval": product_db.recurring_interval},  # type: ignore
+                    product=product_db.stripe_product_id,
+                )
+                price_response_id = price_response.id
+
+                log(log.INFO, "Product [%s] modified in stripe with new price", product_db.type_name)
+
+            product_response = stripe.Product.modify(
+                product_db.stripe_product_id,
+                default_price=price_response_id,
+            )
+
+            log(log.INFO, "Product [%s] modified in stripe with new default price", product_response.name)
+
+            product_db.amount = data.amount
+            product_db.stripe_price_id = price_response_id
+
+            log(log.INFO, "Product [%s] modified in db with new price", product_db.type_name)
+
+        except stripe.StripeError as e:
+            log(log.ERROR, "Failed to modify product in stripe [%s]", e)
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Failed to modify product in stripe")
+
+    if data.min_items:
+        product_db.min_items = data.min_items
+        log(log.INFO, "Product [%s] modified in db with new min items", product_db.type_name)
+
+    if data.max_items:
+        product_db.max_items = data.max_items
+        log(log.INFO, "Product [%s] modified in db with new max items", product_db.type_name)
+
+    if data.max_active_items:
+        product_db.max_active_items = data.max_active_items
+        log(log.INFO, "Product [%s] modified in db with new max active items", product_db.type_name)
+
+    if data.inactive_items:
+        product_db.inactive_items = data.inactive_items
+        log(log.INFO, "Product [%s] modified in db with new unactive items", product_db.type_name)
+
+    db.commit()
+    db.refresh(product_db)
+    log(log.INFO, "Product [%s] modified in db", product_db.type_name)
+
+    return s.Product.model_validate(product_db)

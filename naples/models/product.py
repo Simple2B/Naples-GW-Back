@@ -16,7 +16,7 @@ class Product(db.Model, ModelMixin):
     id: orm.Mapped[int] = orm.mapped_column(primary_key=True)
     uuid: orm.Mapped[str] = orm.mapped_column(sa.String(32), default=create_uuid, unique=True)
 
-    type_name: orm.Mapped[str] = orm.mapped_column(default="")
+    type_name: orm.Mapped[str] = orm.mapped_column(default=s.ProductType.STARTER.value)
 
     amount: orm.Mapped[int] = orm.mapped_column(nullable=False, default=0)
 
@@ -35,17 +35,17 @@ class Product(db.Model, ModelMixin):
     max_items: orm.Mapped[int] = orm.mapped_column(default=1)
     max_active_items: orm.Mapped[int] = orm.mapped_column(default=1)
 
-    @property
-    def unactive_items(self):
-        return self.max_items - self.max_active_items
+    min_items: orm.Mapped[int] = orm.mapped_column(default=1)
+
+    inactive_items: orm.Mapped[int] = orm.mapped_column(default=0)
 
     @property
     def points(self):
-        return [f"Up to {self.max_active_items} active", f"{self.unactive_items} Unactive"]
+        return [f"Up to {self.max_active_items} active", f"{self.inactive_items} Unactive"]
 
     @property
     def description(self):
-        return f"{self.max_active_items} Properties"
+        return f"{self.min_items} - {self.max_active_items} Properties"
 
     def __repr__(self):
         return f"<{self.id}: {self.uuid}>"
