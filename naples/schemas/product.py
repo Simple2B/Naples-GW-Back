@@ -8,6 +8,12 @@ from naples.config import config
 CFG = config()
 
 
+class ProductType(enum.Enum):
+    STARTER = "starter"
+    PLUS = "plus"
+    PRO = "pro"
+
+
 class ProductTypeRecurringInterval(enum.Enum):
     DAY = "day"
     WEEK = "week"
@@ -27,7 +33,7 @@ class Product(BaseModel):
 
     max_items: int
     max_active_items: int
-    unactive_items: int
+    inactive_items: int
     description: str
     points: list[str]
 
@@ -37,11 +43,14 @@ class Product(BaseModel):
 
 
 class ProductIn(BaseModel):
-    type_name: str
+    type_name: str = ProductType.STARTER.value
     amount: int
     is_deleted: bool | None = None
     max_items: int
     max_active_items: int
+
+    min_items: int
+    inactive_items: int
 
     currency: str = "usd"
     recurring_interval: str = ProductTypeRecurringInterval.MONTH.value
@@ -81,7 +90,7 @@ class ProductBase(BaseModel):
 
     max_items: int
     max_active_items: int
-    unactive_items: int
+    inactive_items: int
     description: str
     points: list[str]
 
@@ -100,6 +109,21 @@ class ProductBaseOut(ProductBase):
 
 class ProductsBaseOut(BaseModel):
     products: list[ProductBaseOut]
+
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
+
+
+class ProductModify(BaseModel):
+    stripe_price_id: str
+    amount: int | None = None
+
+    max_items: int | None = None
+    max_active_items: int | None = None
+
+    min_items: int | None = None
+    inactive_items: int | None = None
 
     model_config = ConfigDict(
         from_attributes=True,

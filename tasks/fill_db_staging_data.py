@@ -54,7 +54,7 @@ def create_user_with_store():
                 end_date = start_date + timedelta(days=30)
 
                 subscription = m.Subscription(
-                    type="trialing",
+                    type=s.ProductType.STARTER.value,
                     user_id=new_user.id,
                     customer_stripe_id=stripe_customer.id,
                     start_date=start_date,

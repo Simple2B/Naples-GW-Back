@@ -22,6 +22,8 @@ def test_create_stripe_product_get_products(
         recurring_interval=s.ProductTypeRecurringInterval.MONTH.value,
         max_items=5,
         max_active_items=3,
+        min_items=11,
+        inactive_items=30,
     )
 
     res = client.post(
@@ -47,3 +49,20 @@ def test_create_stripe_product_get_products(
     response = client.get("/api/products/base")
 
     assert response.status_code == 200
+
+    update_data = s.ProductModify(
+        stripe_price_id=db_product.stripe_price_id,
+        max_items=10,
+        max_active_items=5,
+        min_items=3,
+        inactive_items=7,
+    )
+
+    # update product
+    res = client.patch(
+        "/api/products/",
+        headers=admin_headers,
+        json=update_data.model_dump(),
+    )
+
+    response.status_code == 200
