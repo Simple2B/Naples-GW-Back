@@ -24,8 +24,8 @@ def get_metadata(
     image_url = db.scalar(sa.select(m.Metadata).where(m.Metadata.key == s.MetadataType.IMAGE_COVER_URL.value))
 
     return s.MetadataOut(
-        image_cover_url=video_url.value if video_url else "",
-        video_cover_url=image_url.value if image_url else "",
+        video_cover_url=video_url.value if video_url else "",
+        image_cover_url=image_url.value if image_url else "",
     )
 
 
@@ -43,14 +43,14 @@ def update_metadata(
 ):
     """Update metadata"""
 
-    if data.image_cover_url:
+    if data.image_cover_url is not None:
         image_url_data = db.scalar(sa.select(m.Metadata).where(m.Metadata.key == s.MetadataType.IMAGE_COVER_URL.value))
         if not image_url_data:
             log(log.ERROR, "Metadata [%s] not found", s.MetadataType.IMAGE_COVER_URL.value)
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Metadata not found")
         image_url_data.value = data.image_cover_url
 
-    if data.video_cover_url:
+    if data.video_cover_url is not None:
         video_url_data = db.scalar(sa.select(m.Metadata).where(m.Metadata.key == s.MetadataType.VIDEO_COVER_URL.value))
         if not video_url_data:
             log(log.ERROR, "Metadata [%s] not found", s.MetadataType.VIDEO_COVER_URL.value)
