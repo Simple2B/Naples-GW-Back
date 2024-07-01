@@ -31,7 +31,29 @@ def get_products(
 
     log(log.INFO, "User [%s] get products [%s] prices", current_user.email, len(products_db))
 
-    return s.ProductsOut(products=[s.ProductOut.model_validate(product) for product in products_db])
+    starter_product = db.scalar(sa.select(m.Product).where(m.Product.type_name == s.ProductType.STARTER.value))
+
+    if not starter_product:
+        log(log.ERROR, "Product [%s] not found", s.ProductType.STARTER.value)
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
+
+    plus_product = db.scalar(sa.select(m.Product).where(m.Product.type_name == s.ProductType.PLUS.value))
+
+    if not plus_product:
+        log(log.ERROR, "Product [%s] not found", s.ProductType.PLUS.value)
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
+
+    pro_product = db.scalar(sa.select(m.Product).where(m.Product.type_name == s.ProductType.PRO.value))
+
+    if not pro_product:
+        log(log.ERROR, "Product [%s] not found", s.ProductType.PRO.value)
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
+
+    return s.ProductsOut(
+        starter=starter_product,
+        plus=plus_product,
+        pro=pro_product,
+    )
 
 
 @product_router.get(
@@ -53,8 +75,28 @@ def get_base_products(
         log(log.INFO, "No products found")
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No products found")
 
+    starter_product = db.scalar(sa.select(m.Product).where(m.Product.type_name == s.ProductType.STARTER.value))
+
+    if not starter_product:
+        log(log.ERROR, "Product [%s] not found", s.ProductType.STARTER.value)
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
+
+    plus_product = db.scalar(sa.select(m.Product).where(m.Product.type_name == s.ProductType.PLUS.value))
+
+    if not plus_product:
+        log(log.ERROR, "Product [%s] not found", s.ProductType.PLUS.value)
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
+
+    pro_product = db.scalar(sa.select(m.Product).where(m.Product.type_name == s.ProductType.PRO.value))
+
+    if not pro_product:
+        log(log.ERROR, "Product [%s] not found", s.ProductType.PRO.value)
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
+
     return s.ProductsBaseOut(
-        products=[s.ProductBaseOut.model_validate(product) for product in products_db],
+        starter=starter_product,
+        plus=plus_product,
+        pro=pro_product,
     )
 
 
@@ -77,7 +119,7 @@ def create_stripe_product(
     """Create a product"""
 
     # TODO: for admin users
-    query = db.scalar(sa.select(m.Product))
+    query = db.scalars(sa.select(m.Product))
 
     if query:
         products = query.all()

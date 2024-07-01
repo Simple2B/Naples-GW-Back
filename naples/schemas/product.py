@@ -68,7 +68,9 @@ class ProductOut(Product):
 
 
 class ProductsOut(BaseModel):
-    products: list[ProductOut]
+    starter: ProductOut
+    plus: ProductOut
+    pro: ProductOut
 
     model_config = ConfigDict(
         from_attributes=True,
@@ -107,7 +109,9 @@ class ProductBaseOut(ProductBase):
 
 
 class ProductsBaseOut(BaseModel):
-    products: list[ProductBaseOut]
+    starter: ProductBaseOut
+    plus: ProductBaseOut
+    pro: ProductBaseOut
 
     model_config = ConfigDict(
         from_attributes=True,

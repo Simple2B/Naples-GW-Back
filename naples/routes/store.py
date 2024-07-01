@@ -1,3 +1,4 @@
+from datetime import UTC, datetime
 from typing import Sequence
 from fastapi import Depends, APIRouter, UploadFile, status, HTTPException
 from fastapi_pagination import Page, Params, paginate
@@ -430,6 +431,7 @@ def delete_store_about_us_media(
 
 
 # get info stores for admin panel
+# TODO: will be finishing
 @store_router.get(
     "/",
     status_code=status.HTTP_200_OK,
@@ -444,7 +446,7 @@ def get_stores(
     admin: m.User = Depends(get_admin),
     params: Params = Depends(),
     search: str | None = None,
-    subscription_status: s.SubscriptionStatus | None = None,
+    subscription_status: s.SubscriptionFilteringStatus | None = None,
 ):
     """Returns the stores for the admin panel"""
 
@@ -478,19 +480,57 @@ def get_stores(
             )
         )
 
-    if subscription_status:
-        if subscription_status == s.SubscriptionStatus.ACTIVE:
-            stmt_subscription = stmt_subscription.where(m.Subscription.status == subscription_status.value)
-        else:
-            stmt_subscription = stmt_subscription.where(m.Subscription.status != s.SubscriptionStatus.ACTIVE.value)
-
-        subscriptions = db.scalars(stmt_subscription).all()
-
-        users_ids = [subscription.user_id for subscription in subscriptions]
-
-        stmt = stmt.where(m.Store.user_id.in_(users_ids))
-
     db_stores = db.scalars(stmt).all()
+
+    today = datetime.now(UTC)
+
+    if subscription_status:
+        if subscription_status.value == s.SubscriptionFilteringStatus.ACTIVE.value:
+            stmt_subscription = stmt_subscription.where(
+                sa.or_(
+                    m.Subscription.status == s.SubscriptionStatus.ACTIVE.value,
+                    sa.and_(
+                        m.Subscription.status == s.SubscriptionStatus.TRIALING.value, m.Subscription.end_date > today
+                    ),
+                )
+            )
+            subscriptions = db.scalars(stmt_subscription).all()
+            subscriptions_users_ids = [subscription.user_id for subscription in subscriptions]
+            stmt_user = stmt_user.where(m.User.id.in_(subscriptions_users_ids))
+
+            users_db = db.scalars(stmt_user).all()
+
+            users_ids = [user.id for user in users_db]
+
+            stmt = stmt.where(m.Store.user_id.in_(users_ids))
+            db_stores = db.scalars(stmt).all()
+
+        else:
+            stmt_subscription = stmt_subscription.where(
+                sa.or_(
+                    m.Subscription.status != s.SubscriptionStatus.ACTIVE.value,
+                    sa.and_(
+                        m.Subscription.status == s.SubscriptionStatus.TRIALING.value, m.Subscription.end_date < today
+                    ),
+                )
+            )
+            subscriptions = db.scalars(stmt_subscription).all()
+
+            subscriptions_users_ids = [subscription.user_id for subscription in subscriptions]
+
+            stmt_user = stmt_user.where(
+                sa.and_(
+                    m.User.id.in_(subscriptions_users_ids),
+                    # m.User.subscription.status != s.SubscriptionStatus.ACTIVE.value,
+                )
+            )
+
+            users_db = db.scalars(stmt_user).all()
+
+            users_ids = [user.id for user in users_db]
+
+            stmt = stmt.where(m.Store.user_id.in_(users_ids))
+            db_stores = db.scalars(stmt).all()
 
     stores: Sequence[s.StoreAdminOut] = [s.StoreAdminOut.model_validate(store) for store in db_stores]
 

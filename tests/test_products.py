@@ -15,9 +15,44 @@ def test_create_stripe_product_get_products(
     admin_headers: dict[str, str],
     full_db: Session,
 ):
-    test_stripe_product = s.ProductIn(
-        type_name="test product",
-        amount=1,
+    test_stripe_product1 = s.ProductIn(
+        type_name="starter",
+        amount=14,
+        currency="usd",
+        recurring_interval=s.ProductTypeRecurringInterval.MONTH.value,
+        max_items=5,
+        max_active_items=3,
+        min_items=11,
+        inactive_items=30,
+    )
+    res = client.post(
+        "/api/products/",
+        headers=admin_headers,
+        json=test_stripe_product1.model_dump(),
+    )
+    assert res.status_code == 200
+
+    test_stripe_product2 = s.ProductIn(
+        type_name="plus",
+        amount=29,
+        currency="usd",
+        recurring_interval=s.ProductTypeRecurringInterval.MONTH.value,
+        max_items=5,
+        max_active_items=3,
+        min_items=11,
+        inactive_items=30,
+    )
+    res = client.post(
+        "/api/products/",
+        headers=admin_headers,
+        json=test_stripe_product2.model_dump(),
+    )
+
+    assert res.status_code == 200
+
+    test_stripe_product3 = s.ProductIn(
+        type_name="pro",
+        amount=59,
         currency="usd",
         recurring_interval=s.ProductTypeRecurringInterval.MONTH.value,
         max_items=5,
@@ -29,7 +64,7 @@ def test_create_stripe_product_get_products(
     res = client.post(
         "/api/products/",
         headers=admin_headers,
-        json=test_stripe_product.model_dump(),
+        json=test_stripe_product3.model_dump(),
     )
 
     assert res.status_code == 200
@@ -41,7 +76,7 @@ def test_create_stripe_product_get_products(
 
     assert response.status_code == 200
 
-    db_product = full_db.scalar(sa.select(m.Product).where(m.Product.type_name == test_stripe_product.type_name))
+    db_product = full_db.scalar(sa.select(m.Product).where(m.Product.type_name == test_stripe_product3.type_name))
 
     assert db_product is not None
     assert db_product.type_name in response.text

@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta, UTC
 from typing import Sequence
 from mypy_boto3_s3 import S3Client
 import sqlalchemy as sa
@@ -425,8 +426,8 @@ def test_get_stores_for_admin(
             user_id=db_stores[0].user.id,
             type=s.SubscriptionStatus.ACTIVE.value,
             status=s.SubscriptionStatus.ACTIVE.value,
-            start_date=db_stores[0].created_at,
-            end_date=db_stores[0].created_at,
+            start_date=datetime.now(UTC),
+            end_date=datetime.now(UTC) + timedelta(days=30),
         )
     )
     full_db.add(
@@ -434,8 +435,8 @@ def test_get_stores_for_admin(
             user_id=db_stores[0].user.id,
             type=s.SubscriptionStatus.INCOMPLETE.value,
             status=s.SubscriptionStatus.INCOMPLETE.value,
-            start_date=db_stores[0].created_at,
-            end_date=db_stores[0].created_at,
+            start_date=datetime.now(UTC),
+            end_date=datetime.now(UTC) + timedelta(days=30),
         )
     )
     full_db.add(
@@ -443,21 +444,23 @@ def test_get_stores_for_admin(
             user_id=db_stores[1].user.id,
             type=s.SubscriptionStatus.TRIALING.value,
             status=s.SubscriptionStatus.TRIALING.value,
-            start_date=db_stores[0].created_at,
-            end_date=db_stores[0].created_at,
+            start_date=datetime.now(UTC),
+            end_date=datetime.now(UTC) + timedelta(days=30),
         )
     )
     full_db.commit()
 
     response = client.get(
-        "/api/stores", headers=admin_headers, params={"subscription_status": s.SubscriptionStatus.ACTIVE.value}
+        "/api/stores", headers=admin_headers, params={"subscription_status": s.SubscriptionFilteringStatus.ACTIVE.value}
     )
     assert response.status_code == 200
     stores = response.json()["items"]
-    assert len(stores) == 1
+    assert len(stores) == 2
 
     response = client.get(
-        "/api/stores", headers=admin_headers, params={"subscription_status": s.SubscriptionStatus.TRIALING.value}
+        "/api/stores",
+        headers=admin_headers,
+        params={"subscription_status": s.SubscriptionFilteringStatus.INACTIVE.value},
     )
     assert response.status_code == 200
     stores = response.json()["items"]
