@@ -31,7 +31,17 @@ def get_products(
 
     log(log.INFO, "User [%s] get products [%s] prices", current_user.email, len(products_db))
 
-    return s.ProductsOut(products=[s.ProductOut.model_validate(product) for product in products_db])
+    products = dict()
+
+    for product in products_db:
+        if product.type_name == s.ProductType.STARTER.value:
+            products.update({"starter": s.ProductOut.model_validate(product)})
+        if product.type_name == s.ProductType.PLUS.value:
+            products.update({"plus": s.ProductOut.model_validate(product)})
+        if product.type_name == s.ProductType.PRO.value:
+            products.update({"pro": s.ProductOut.model_validate(product)})
+
+    return s.ProductsOut.model_validate(products)
 
 
 @product_router.get(
@@ -53,7 +63,17 @@ def get_base_products(
         log(log.INFO, "No products found")
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No products found")
 
-    return s.ProductsBaseOut(products=[s.ProductBaseOut.model_validate(product) for product in products_db])
+    products = dict()
+
+    for product in products_db:
+        if product.type_name == s.ProductType.STARTER.value:
+            products.update({"starter": s.ProductBaseOut.model_validate(product)})
+        if product.type_name == s.ProductType.PLUS.value:
+            products.update({"plus": s.ProductBaseOut.model_validate(product)})
+        if product.type_name == s.ProductType.PRO.value:
+            products.update({"pro": s.ProductBaseOut.model_validate(product)})
+
+    return s.ProductsBaseOut.model_validate(products)
 
 
 # for admin panel
@@ -75,7 +95,7 @@ def create_stripe_product(
     """Create a product"""
 
     # TODO: for admin users
-    query = db.scalar(sa.select(m.Product))
+    query = db.scalars(sa.select(m.Product))
 
     if query:
         products = query.all()
