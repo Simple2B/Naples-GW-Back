@@ -51,7 +51,7 @@ def check_user_subscription_max_items(store: m.Store, db: Session) -> bool:
 
     if store.user.subscription.status == s.SubscriptionStatus.TRIALING.value:
         log(log.INFO, f"subscription status: {store.user.subscription.status}")
-        if len(items) >= CFG.MAX_ITEMS_TRIALING:
+        if len(items) == CFG.MAX_ITEMS_TRIALING:
             log(log.INFO, f"len items: {len(items)}")
             log(log.INFO, f"Max items limit reached: {CFG.MAX_ITEMS_TRIALING} in trial mode")
             return False
@@ -71,7 +71,7 @@ def check_user_subscription_max_items(store: m.Store, db: Session) -> bool:
 
     max_items = product_db.max_items
 
-    if len(items) >= max_items:
+    if len(items) == max_items:
         log(log.INFO, f"Max items limit reached: {max_items}")
         return False
     return True
@@ -85,7 +85,7 @@ def check_user_subscription_max_active_items(store: m.Store, item: m.Item, db: S
     active_items_ids = [i.id for i in active_items]
 
     if store.user.subscription.status == s.SubscriptionStatus.TRIALING.value:
-        if len(active_items) > CFG.MAX_ACTIVE_ITEMS_TRIALING:
+        if len(active_items) == CFG.MAX_ACTIVE_ITEMS_TRIALING:
             if item.id not in active_items_ids:
                 log(log.INFO, f"Max active items limit reached: {CFG.MAX_ACTIVE_ITEMS_TRIALING} in trial mode")
                 return False
@@ -103,7 +103,7 @@ def check_user_subscription_max_active_items(store: m.Store, item: m.Item, db: S
 
     max_active_items = product_db.max_active_items
 
-    if len(active_items) > max_active_items:
+    if len(active_items) == max_active_items:
         if item.id not in active_items_ids:
             log(log.INFO, f"Max active items limit reached: {max_active_items}")
             return False
