@@ -24,8 +24,8 @@ def get_metadata(
     image_url = db.scalar(sa.select(m.Metadata).where(m.Metadata.key == s.MetadataType.IMAGE_COVER_URL.value))
 
     return s.MetadataOut(
-        image_cover_url=video_url or "",
-        video_cover_url=image_url or "",
+        image_cover_url=video_url.value if video_url else "",
+        video_cover_url=image_url.value if image_url else "",
     )
 
 
