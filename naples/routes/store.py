@@ -1,4 +1,4 @@
-from datetime import UTC, datetime
+from datetime import datetime
 from typing import Sequence
 from fastapi import Depends, APIRouter, UploadFile, status, HTTPException
 from fastapi_pagination import Page, Params, paginate
