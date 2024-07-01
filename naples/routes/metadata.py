@@ -15,7 +15,7 @@ metadatas_router = APIRouter(prefix="/metadatas", tags=["Metadatas"])
     status_code=status.HTTP_200_OK,
     response_model=list[s.Metadata],
 )
-def get_metadatas(
+def get_metadata(
     db: Session = Depends(get_db),
     curent_user: m.User = Depends(get_current_user),
     admin: m.User = Depends(get_admin),

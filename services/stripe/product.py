@@ -35,6 +35,8 @@ def create_product(data: s.ProductIn, db: Session) -> s.ProductOut | None:
             is_deleted=data.is_deleted if data.is_deleted is not None else False,
             max_items=data.max_items,
             max_active_items=data.max_active_items,
+            min_items=data.min_items,
+            inactive_items=data.inactive_items,
         )
 
         db.add(product)

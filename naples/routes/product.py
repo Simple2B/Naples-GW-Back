@@ -76,7 +76,6 @@ def get_base_products(
     return s.ProductsBaseOut.model_validate(products)
 
 
-# for admin panel
 # TODO:  for admin users
 @product_router.post(
     "/",
@@ -85,6 +84,7 @@ def get_base_products(
     responses={
         status.HTTP_400_BAD_REQUEST: {"description": "Failed to get price ID from Stripe product"},
     },
+    include_in_schema=False,
 )
 def create_stripe_product(
     data: s.ProductIn,

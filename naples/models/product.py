@@ -41,7 +41,7 @@ class Product(db.Model, ModelMixin):
 
     @property
     def points(self):
-        return [f"Up to {self.max_active_items} active", f"{self.inactive_items} Unactive"]
+        return [f"Up to {self.max_active_items} active", f"{self.inactive_items} Inactive"]
 
     @property
     def description(self):
