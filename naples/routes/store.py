@@ -451,10 +451,7 @@ def get_stores(
     """Returns the stores for the admin panel"""
 
     stmt = sa.select(m.Store)
-
     stmt_user = sa.select(m.User).where(m.User.is_deleted.is_(False))
-
-    stmt_subscription = sa.select(m.Subscription)
 
     if search:
         stmt_user = sa.select(m.User).where(
@@ -482,53 +479,39 @@ def get_stores(
 
     db_stores = db.scalars(stmt).all()
 
-    today = datetime.now(UTC)
+    today = datetime.now()
 
     if subscription_status:
+        users = db.scalars(stmt_user).all()
+
         if subscription_status.value == s.SubscriptionFilteringStatus.ACTIVE.value:
-            stmt_subscription = stmt_subscription.where(
-                sa.or_(
-                    m.Subscription.status == s.SubscriptionStatus.ACTIVE.value,
-                    sa.and_(
-                        m.Subscription.status == s.SubscriptionStatus.TRIALING.value, m.Subscription.end_date > today
-                    ),
+            users_last_active_subscription = [
+                user
+                for user in users
+                if user.subscription.status == s.SubscriptionStatus.ACTIVE.value
+                or (
+                    user.subscription.status == s.SubscriptionStatus.TRIALING.value
+                    and user.subscription.end_date > today
                 )
-            )
-            subscriptions = db.scalars(stmt_subscription).all()
-            subscriptions_users_ids = [subscription.user_id for subscription in subscriptions]
-            stmt_user = stmt_user.where(m.User.id.in_(subscriptions_users_ids))
+            ]
 
-            users_db = db.scalars(stmt_user).all()
-
-            users_ids = [user.id for user in users_db]
+            users_ids = [user.id for user in users_last_active_subscription]
 
             stmt = stmt.where(m.Store.user_id.in_(users_ids))
             db_stores = db.scalars(stmt).all()
 
         else:
-            stmt_subscription = stmt_subscription.where(
-                sa.or_(
-                    m.Subscription.status != s.SubscriptionStatus.ACTIVE.value,
-                    sa.and_(
-                        m.Subscription.status == s.SubscriptionStatus.TRIALING.value, m.Subscription.end_date < today
-                    ),
+            users_last_active_subscription = [
+                user
+                for user in users
+                if user.subscription.status != s.SubscriptionStatus.ACTIVE.value
+                or (
+                    user.subscription.status == s.SubscriptionStatus.TRIALING.value
+                    and user.subscription.end_date < today
                 )
-            )
-            subscriptions = db.scalars(stmt_subscription).all()
+            ]
 
-            subscriptions_users_ids = [subscription.user_id for subscription in subscriptions]
-
-            stmt_user = stmt_user.where(
-                sa.and_(
-                    m.User.id.in_(subscriptions_users_ids),
-                    # m.User.subscription.status != s.SubscriptionStatus.ACTIVE.value,
-                )
-            )
-
-            users_db = db.scalars(stmt_user).all()
-
-            users_ids = [user.id for user in users_db]
-
+            users_ids = [user.id for user in users_last_active_subscription]
             stmt = stmt.where(m.Store.user_id.in_(users_ids))
             db_stores = db.scalars(stmt).all()
 
