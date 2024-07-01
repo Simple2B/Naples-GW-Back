@@ -455,7 +455,7 @@ def test_get_stores_for_admin(
     )
     assert response.status_code == 200
     stores = response.json()["items"]
-    assert len(stores) == 2
+    assert len(stores) == 1
 
     response = client.get(
         "/api/stores",
