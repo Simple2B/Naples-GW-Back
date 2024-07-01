@@ -25,6 +25,7 @@ def create_metadata(with_print: bool = True):
                 return
         for metadata in s.MetadataType:
             new_metadata = m.Metadata(key=metadata.value, value="")
+            log(log.INFO, "Metada with key [%s] created ", metadata.value)
 
             session.add(new_metadata)
         session.commit()
