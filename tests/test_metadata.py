@@ -20,7 +20,7 @@ def test_save_get_metadata(
     test_data: s.TestData,
 ):
     response = client.get(
-        "/api/metadata/keys",
+        "/api/metadata",
         headers=admin_headers,
     )
 
@@ -36,13 +36,10 @@ def test_save_get_metadata(
     assert metadata_db
     assert len(metadata_db) == 2
 
-    key = metadata_db[0].key
-    update_data = s.MetadataIn(
-        value="image cover url",
-    )
+    update_data = s.MetadataIn(image_cover_url="image cover url")
 
     response = client.patch(
-        f"/api/metadata/update/{key}",
+        "/api/metadata",
         headers=admin_headers,
         json=update_data.model_dump(),
     )

@@ -17,15 +17,17 @@ class Metadata(BaseModel):
 
 
 class MetadataIn(BaseModel):
-    value: str
+    image_cover_url: str | None = None
+    video_cover_url: str | None = None
 
     model_config = ConfigDict(
         from_attributes=True,
     )
 
 
-class MetadataKeys(BaseModel):
-    keys: list[MetadataType]
+class MetadataOut(BaseModel):
+    image_cover_url: str
+    video_cover_url: str
 
     model_config = ConfigDict(
         from_attributes=True,
