@@ -431,6 +431,7 @@ def delete_store_about_us_media(
 
 
 # get info stores for admin panel
+# TODO: will be finishing
 @store_router.get(
     "/",
     status_code=status.HTTP_200_OK,
