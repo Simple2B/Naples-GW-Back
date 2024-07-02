@@ -1,6 +1,5 @@
 import sys
 from datetime import datetime, timedelta, UTC
-from typing import Sequence
 from invoke import task
 from pathlib import Path
 
@@ -87,18 +86,27 @@ def create_user_with_store():
 
         test_items_data = test_data.test_items
         test_items: list[m.Item] = [
-            m.Item(**item.model_dump(exclude={"city_uuid", "realtor_uuid"})) for item in test_items_data
+            m.Item(**item.model_dump(exclude={"city", "address", "state", "realtor_uuid", "latitude", "longitude"}))
+            for item in test_items_data
         ]
-        cities: Sequence[m.City] = session.query(m.City).all()
-        cities = [city for city in cities]
+        # cities: Sequence[m.City] = session.query(m.City).all()
+        # cities = [city for city in cities]
         for test_item in test_items:
             item_db = session.query(m.Item).filter(m.Item.uuid == test_item.uuid).first()
             if not item_db:
-                index = test_items.index(test_item)
-                city = cities[index % len(cities)]
-                item = create_item(test_item, city)
-                log(log.INFO, "Item [%s] created with city [%s]", test_item.name, city.id)
+                item = create_item(test_item)
+                log(log.INFO, "Item [%s] created ", test_item.name)
                 session.add(item)
+
+                location: m.Location = m.Location(
+                    item_id=test_item.id,
+                    city=f"city{test_item.id}",
+                    state=f"state{test_item.id}",
+                    address=f"address{test_item.id}",
+                )
+
+                session.add(location)
+                log(log.INFO, "Created location [%s] for item [%s]", location.id, test_item.name)
 
     session.commit()
 
