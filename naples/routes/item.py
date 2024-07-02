@@ -143,7 +143,7 @@ def get_all_items(
     if name:
         stmt = stmt.where(m.Item.name.ilike(f"%{name}%"))
 
-    db_items: Sequence[m.Item] = db.scalars(stmt).all()
+    db_items: Sequence[m.Item] = db.scalars(stmt.order_by(m.Item.created_at)).all()
     items: Sequence[s.ItemOut] = [s.ItemOut.model_validate(item) for item in db_items]
 
     log(log.INFO, "Got [%s] items for store [%s]", len(items), current_store.url)
