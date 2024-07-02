@@ -56,7 +56,6 @@ def create_item(test_item: s.TestItem) -> m.Item:
 
     item = m.Item(
         name=test_item.name,
-        address=test_item.address,
         store_id=test_item.store_id,
         realtor_id=test_item.realtor_id,
         nightly=test_item.nightly,

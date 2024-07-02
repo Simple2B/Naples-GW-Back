@@ -41,6 +41,7 @@ class ItemIn(BaseModel):
     state: str
     city: str
     address: str
+
     latitude: float = 0.0
     longitude: float = 0.0
 
@@ -66,6 +67,7 @@ class ItemUpdateIn(BaseModel):
     state: str | None = None
     city: str | None = None
     address: str | None = None
+
     latitude: float | None = None
     longitude: float | None = None
 
@@ -107,6 +109,10 @@ class ItemOut(BaseModel):
 
     longitude: float
     latitude: float
+
+    city: str
+    address: str
+    state: str
 
     image_url: str = Field("", validation_alias=AliasChoices("image_url", "imageUrl"), serialization_alias="imageUrl")
 

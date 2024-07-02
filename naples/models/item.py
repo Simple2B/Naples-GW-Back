@@ -44,7 +44,7 @@ class Item(db.Model, ModelMixin):
     # latitude: orm.Mapped[float] = orm.mapped_column(default=0.0)
     # longitude: orm.Mapped[float] = orm.mapped_column(default=0.0)
 
-    address: orm.Mapped[str] = orm.mapped_column(sa.String(256), default="")
+    # address: orm.Mapped[str] = orm.mapped_column(sa.String(256), default="")
 
     stage: orm.Mapped[str] = orm.mapped_column(default=s.ItemStage.DRAFT.value)
 
@@ -102,7 +102,15 @@ class Item(db.Model, ModelMixin):
 
     @property
     def city(self):
-        return self.location.city
+        return self.location.city if self.location else ""
+
+    @property
+    def state(self):
+        return self.location.state if self.location else ""
+
+    @property
+    def address(self):
+        return self.location.address if self.location else ""
 
     @property
     def videos(self):
