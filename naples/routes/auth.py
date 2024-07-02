@@ -57,13 +57,11 @@ def login(
         log(log.ERROR, "User [%s] wrong username (email) or password", form_data.username)
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Invalid credentials")
 
-    log(log.INFO, "User [%s] logged in", user.email)
-
     # update last subscription in db with stripe data every 3 days
     if (
         user.role == s.UserRole.USER.value
         and user.subscription
-        and user.subscription.subscription_stripe_id is not None
+        and len(user.subscription.subscription_stripe_id) > 0
         and user.subscription.last_checked_date < datetime.now() - timedelta(days=CFG.DAYS_BEFORE_UPDATE)
     ):
         log(log.INFO, " === user stripe subscription id [%s] ", user.subscription.subscription_stripe_id)
@@ -77,6 +75,7 @@ def login(
             save_state_subscription_from_stripe(user.subscription, product, db)
 
             log(log.INFO, "Subscription state updated for user [%s]", user.email)
+    log(log.INFO, "User [%s] logged in", user.email)
 
     return create_access_token_exp_datetime(user.id)
 
