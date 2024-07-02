@@ -1,6 +1,28 @@
 from pydantic import BaseModel, ConfigDict
 
 
+class BaseLocation(BaseModel):
+    address: str
+    city: str
+    state: str
+
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
+
+
+class LocationIn(BaseLocation):
+    latitude: float
+    longitude: float
+    item_uuid: str
+
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
+
+
+# old implementation of locations for properties
+# ===================================================
 # cities schemas
 class City(BaseModel):
     name: str

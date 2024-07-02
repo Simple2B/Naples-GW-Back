@@ -21,6 +21,7 @@ if TYPE_CHECKING:
     from .booked_date import BookedDate
     from .contact_request import ContactRequest
     from .link import Link
+    from .location import Location
 
 
 class Item(db.Model, ModelMixin):
@@ -74,6 +75,8 @@ class Item(db.Model, ModelMixin):
     realtor: orm.Mapped["Member"] = orm.relationship()
     store: orm.Mapped["Store"] = orm.relationship()
     city: orm.Mapped["City"] = orm.relationship()
+
+    location: orm.Mapped["Location"] = orm.relationship()
 
     _amenities: orm.Mapped[list["Amenity"]] = orm.relationship(secondary="amenities_items")
     _fees: orm.Mapped[list["Fee"]] = orm.relationship()
