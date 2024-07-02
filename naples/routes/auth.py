@@ -51,11 +51,18 @@ def login(
 ):
     """Logs in a user"""
 
-    user = m.User.authenticate(form_data.username, form_data.password, session=db)
+    user: m.User | None = m.User.authenticate(form_data.username, form_data.password, session=db)
 
     if not user:
         log(log.ERROR, "User [%s] wrong username (email) or password", form_data.username)
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Invalid credentials")
+
+    if user.is_blocked:
+        log(log.INFO, "User is blocked")
+        raise HTTPException(
+            status_code=status.HTTP_423_LOCKED,
+            detail="Your account is blocked! Contact the support service",
+        )
 
     # update last subscription in db with stripe data every 3 days
     if (
@@ -105,23 +112,32 @@ def get_token(auth_data: s.Auth, db=Depends(get_db)):
             status_code=status.HTTP_400_BAD_REQUEST, detail="User not verified. Please verify your email"
         )
 
+    if user.is_blocked:
+        log(log.INFO, "User is blocked")
+        raise HTTPException(
+            status_code=status.HTTP_423_LOCKED,
+            detail="Your account is blocked! Contact the support service",
+        )
+
     # update last subscription in db with stripe data every 3 days
-    # if (
-    #     user.role == s.UserRole.USER.value
-    #     and user.subscription
-    #     and user.subscription.last_checked_date < datetime.now() - timedelta(days=CFG.DAYS_BEFORE_UPDATE)
-    # ):
-    #     if user.subscription.subscription_stripe_id is not None:
-    #         log(log.INFO, "user stripe subscription id [%s] ", user.subscription.subscription_stripe_id)
-    #         stripe_subscription_data = stripe.Subscription.retrieve(user.subscription.subscription_stripe_id)
+    if (
+        user.role == s.UserRole.USER.value
+        and user.subscription
+        and len(user.subscription.subscription_stripe_id) > 0
+        and user.subscription.last_checked_date < datetime.now() - timedelta(days=CFG.DAYS_BEFORE_UPDATE)
+    ):
+        log(log.INFO, " === user stripe subscription id [%s] ", user.subscription.subscription_stripe_id)
 
-    #         if stripe_subscription_data is not None:
-    #             log(log.INFO, "user stripe subscription data [%s] ", stripe_subscription_data)
-    #             product = get_product_by_id(stripe_subscription_data["items"]["data"][0]["plan"]["id"], db)
+        stripe_subscription_data = stripe.Subscription.retrieve(user.subscription.subscription_stripe_id)
 
-    #             save_state_subscription_from_stripe(user.subscription, product, db)
+        if stripe_subscription_data is not None:
+            log(log.INFO, "user stripe subscription data [%s] ", stripe_subscription_data)
+            product = get_product_by_id(stripe_subscription_data["items"]["data"][0]["plan"]["id"], db)
 
-    #             log(log.INFO, "Subscription state updated for user [%s]", user.email)
+            save_state_subscription_from_stripe(user.subscription, product, db)
+
+            log(log.INFO, "Subscription state updated for user [%s]", user.email)
+    log(log.INFO, "User [%s] logged in", user.email)
 
     return create_access_token_exp_datetime(user.id)
 

@@ -94,11 +94,11 @@ class Item(db.Model, ModelMixin):
 
     @property
     def longitude(self):
-        return self.location.longitude
+        return self.location.longitude if self.location else 0.0
 
     @property
     def latitude(self):
-        return self.location.latitude
+        return self.location.latitude if self.location else 0.0
 
     @property
     def city(self):

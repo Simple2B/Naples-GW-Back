@@ -502,13 +502,7 @@ def get_stores(
 
         else:
             users_last_active_subscription = [
-                user
-                for user in users
-                if user.subscription.status != s.SubscriptionStatus.ACTIVE.value
-                or (
-                    user.subscription.status == s.SubscriptionStatus.TRIALING.value
-                    and user.subscription.end_date < today
-                )
+                user for user in users if user.subscription.status != s.SubscriptionStatus.ACTIVE.value
             ]
 
             users_ids = [user.id for user in users_last_active_subscription]
