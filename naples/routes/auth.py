@@ -65,13 +65,19 @@ def login(
         and user.subscription
         and user.subscription.last_checked_date < datetime.now() - timedelta(days=CFG.DAYS_BEFORE_UPDATE)
     ):
-        stripe_subscription_data = stripe.Subscription.retrieve(user.subscription.subscription_stripe_id)
+        log(log.INFO, "1). user stripe subscription id [%s] ", user.subscription.subscription_stripe_id)
+        if user.subscription.subscription_stripe_id is not None:
+            log(log.INFO, "2). user stripe subscription id [%s] ", user.subscription.subscription_stripe_id)
 
-        product = get_product_by_id(stripe_subscription_data["items"]["data"][0]["plan"]["id"], db)
+            stripe_subscription_data = stripe.Subscription.retrieve(user.subscription.subscription_stripe_id)
 
-        save_state_subscription_from_stripe(user.subscription, product, db)
+            if stripe_subscription_data is not None:
+                log(log.INFO, "user stripe subscription data [%s] ", stripe_subscription_data)
+                product = get_product_by_id(stripe_subscription_data["items"]["data"][0]["plan"]["id"], db)
 
-        log(log.INFO, "Subscription state updated for user [%s]", user.email)
+                save_state_subscription_from_stripe(user.subscription, product, db)
+
+                log(log.INFO, "Subscription state updated for user [%s]", user.email)
 
     return create_access_token_exp_datetime(user.id)
 
@@ -102,18 +108,22 @@ def get_token(auth_data: s.Auth, db=Depends(get_db)):
         )
 
     # update last subscription in db with stripe data every 3 days
-    if (
-        user.role == s.UserRole.USER.value
-        and user.subscription
-        and user.subscription.last_checked_date < datetime.now() - timedelta(days=CFG.DAYS_BEFORE_UPDATE)
-    ):
-        stripe_subscription_data = stripe.Subscription.retrieve(user.subscription.subscription_stripe_id)
+    # if (
+    #     user.role == s.UserRole.USER.value
+    #     and user.subscription
+    #     and user.subscription.last_checked_date < datetime.now() - timedelta(days=CFG.DAYS_BEFORE_UPDATE)
+    # ):
+    #     if user.subscription.subscription_stripe_id is not None:
+    #         log(log.INFO, "user stripe subscription id [%s] ", user.subscription.subscription_stripe_id)
+    #         stripe_subscription_data = stripe.Subscription.retrieve(user.subscription.subscription_stripe_id)
 
-        product = get_product_by_id(stripe_subscription_data["items"]["data"][0]["plan"]["id"], db)
+    #         if stripe_subscription_data is not None:
+    #             log(log.INFO, "user stripe subscription data [%s] ", stripe_subscription_data)
+    #             product = get_product_by_id(stripe_subscription_data["items"]["data"][0]["plan"]["id"], db)
 
-        save_state_subscription_from_stripe(user.subscription, product, db)
+    #             save_state_subscription_from_stripe(user.subscription, product, db)
 
-        log(log.INFO, "Subscription state updated for user [%s]", user.email)
+    #             log(log.INFO, "Subscription state updated for user [%s]", user.email)
 
     return create_access_token_exp_datetime(user.id)
 
