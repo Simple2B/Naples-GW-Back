@@ -36,13 +36,14 @@ class ExternalUrls(BaseModel):
 
 class ItemIn(BaseModel):
     name: str
-    description: str = ""
     address: str = ""
+    city_uuid: str
+    realtor_uuid: str
+
+    description: str = ""
     size: int = 0
     bedrooms_count: int = 0
     bathrooms_count: int = 0
-    city_uuid: str
-    realtor_uuid: str
     airbnb_url: str = ""
     vrbo_url: str = ""
     expedia_url: str = ""
