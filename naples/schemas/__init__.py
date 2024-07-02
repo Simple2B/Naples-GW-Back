@@ -58,10 +58,14 @@ from .locations import (
     City,
     CityOut,
     Cities,
-    LocationOut,
+    BaseLocationOut,
     LocationsListCityOut,
     LocationCityOut,
     LocationsListOut,
+    # new schemas for location
+    Location,
+    LocationIn,
+    LocationOut,
 )
 from .fee import FeeIn, FeeOut, FeeListOut
 from .rate import RateIn, RateOut, RateListOut

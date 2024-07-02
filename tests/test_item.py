@@ -1,3 +1,4 @@
+from typing import Sequence
 from fastapi.testclient import TestClient
 from mypy_boto3_s3 import S3Client
 from sqlalchemy.orm import Session
@@ -85,22 +86,23 @@ def test_create_item(
     headers: dict[str, str],
     test_data: s.TestData,
 ):
-    city: m.City | None = full_db.scalar(select(m.City))
-    assert city
     test_realtor = full_db.scalar(select(m.Member))
     assert test_realtor
 
     test_item = s.ItemIn(
         name="Test Item",
         description="Test Description",
-        address="Test Address",
         size=100,
         bedrooms_count=2,
         bathrooms_count=1,
         stage=s.ItemStage.DRAFT.value,
-        city_uuid=city.uuid,
         realtor_uuid=test_realtor.uuid,
         adults=5,
+        city="city",
+        address="address",
+        state="state",
+        latitude=0.0,
+        longitude=0.0,
     )
 
     response = client.post(
@@ -113,14 +115,15 @@ def test_create_item(
     test_item = s.ItemIn(
         name="Test Item active - 4",
         description="Test Description",
-        address="Test Address",
         size=100,
         bedrooms_count=2,
         bathrooms_count=1,
         stage=s.ItemStage.ACTIVE.value,
-        city_uuid=city.uuid,
         realtor_uuid=test_realtor.uuid,
         adults=5,
+        city="city_2",
+        address="address_2",
+        state="state_2",
     )
 
     response = client.post(
@@ -135,7 +138,12 @@ def test_create_item(
     assert len(store_db.items) == CFG.MAX_ITEMS_TRIALING
 
 
-def test_get_filters_data(client: TestClient, headers: dict[str, str], full_db: Session):
+def test_get_filters_data(
+    client: TestClient,
+    headers: dict[str, str],
+    full_db: Session,
+    test_data: s.TestData,
+):
     store = full_db.scalar(select(m.Store))
     assert store
     response = client.get(
@@ -148,7 +156,7 @@ def test_get_filters_data(client: TestClient, headers: dict[str, str], full_db: 
 
     filters_data = s.ItemsFilterDataOut.model_validate(response.json())
 
-    assert filters_data.locations
+    assert filters_data.cities
     assert filters_data.adults == 5
 
 
@@ -162,7 +170,7 @@ def test_get_items(client: TestClient, full_db: Session, headers: dict[str, str]
     assert item.id in [i.id for i in store.items]
 
     store_url = store.url
-    size = 2
+    size = 3
     response = client.get(
         "/api/items",
         params={
@@ -184,7 +192,7 @@ def test_get_items(client: TestClient, full_db: Session, headers: dict[str, str]
         params={
             "store_url": store_url,
             "page": 2,
-            "size": size,
+            "size": 1,
         },
     )
     assert response.status_code == 200
@@ -192,10 +200,10 @@ def test_get_items(client: TestClient, full_db: Session, headers: dict[str, str]
     res_items = s.Items.model_validate(response.json()).items
     assert res_items
 
-    city: m.City | None = full_db.scalar(select(m.City))
-    assert city
+    location: Sequence[m.Location] | None = full_db.scalars(select(m.Location)).all()
+    assert location
 
-    city_uuid = city.uuid
+    city = location[0].city
 
     response = client.get(
         "/api/items",
@@ -204,7 +212,7 @@ def test_get_items(client: TestClient, full_db: Session, headers: dict[str, str]
             "store_url": store.url,
             "page": 1,
             "size": size,
-            "city_uuid": city_uuid,
+            "city": city,
         },
     )
     assert response.status_code == 200
@@ -621,8 +629,8 @@ def test_update_item(
 ):
     item = full_db.scalar(select(m.Item))
     assert item
-    city = full_db.scalars(select(m.City)).all()[1]
-
+    location = full_db.scalars(select(m.Location)).all()[1]
+    city = location.city
     assert city
 
     update_data = s.ItemUpdateIn(
@@ -660,11 +668,13 @@ def test_update_item(
     assert updated_item.annual is True
     assert updated_item.nightly is True
 
+    new_city = "new_city_name"
+
     more_update_data = s.ItemUpdateIn(
         airbnb_url="https://www.airbnb.com/updated",
         vrbo_url="https://www.vrbo.com/updated",
         expedia_url="https://www.expedia.com/updated",
-        city_uuid=city.uuid,
+        city=new_city,
     )
 
     response = client.patch(
@@ -680,7 +690,7 @@ def test_update_item(
         assert updated_item.external_urls.airbnb_url == str(more_update_data.airbnb_url)
         assert updated_item.external_urls.vrbo_url == str(more_update_data.vrbo_url)
         assert updated_item.external_urls.expedia_url == str(more_update_data.expedia_url)
-    assert updated_item.city.uuid == city.uuid
+    assert updated_item.city == new_city
 
     empty_url_string_data = s.ItemUpdateIn(
         airbnb_url="",

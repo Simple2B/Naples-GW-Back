@@ -11,7 +11,6 @@ from moto.ses.models import SESBackend
 from requests_mock import Mocker
 
 from dotenv import load_dotenv
-import stripe
 
 load_dotenv("tests/test.env")
 
@@ -35,7 +34,8 @@ TEST_CSV_FILE = MODULE_PATH / ".." / "data" / "test_uscities.csv"
 @pytest.fixture
 def db(test_data: s.TestData) -> Generator[orm.Session, None, None]:
     from naples.database import db, get_db
-    from services.export_usa_locations import export_usa_locations_from_csv_file
+
+    # from services.export_usa_locations import export_usa_locations_from_csv_file
     from services.create_test_data import create_item, create_member, create_store, create_test_user
 
     with db.Session() as session:
@@ -65,12 +65,20 @@ def db(test_data: s.TestData) -> Generator[orm.Session, None, None]:
             store = create_store(test_store)
             session.add(store)
 
-        export_usa_locations_from_csv_file(session, TEST_CSV_FILE)
+        # export_usa_locations_from_csv_file(session, TEST_CSV_FILE)
 
         for test_item in test_data.test_items:
-            city = session.scalars(m.City.select()).all()[0]
-            item = create_item(test_item, city=city)
+            # city = session.scalars(m.City.select()).all()[0]
+            item = create_item(test_item)
             session.add(item)
+            location: m.Location = m.Location(
+                item_id=test_item.id,
+                city=test_item.city,
+                state=test_item.state,
+                address=test_item.address,
+            )
+            session.add(location)
+            session.commit()
         for member in test_data.test_members:
             new_member = create_member(member)
             session.add(new_member)
