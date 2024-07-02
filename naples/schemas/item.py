@@ -7,7 +7,7 @@ from .member import MemberOut
 from .fee import FeeOut
 from .rate import RateOut
 from .floor_plan import FloorPlanOut
-from .locations import LocationOut, CityOut
+from .locations import BaseLocationOut, CityOut
 from .file import DocumentOut
 from .booked_date import BookedDateOut
 
@@ -174,7 +174,7 @@ class ItemsFilterDataIn(BaseModel):
 
 
 class ItemsFilterDataOut(BaseModel):
-    locations: list[LocationOut]
+    locations: list[BaseLocationOut]
     adults: int
 
 

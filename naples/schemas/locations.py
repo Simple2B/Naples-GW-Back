@@ -1,7 +1,7 @@
 from pydantic import BaseModel, ConfigDict
 
 
-class BaseLocation(BaseModel):
+class Location(BaseModel):
     address: str
     city: str
     state: str
@@ -11,10 +11,18 @@ class BaseLocation(BaseModel):
     )
 
 
-class LocationIn(BaseLocation):
+class LocationIn(Location):
     latitude: float
     longitude: float
     item_uuid: str
+
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
+
+
+class LocationOut(LocationIn):
+    uuid: str
 
     model_config = ConfigDict(
         from_attributes=True,
@@ -124,7 +132,7 @@ class States(BaseModel):
     )
 
 
-class LocationOut(BaseModel):
+class BaseLocationOut(BaseModel):
     name: str
     uuid: str
 
@@ -133,7 +141,7 @@ class LocationOut(BaseModel):
     )
 
 
-class LocationCityOut(LocationOut):
+class LocationCityOut(BaseLocationOut):
     longitude: float
     latitude: float
 
@@ -143,7 +151,7 @@ class LocationCityOut(LocationOut):
 
 
 class LocationsListOut(BaseModel):
-    items: list[LocationOut]
+    items: list[BaseLocationOut]
 
     model_config = ConfigDict(
         from_attributes=True,
