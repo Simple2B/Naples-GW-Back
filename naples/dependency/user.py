@@ -42,7 +42,7 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
     if user.is_blocked:
         log(log.INFO, "User is blocked")
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
+            status_code=status.HTTP_423_LOCKED,
             detail="Your account is blocked! Contact the support service",
         )
 

@@ -7,7 +7,7 @@ from .member import MemberOut
 from .fee import FeeOut
 from .rate import RateOut
 from .floor_plan import FloorPlanOut
-from .locations import BaseLocationOut, CityOut
+
 from .file import DocumentOut
 from .booked_date import BookedDateOut
 
@@ -36,9 +36,13 @@ class ExternalUrls(BaseModel):
 
 class ItemIn(BaseModel):
     name: str
-    address: str = ""
-    city_uuid: str
     realtor_uuid: str
+
+    state: str
+    city: str
+    address: str
+    latitude: float = 0.0
+    longitude: float = 0.0
 
     description: str = ""
     size: int = 0
@@ -58,9 +62,14 @@ class ItemIn(BaseModel):
 
 class ItemUpdateIn(BaseModel):
     name: str | None = None
-    description: str | None = None
+
+    state: str | None = None
+    city: str | None = None
+    address: str | None = None
     latitude: float | None = None
     longitude: float | None = None
+
+    description: str | None = None
     stage: ItemStage | None = None
     size: int | None = None
     bedrooms_count: int | None = None
@@ -69,7 +78,7 @@ class ItemUpdateIn(BaseModel):
     vrbo_url: str | None = None
     expedia_url: str | None = None
     adults: int | None = None
-    city_uuid: str | None = None
+    # city_uuid: str | None = None
     realtor_uuid: str | None = None
     show_rates: bool | None = None
     show_fees: bool | None = None
@@ -154,7 +163,7 @@ class ItemDetailsOut(ItemOut):
     monthly: bool
     annual: bool
 
-    city: CityOut
+    city: str
 
 
 class Items(BaseModel):
@@ -174,7 +183,8 @@ class ItemsFilterDataIn(BaseModel):
 
 
 class ItemsFilterDataOut(BaseModel):
-    locations: list[BaseLocationOut]
+    cities: list[str]
+    # city: str
     adults: int
 
 

@@ -27,5 +27,9 @@ class Location(db.Model, ModelMixin):
 
     item: orm.Mapped["Item"] = orm.relationship()
 
+    @property
+    def item_uuid(self):
+        return self.item.uuid if self.item else ""
+
     def __repr__(self):
         return f"<{self.id}:{self.name} >"
