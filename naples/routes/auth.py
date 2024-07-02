@@ -65,13 +65,14 @@ def login(
         and user.subscription
         and user.subscription.last_checked_date < datetime.now() - timedelta(days=CFG.DAYS_BEFORE_UPDATE)
     ):
-        stripe_subscription_data = stripe.Subscription.retrieve(user.subscription.subscription_stripe_id)
+        if user.subscription.subscription_stripe_id is not None:
+            stripe_subscription_data = stripe.Subscription.retrieve(user.subscription.subscription_stripe_id)
 
-        product = get_product_by_id(stripe_subscription_data["items"]["data"][0]["plan"]["id"], db)
+            product = get_product_by_id(stripe_subscription_data["items"]["data"][0]["plan"]["id"], db)
 
-        save_state_subscription_from_stripe(user.subscription, product, db)
+            save_state_subscription_from_stripe(user.subscription, product, db)
 
-        log(log.INFO, "Subscription state updated for user [%s]", user.email)
+            log(log.INFO, "Subscription state updated for user [%s]", user.email)
 
     return create_access_token_exp_datetime(user.id)
 
@@ -107,13 +108,14 @@ def get_token(auth_data: s.Auth, db=Depends(get_db)):
         and user.subscription
         and user.subscription.last_checked_date < datetime.now() - timedelta(days=CFG.DAYS_BEFORE_UPDATE)
     ):
-        stripe_subscription_data = stripe.Subscription.retrieve(user.subscription.subscription_stripe_id)
+        if user.subscription.subscription_stripe_id is not None:
+            stripe_subscription_data = stripe.Subscription.retrieve(user.subscription.subscription_stripe_id)
 
-        product = get_product_by_id(stripe_subscription_data["items"]["data"][0]["plan"]["id"], db)
+            product = get_product_by_id(stripe_subscription_data["items"]["data"][0]["plan"]["id"], db)
 
-        save_state_subscription_from_stripe(user.subscription, product, db)
+            save_state_subscription_from_stripe(user.subscription, product, db)
 
-        log(log.INFO, "Subscription state updated for user [%s]", user.email)
+            log(log.INFO, "Subscription state updated for user [%s]", user.email)
 
     return create_access_token_exp_datetime(user.id)
 
