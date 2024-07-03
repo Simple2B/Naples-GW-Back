@@ -1,7 +1,15 @@
 from datetime import datetime
-from typing import Sequence
+from io import BytesIO
+import codecs
+import csv
+
+
 from fastapi import Depends, APIRouter, UploadFile, status, HTTPException
 from fastapi_pagination import Page, Params, paginate
+
+# from starlette.responses import StreamingResponse
+from fastapi.responses import StreamingResponse
+
 
 from mypy_boto3_s3 import S3Client
 from sqlalchemy.orm import Session
@@ -16,6 +24,7 @@ from naples import controllers as c, models as m, schemas as s
 from naples.logger import log
 from naples.dependency import get_current_user, get_current_user_store
 from naples.database import get_db
+from naples.routes.utils import get_stores_admin
 from naples.utils import get_file_extension
 from naples.config import config
 
@@ -436,79 +445,104 @@ def delete_store_about_us_media(
     "/",
     status_code=status.HTTP_200_OK,
     response_model=Page[s.StoreAdminOut],
-    responses={
-        status.HTTP_404_NOT_FOUND: {"description": "Stores not found"},
-    },
+    responses={status.HTTP_404_NOT_FOUND: {"description": "Stores not found"}},
+    dependencies=[Depends(get_admin)],
 )
 def get_stores(
     db: Session = Depends(get_db),
-    curent_user: m.User = Depends(get_current_user),
-    admin: m.User = Depends(get_admin),
     params: Params = Depends(),
     search: str | None = None,
     subscription_status: s.SubscriptionFilteringStatus | None = None,
 ):
     """Returns the stores for the admin panel"""
 
-    stmt = sa.select(m.Store)
-    stmt_user = sa.select(m.User).where(m.User.is_deleted.is_(False))
-
-    if search:
-        stmt_user = sa.select(m.User).where(
-            sa.and_(
-                m.User.is_deleted.is_(False),
-                sa.or_(
-                    m.User.email.ilike(f"%{search}%"),
-                    m.User.phone.ilike(f"%{search}%"),
-                    m.User.first_name.ilike(f"%{search}%"),
-                    m.User.last_name.ilike(f"%{search}%"),
-                ),
-            )
-        )
-
-        users_db = db.scalars(stmt_user).all()
-
-        users_ids = [user.id for user in users_db]
-
-        stmt = sa.select(m.Store).where(
-            sa.or_(
-                m.Store.url.ilike(f"%{search}%"),
-                m.Store.user_id.in_(users_ids),
-            )
-        )
-
-    db_stores = db.scalars(stmt).all()
-
-    today = datetime.now()
-
-    if subscription_status:
-        users = db.scalars(stmt_user).all()
-
-        if subscription_status.value == s.SubscriptionFilteringStatus.ACTIVE.value:
-            users_last_active_subscription = [
-                user
-                for user in users
-                if user.subscription.status == s.SubscriptionStatus.ACTIVE.value
-                or (
-                    user.subscription.status == s.SubscriptionStatus.TRIALING.value
-                    and user.subscription.end_date > today
-                )
-            ]
-
-            users_ids = [user.id for user in users_last_active_subscription]
-
-            stmt = stmt.where(m.Store.user_id.in_(users_ids))
-            db_stores = db.scalars(stmt).all()
-
-        else:
-            users_last_active_subscription = [
-                user for user in users if user.subscription.status != s.SubscriptionStatus.ACTIVE.value
-            ]
-
-            users_ids = [user.id for user in users_last_active_subscription]
-            stmt = stmt.where(m.Store.user_id.in_(users_ids))
-            db_stores = db.scalars(stmt).all()
-
-    stores: Sequence[s.StoreAdminOut] = [s.StoreAdminOut.model_validate(store) for store in db_stores]
-
+    stores = get_stores_admin(db, search, subscription_status)
     return paginate(stores, params)
+
+
+@store_router.get(
+    "/report/download",
+    status_code=status.HTTP_200_OK,
+    # TODO: pydantic can't check response model for FileResponse type and suggests using None
+    # response_model=Union[FileResponse, dict, None],
+    # response_model=None
+    responses={
+        status.HTTP_404_NOT_FOUND: {"description": "Stores not found"},
+    },
+    dependencies=[Depends(get_admin)],
+)
+def get_stores_report(
+    db: Session = Depends(get_db),
+    search: str | None = None,
+    subscription_status: s.SubscriptionFilteringStatus | None = None,
+):
+    """Create report of the stores for the admin panel"""
+
+    stores = get_stores_admin(db, search, subscription_status)
+
+    if not stores:
+        log(log.ERROR, "Stores not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Stores not found",
+        )
+
+    data = [
+        [
+            "User name",
+            "email",
+            "phone",
+            "is blocked",
+            "subscription status",
+            "created at",
+            "store url",
+            "the amount of properties",
+        ]
+    ]
+    for store in stores:
+        user_name = store.user.first_name + " " + store.user.last_name
+        email = store.user.email
+        phone = store.user.phone
+        is_blocked = str(store.user.is_blocked)
+        status_subscription = store.user.subscription.status.value
+        created_at = store.user.created_at.strftime("%H:%M:%S %b %d %Y")
+        store_url = store.url
+        properties = str(store.items_count)
+        data.append(
+            [
+                user_name,
+                email,
+                phone,
+                is_blocked,
+                status_subscription,
+                created_at,
+                store_url,
+                properties,
+            ]
+        )
+    log(
+        log.INFO,
+        "Create report data [%s] for admin panel ",
+        data,
+    )
+
+    StreamWriter = codecs.getwriter("utf-8")
+    file = StreamWriter(BytesIO())
+
+    wr = csv.writer(file, quoting=csv.QUOTE_ALL)
+    wr.writerow(data)
+
+    log(
+        log.INFO,
+        "Write data (count of stores in data [%d]) to csv file",
+        len(data),
+    )
+    today = datetime.now()
+    report_date = today.strftime("%H:%M:%S_%b_%d_%Y")
+
+    return StreamingResponse(
+        iter([file.getvalue()]),
+        status_code=status.HTTP_200_OK,
+        headers={"Content-Disposition": f"attachment; filename=stores_report_{report_date}.csv"},
+        media_type="text/csv",
+    )

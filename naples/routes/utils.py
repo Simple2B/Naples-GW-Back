@@ -1,3 +1,5 @@
+from datetime import datetime
+from typing import Sequence
 from fastapi import HTTPException, status
 import sqlalchemy as sa
 from sqlalchemy.orm import Session
@@ -108,3 +110,73 @@ def check_user_subscription_max_active_items(store: m.Store, item: m.Item, db: S
             log(log.INFO, f"Max active items limit reached: {max_active_items}")
             return False
     return True
+
+
+# get stores for admin panel
+def get_stores_admin(
+    db: Session, search: str | None, subscription_status: s.SubscriptionFilteringStatus | None
+) -> Sequence[s.StoreAdminOut]:
+    stmt = sa.select(m.Store)
+    stmt_user = sa.select(m.User).where(m.User.is_deleted.is_(False))
+
+    if search:
+        stmt_user = sa.select(m.User).where(
+            sa.and_(
+                m.User.is_deleted.is_(False),
+                sa.or_(
+                    m.User.email.ilike(f"%{search}%"),
+                    m.User.phone.ilike(f"%{search}%"),
+                    m.User.first_name.ilike(f"%{search}%"),
+                    m.User.last_name.ilike(f"%{search}%"),
+                ),
+            )
+        )
+
+        users_db = db.scalars(stmt_user).all()
+
+        users_ids = [user.id for user in users_db]
+
+        stmt = sa.select(m.Store).where(
+            sa.or_(
+                m.Store.url.ilike(f"%{search}%"),
+                m.Store.user_id.in_(users_ids),
+            )
+        )
+
+    db_stores = db.scalars(stmt).all()
+
+    today = datetime.now()
+
+    if subscription_status:
+        users = db.scalars(stmt_user).all()
+
+        if subscription_status.value == s.SubscriptionFilteringStatus.ACTIVE.value:
+            users_last_active_subscription = [
+                user
+                for user in users
+                if user.subscription.status == s.SubscriptionStatus.ACTIVE.value
+                or (
+                    user.subscription.status == s.SubscriptionStatus.TRIALING.value
+                    and user.subscription.end_date > today
+                )
+            ]
+
+            users_ids = [user.id for user in users_last_active_subscription]
+
+            stmt = stmt.where(m.Store.user_id.in_(users_ids))
+            db_stores = db.scalars(stmt).all()
+
+        else:
+            users_last_active_subscription = [
+                user for user in users if user.subscription.status != s.SubscriptionStatus.ACTIVE.value
+            ]
+
+            users_ids = [user.id for user in users_last_active_subscription]
+            stmt = stmt.where(m.Store.user_id.in_(users_ids))
+            db_stores = db.scalars(stmt).all()
+
+    stores: Sequence[s.StoreAdminOut] = [s.StoreAdminOut.model_validate(store) for store in db_stores]
+
+    log(log.INFO, "Stores [%s] for admin panel ", len(stores))
+
+    return stores
