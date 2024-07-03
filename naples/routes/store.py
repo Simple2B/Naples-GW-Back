@@ -490,14 +490,14 @@ def get_stores_report(
         report = csv.writer(report_file)
         data = [
             [
-                "User name",
-                "email",
-                "phone",
-                "is blocked",
-                "subscription status",
-                "created at",
-                "store url",
-                "the amount of properties",
+                "User Name",
+                "Email",
+                "Phone",
+                "Is Blocked",
+                "Subscription Status",
+                "Created At",
+                "Store Url",
+                "№ of properties",
             ]
         ]
 
@@ -505,9 +505,9 @@ def get_stores_report(
             user_name = store.user.first_name + " " + store.user.last_name
             email = store.user.email
             phone = store.user.phone
-            is_blocked = str(store.user.is_blocked)
-            status_subscription = store.user.subscription.status.value
-            created_at = store.user.created_at.strftime("%H:%M:%S %b %d %Y")
+            is_blocked = str(store.user.is_blocked).lower()
+            status_subscription = store.user.subscription.status.value.upper()
+            created_at = store.user.created_at.strftime("%H:%M %b %d %Y")
             store_url = store.url
             properties = str(store.items_count)
             data.append(
