@@ -506,7 +506,7 @@ def get_stores_report(
             email = store.user.email
             phone = store.user.phone
             is_blocked = str(store.user.is_blocked).lower()
-            status_subscription = store.user.subscription.status.value.upper()
+            status_subscription = store.status.value.upper()
             created_at = store.user.created_at.strftime("%H:%M %b %d %Y")
             store_url = store.url
             properties = str(store.items_count)
