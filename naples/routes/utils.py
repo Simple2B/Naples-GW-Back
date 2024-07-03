@@ -168,7 +168,9 @@ def get_stores_admin(
 
         else:
             users_last_active_subscription = [
-                user for user in users if user.subscription.status != s.SubscriptionStatus.ACTIVE.value
+                user
+                for user in users
+                if user.subscription.status == s.SubscriptionStatus.CANCELED.value or user.subscription.end_date < today
             ]
 
             users_ids = [user.id for user in users_last_active_subscription]
