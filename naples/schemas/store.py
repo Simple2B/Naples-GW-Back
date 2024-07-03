@@ -1,3 +1,4 @@
+import enum
 from pydantic import BaseModel, ConfigDict, EmailStr
 from pydantic_extra_types.color import Color
 
@@ -95,9 +96,19 @@ class Stores(BaseModel):
     )
 
 
+class StoreStatus(enum.Enum):
+    ACTIVE = "active"
+    INACTIVE = "inactive"
+
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
+
+
 class StoreAdminOut(BaseModel):
     url: str
     items_count: int
+    status: StoreStatus = StoreStatus.ACTIVE
 
     user: UserOutAdmin
 

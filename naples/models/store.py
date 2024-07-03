@@ -145,6 +145,19 @@ class Store(db.Model, ModelMixin):
     def contact_requests(self):
         return [contact_request for contact_request in self._contact_requests if not contact_request.is_deleted]
 
+    @property
+    def status(self):
+        if self.user.subscription.status == s.SubscriptionStatus.ACTIVE.value or (
+            self.user.subscription.status == s.SubscriptionStatus.TRIALING.value
+            and self.user.subscription.end_date > datetime.now()
+        ):
+            return s.StoreStatus.ACTIVE.value
+        if self.user.subscription.status == s.SubscriptionStatus.CANCELED.value or (
+            self.user.subscription.status != s.SubscriptionStatus.ACTIVE.value
+            and self.user.subscription.end_date < datetime.now()
+        ):
+            return s.StoreStatus.INACTIVE.value
+
     def get_item_by_uuid(self, item_uuid: str):
         for item in self.items:
             if item.uuid == item_uuid and not item.is_deleted:

@@ -1,4 +1,3 @@
-from datetime import datetime
 from typing import Sequence
 from fastapi import HTTPException, status
 import sqlalchemy as sa
@@ -145,21 +144,11 @@ def get_stores_admin(
 
     db_stores = db.scalars(stmt).all()
 
-    today = datetime.now()
-
     if subscription_status:
         users = db.scalars(stmt_user).all()
 
         if subscription_status.value == s.SubscriptionFilteringStatus.ACTIVE.value:
-            users_last_active_subscription = [
-                user
-                for user in users
-                if user.subscription.status == s.SubscriptionStatus.ACTIVE.value
-                or (
-                    user.subscription.status == s.SubscriptionStatus.TRIALING.value
-                    and user.subscription.end_date > today
-                )
-            ]
+            users_last_active_subscription = [user for user in users if user.store.status == s.StoreStatus.ACTIVE.value]
 
             users_ids = [user.id for user in users_last_active_subscription]
 
@@ -168,9 +157,7 @@ def get_stores_admin(
 
         else:
             users_last_active_subscription = [
-                user
-                for user in users
-                if user.subscription.status == s.SubscriptionStatus.CANCELED.value or user.subscription.end_date < today
+                user for user in users if user.store.status == s.StoreStatus.INACTIVE.value
             ]
 
             users_ids = [user.id for user in users_last_active_subscription]

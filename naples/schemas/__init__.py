@@ -24,6 +24,7 @@ from .store import (
     StoreAboutUs,
     StoreOut,
     Stores,
+    StoreStatus,
     StoreUpdateIn,
     StoreAdminOut,
     StoresAdminOut,

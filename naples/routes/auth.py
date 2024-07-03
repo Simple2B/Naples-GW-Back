@@ -57,13 +57,6 @@ def login(
         log(log.ERROR, "User [%s] wrong username (email) or password", form_data.username)
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Invalid credentials")
 
-    if user.is_blocked:
-        log(log.INFO, "User is blocked")
-        raise HTTPException(
-            status_code=status.HTTP_423_LOCKED,
-            detail="Your account is blocked! Contact the support service",
-        )
-
     # update last subscription in db with stripe data every 3 days
     if (
         user.role == s.UserRole.USER.value
@@ -110,13 +103,6 @@ def get_token(auth_data: s.Auth, db=Depends(get_db)):
 
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="User not verified. Please verify your email"
-        )
-
-    if user.is_blocked:
-        log(log.INFO, "User is blocked")
-        raise HTTPException(
-            status_code=status.HTTP_423_LOCKED,
-            detail="Your account is blocked! Contact the support service",
         )
 
     # update last subscription in db with stripe data every 3 days

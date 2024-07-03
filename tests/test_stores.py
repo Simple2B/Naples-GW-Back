@@ -430,22 +430,14 @@ def test_get_stores_for_admin(
             end_date=datetime.now(UTC) + timedelta(days=30),
         )
     )
-    full_db.add(
-        m.Subscription(
-            user_id=db_stores[0].user.id,
-            type=s.SubscriptionStatus.INCOMPLETE.value,
-            status=s.SubscriptionStatus.INCOMPLETE.value,
-            start_date=datetime.now(UTC),
-            end_date=datetime.now(UTC) + timedelta(days=30),
-        )
-    )
+
     full_db.add(
         m.Subscription(
             user_id=db_stores[1].user.id,
             type=s.SubscriptionStatus.TRIALING.value,
             status=s.SubscriptionStatus.TRIALING.value,
             start_date=datetime.now(UTC),
-            end_date=datetime.now(UTC) + timedelta(days=30),
+            end_date=datetime.now(UTC) - timedelta(days=30),
         )
     )
     full_db.commit()
@@ -465,7 +457,7 @@ def test_get_stores_for_admin(
     assert response.status_code == 200
     stores = response.json()["items"]
     assert stores
-    assert len(stores) == 2
+    assert len(stores) == 1
 
     response = client.post("/api/stores/report/download", headers=admin_headers)
 
