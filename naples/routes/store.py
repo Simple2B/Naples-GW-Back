@@ -1,11 +1,14 @@
-import os
+from datetime import datetime
+from io import BytesIO
+import codecs
 import csv
-from typing import List
+
 
 from fastapi import Depends, APIRouter, UploadFile, status, HTTPException
 from fastapi_pagination import Page, Params, paginate
 
-from starlette.responses import FileResponse
+# from starlette.responses import StreamingResponse
+from fastapi.responses import StreamingResponse
 
 
 from mypy_boto3_s3 import S3Client
@@ -457,16 +460,18 @@ def get_stores(
     return paginate(stores, params)
 
 
-@store_router.post(
-    "/report",
+@store_router.get(
+    "/report/download",
     status_code=status.HTTP_200_OK,
-    response_model=List[s.StoreAdminOut],
+    # TODO: pydantic can't check response model for FileResponse type and suggests using None
+    # response_model=Union[FileResponse, dict, None],
+    # response_model=None
     responses={
         status.HTTP_404_NOT_FOUND: {"description": "Stores not found"},
     },
     dependencies=[Depends(get_admin)],
 )
-def create_stores_report(
+def get_stores_report(
     db: Session = Depends(get_db),
     search: str | None = None,
     subscription_status: s.SubscriptionFilteringStatus | None = None,
@@ -475,73 +480,69 @@ def create_stores_report(
 
     stores = get_stores_admin(db, search, subscription_status)
 
-    with open(
-        os.path.join(CFG.REPORTS_DIR, CFG.STORES_REPORT_FILE),
-        "w",
-        newline="",
-    ) as report_file:
-        report = csv.writer(report_file)
-        data = [
-            [
-                "User name",
-                "email",
-                "phone",
-                "is blocked",
-                "subscription status",
-                "created at",
-                "store url",
-                "the amount of properties",
-            ]
+    if not stores:
+        log(log.ERROR, "Stores not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Stores not found",
+        )
+
+    data = [
+        [
+            "User name",
+            "email",
+            "phone",
+            "is blocked",
+            "subscription status",
+            "created at",
+            "store url",
+            "the amount of properties",
         ]
-        for store in stores:
-            user_name = store.user.first_name + " " + store.user.last_name
-            email = store.user.email
-            phone = store.user.phone
-            is_blocked = str(store.user.is_blocked)
-            status = store.user.subscription.status.value
-            created_at = store.user.created_at.strftime("%H:%M:%S %b %d %Y")
-            store_url = store.url
-            properties = str(store.items_count)
-            data.append(
-                [
-                    user_name,
-                    email,
-                    phone,
-                    is_blocked,
-                    status,
-                    created_at,
-                    store_url,
-                    properties,
-                ]
-            )
-        log(
-            log.INFO,
-            "Create report data [%s] for admin panel ",
-            data,
+    ]
+    for store in stores:
+        user_name = store.user.first_name + " " + store.user.last_name
+        email = store.user.email
+        phone = store.user.phone
+        is_blocked = str(store.user.is_blocked)
+        status_subscription = store.user.subscription.status.value
+        created_at = store.user.created_at.strftime("%H:%M:%S %b %d %Y")
+        store_url = store.url
+        properties = str(store.items_count)
+        data.append(
+            [
+                user_name,
+                email,
+                phone,
+                is_blocked,
+                status_subscription,
+                created_at,
+                store_url,
+                properties,
+            ]
         )
-        report.writerows(data)
+    log(
+        log.INFO,
+        "Create report data [%s] for admin panel ",
+        data,
+    )
 
-        log(
-            log.INFO,
-            "Write data (count of stores in data [%d]) to csv file",
-            len(data),
-        )
+    StreamWriter = codecs.getwriter("utf-8")
+    file = StreamWriter(BytesIO())
 
-    return stores
+    wr = csv.writer(file, quoting=csv.QUOTE_ALL)
+    wr.writerow(data)
 
+    log(
+        log.INFO,
+        "Write data (count of stores in data [%d]) to csv file",
+        len(data),
+    )
+    today = datetime.now()
+    report_date = today.strftime("%H:%M:%S_%b_%d_%Y")
 
-@store_router.get(
-    "/report/download",
-    status_code=status.HTTP_200_OK,
-    # TODO: pydantic can't check response model for FileResponse type and suggests using None
-    # response_model=Union[FileResponse, dict, None],
-    # response_model=None,
-    responses={
-        status.HTTP_404_NOT_FOUND: {"description": "File not found"},
-    },
-    dependencies=[Depends(get_admin)],
-)
-def get_stores_report():
-    """Get report of the stores for the admin panel"""
-
-    return FileResponse(os.path.join(CFG.REPORTS_DIR, CFG.STORES_REPORT_FILE))
+    return StreamingResponse(
+        iter([file.getvalue()]),
+        status_code=status.HTTP_200_OK,
+        headers={"Content-Disposition": f"attachment; filename=stores_report_{report_date}.csv"},
+        media_type="text/csv",
+    )
