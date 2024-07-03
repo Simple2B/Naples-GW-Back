@@ -14,3 +14,4 @@ node_modules/
 
 .coverage
 .env
+reports/stores_report.csv

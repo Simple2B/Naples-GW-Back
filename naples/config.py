@@ -91,6 +91,10 @@ class BaseConfig(BaseSettings):
     MAX_ITEMS_TRIALING: int = 6
     MAX_ACTIVE_ITEMS_TRIALING: int = 3
 
+    # file_report_path
+    REPORTS_DIR: str = "reports/"
+    STORES_REPORT_FILE: str = "stores_report.csv"
+
     model_config = SettingsConfigDict(
         extra="allow",
         env_file=("project.env", ".env.dev", ".env"),

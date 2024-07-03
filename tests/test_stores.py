@@ -466,3 +466,17 @@ def test_get_stores_for_admin(
     stores = response.json()["items"]
     assert stores
     assert len(stores) == 2
+
+    response = client.post(
+        "/api/stores/report",
+        headers=admin_headers,
+        params={"subscription_status": s.SubscriptionFilteringStatus.INACTIVE.value},
+    )
+
+    assert response.status_code == 200
+    assert len(response.json()) == 2
+
+    response = client.get("/api/stores/report/download", headers=admin_headers)
+
+    assert response
+    assert response.status_code == 200
