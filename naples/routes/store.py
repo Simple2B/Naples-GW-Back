@@ -1,14 +1,11 @@
-from datetime import datetime
-from io import BytesIO
-import codecs
+import os
 import csv
 
 
 from fastapi import Depends, APIRouter, UploadFile, status, HTTPException
 from fastapi_pagination import Page, Params, paginate
 
-# from starlette.responses import StreamingResponse
-from fastapi.responses import StreamingResponse
+from fastapi.responses import FileResponse
 
 
 from mypy_boto3_s3 import S3Client
@@ -460,12 +457,10 @@ def get_stores(
     return paginate(stores, params)
 
 
-@store_router.get(
+@store_router.post(
     "/report/download",
     status_code=status.HTTP_200_OK,
-    # TODO: pydantic can't check response model for FileResponse type and suggests using None
-    # response_model=Union[FileResponse, dict, None],
-    # response_model=None
+    response_class=FileResponse,
     responses={
         status.HTTP_404_NOT_FOUND: {"description": "Stores not found"},
     },
@@ -487,62 +482,58 @@ def get_stores_report(
             detail="Stores not found",
         )
 
-    data = [
-        [
-            "User name",
-            "email",
-            "phone",
-            "is blocked",
-            "subscription status",
-            "created at",
-            "store url",
-            "the amount of properties",
-        ]
-    ]
-    for store in stores:
-        user_name = store.user.first_name + " " + store.user.last_name
-        email = store.user.email
-        phone = store.user.phone
-        is_blocked = str(store.user.is_blocked)
-        status_subscription = store.user.subscription.status.value
-        created_at = store.user.created_at.strftime("%H:%M:%S %b %d %Y")
-        store_url = store.url
-        properties = str(store.items_count)
-        data.append(
+    with open(
+        os.path.join(CFG.REPORTS_DIR, CFG.STORES_REPORT_FILE),
+        "w",
+        newline="",
+    ) as report_file:
+        report = csv.writer(report_file)
+        data = [
             [
-                user_name,
-                email,
-                phone,
-                is_blocked,
-                status_subscription,
-                created_at,
-                store_url,
-                properties,
+                "User name",
+                "email",
+                "phone",
+                "is blocked",
+                "subscription status",
+                "created at",
+                "store url",
+                "the amount of properties",
             ]
+        ]
+
+        for store in stores:
+            user_name = store.user.first_name + " " + store.user.last_name
+            email = store.user.email
+            phone = store.user.phone
+            is_blocked = str(store.user.is_blocked)
+            status_subscription = store.user.subscription.status.value
+            created_at = store.user.created_at.strftime("%H:%M:%S %b %d %Y")
+            store_url = store.url
+            properties = str(store.items_count)
+            data.append(
+                [
+                    user_name,
+                    email,
+                    phone,
+                    is_blocked,
+                    status_subscription,
+                    created_at,
+                    store_url,
+                    properties,
+                ]
+            )
+        log(
+            log.INFO,
+            "Create report data [%s] for admin panel ",
+            data,
         )
-    log(
-        log.INFO,
-        "Create report data [%s] for admin panel ",
-        data,
-    )
 
-    StreamWriter = codecs.getwriter("utf-8")
-    file = StreamWriter(BytesIO())
+        report.writerows(data)
 
-    wr = csv.writer(file, quoting=csv.QUOTE_ALL)
-    wr.writerow(data)
+        log(
+            log.INFO,
+            "Write data (count of stores in data [%d]) to csv file",
+            len(data),
+        )
 
-    log(
-        log.INFO,
-        "Write data (count of stores in data [%d]) to csv file",
-        len(data),
-    )
-    today = datetime.now()
-    report_date = today.strftime("%H:%M:%S_%b_%d_%Y")
-
-    return StreamingResponse(
-        iter([file.getvalue()]),
-        status_code=status.HTTP_200_OK,
-        headers={"Content-Disposition": f"attachment; filename=stores_report_{report_date}.csv"},
-        media_type="text/csv",
-    )
+    return FileResponse(os.path.join(CFG.REPORTS_DIR, CFG.STORES_REPORT_FILE))

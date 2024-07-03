@@ -467,7 +467,6 @@ def test_get_stores_for_admin(
     assert stores
     assert len(stores) == 2
 
-    response = client.get("/api/stores/report/download", headers=admin_headers)
+    response = client.post("/api/stores/report/download", headers=admin_headers)
 
     assert response.status_code == 200
-    assert response.headers["Content-Disposition"]
