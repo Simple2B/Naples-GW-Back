@@ -108,7 +108,7 @@ class StoreStatus(enum.Enum):
 class StoreAdminOut(BaseModel):
     url: str
     items_count: int
-    status: StoreStatus = StoreStatus.ACTIVE
+    status: StoreStatus
 
     user: UserOutAdmin
 

@@ -151,12 +151,12 @@ class Store(db.Model, ModelMixin):
             self.user.subscription.status == s.SubscriptionStatus.TRIALING.value
             and self.user.subscription.end_date > datetime.now()
         ):
-            return s.StoreStatus.ACTIVE.value
+            return s.StoreStatus.ACTIVE
         if self.user.subscription.status == s.SubscriptionStatus.CANCELED.value or (
             self.user.subscription.status != s.SubscriptionStatus.ACTIVE.value
             and self.user.subscription.end_date < datetime.now()
         ):
-            return s.StoreStatus.INACTIVE.value
+            return s.StoreStatus.INACTIVE
 
     def get_item_by_uuid(self, item_uuid: str):
         for item in self.items:
