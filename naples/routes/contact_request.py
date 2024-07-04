@@ -1,10 +1,16 @@
 import sqlalchemy as sa
 from fastapi import APIRouter, Depends, status, HTTPException
 from sqlalchemy.orm import Session
+from mypy_boto3_ses import SESClient
+from botocore.exceptions import ClientError
 
 from naples import schemas as s, models as m, dependency as d
 from naples.logger import log
 from naples.database import get_db
+from naples.utils import createMsgContactRequest, sendEmailAmazonSES
+from naples.config import config
+
+CFG = config()
 
 
 contact_request_router = APIRouter(prefix="/contact_requests", tags=["Contact Requests"])
@@ -20,6 +26,7 @@ async def create_contact_request(
     contact_request: s.ContactRequestIn,
     store: m.Store = Depends(d.get_current_store),
     db: Session = Depends(get_db),
+    ses: SESClient = Depends(d.get_ses_client),
 ):
     log(log.INFO, "Creating contact request for store {%s}", store.uuid)
     item = None
@@ -37,6 +44,30 @@ async def create_contact_request(
     db.commit()
     db.refresh(contact_request)
     log(log.INFO, "Contact request {%s} created for store {%s}", contact_request.uuid, store.uuid)
+
+    # Sending email to the store's owner or the item's member
+    mail_message = createMsgContactRequest(contact_request)
+    recipient_email = store.email
+
+    if contact_request.item_id and item:
+        recipient_email = item.realtor.email
+
+    try:
+        emailContent = s.EmailAmazonSESContent(
+            recipient_email=recipient_email,
+            sender_email=CFG.MAIL_DEFAULT_SENDER,
+            message=mail_message,
+            charset=CFG.CHARSET,
+            mail_body_text="New Contact Request from Naples GW!",
+            mail_subject="New Contact Request",
+        )
+        sendEmailAmazonSES(emailContent, ses_client=ses)
+
+    except ClientError as e:
+        log(log.ERROR, "Email not sent! [%s]", e)
+        log(log.ERROR, "Email not sent with new contact request to [%s]! ", recipient_email)
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email not sent with new contact reques!")
+
     return contact_request
 
 
@@ -48,11 +79,13 @@ async def get_contact_requests(
     status: s.ContactRequestStatus | None = None,
 ):
     log(log.INFO, "Getting contact requests for store {%s}. Search: {%s}. Status: {%s}", store.uuid, search, status)
+
     stmt = (
         sa.select(m.ContactRequest)
         .where(sa.and_(m.ContactRequest.store_id == store.id, m.ContactRequest.is_deleted.is_(False)))
         .order_by(m.ContactRequest.created_at.desc())
     )
+
     if search:
         items = db.scalars(
             sa.select(m.Item).where(m.Item.store_id == store.id).where(m.Item.name.ilike(f"%{search}%"))
