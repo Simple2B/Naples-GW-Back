@@ -214,10 +214,6 @@ class Item(db.Model, ModelMixin):
             expedia_url=self.expedia_url,
         )
 
-    # @property
-    # def city_uuid(self) -> str:
-    #     return self.city.uuid
-
     @property
     def contact_requests(self):
         return [contact_request for contact_request in self._contact_requests if not contact_request.is_deleted]

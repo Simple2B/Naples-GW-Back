@@ -115,6 +115,41 @@ def sendEmailAmazonSES(emailContent: s.EmailAmazonSESContent, ses_client: SESCli
     return response
 
 
+# creating a message for a contact request
+def createMsgContactRequest(contact_request: m.ContactRequest) -> str:
+    html_content = f"""
+        <html>
+            <body style='margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, Helvetica, sans-serif;'>
+            <div style='width: 100%; background: #efefef; border-radius: 10px; padding: 10px;'>
+                <div style='margin: 0 auto; width: 90%; text-align: center;'>
+                <h1 style='background-color: rgba(0, 53, 102, 1); padding: 5px 10px; border-radius: 5px; color: white;'>Naples GW
+                </h1>
+                <div
+                    style='margin: 25px auto; background: white; width: 70%; border-radius: 10px; padding: 50px;'>
+
+                    <h6 style='margin-bottom: 35px; text-align: center; font-size: 24px; '>You have a new request from: </h6>
+                    <div style='margin: 5px; text-align: left;'>
+                        <b>Name:</b> {contact_request.first_name} {contact_request.last_name}
+                    </div>
+                    <div style='margin: 5px; text-align: left;'>
+                        <b>Email:</b> {contact_request.email}
+                    </div>
+                    <div style='margin: 5px; text-align: left;'>
+                        <b>Phone:</b> {contact_request.phone}
+                    </div>
+                    <div style='margin: 5px; text-align: left;'>
+                        <b>Message:</b> {contact_request.message}
+                    </div>
+                </div>
+                </div>
+            </div>
+            </body>
+        </html>
+    """
+
+    return html_content
+
+
 def get_expire_datatime() -> datetime:
     return datetime.now(UTC) + timedelta(minutes=CFG.ACCESS_TOKEN_EXPIRE_MINUTES)
 

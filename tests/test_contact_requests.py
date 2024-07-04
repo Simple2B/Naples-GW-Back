@@ -3,14 +3,30 @@ from datetime import datetime
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 from sqlalchemy import select
+from moto import mock_aws
+from mypy_boto3_ses import SESClient
 
 
 from naples import schemas as s, models as m
 
+from naples.config import config
 
-def test_create_contact_request(client: TestClient, full_db: Session, headers: dict[str, str]):
+
+CFG = config("testing")
+
+
+@mock_aws
+def test_create_contact_request(
+    client: TestClient,
+    full_db: Session,
+    headers: dict[str, str],
+    ses: SESClient,
+):
     store = full_db.scalar(select(m.Store))
     assert store
+
+    ses.verify_email_address(EmailAddress=store.email)
+    ses.verify_email_address(EmailAddress=CFG.MAIL_DEFAULT_SENDER)
 
     req_payload = s.ContactRequestIn(
         first_name="John",
@@ -36,12 +52,22 @@ def test_create_contact_request(client: TestClient, full_db: Session, headers: d
     assert contact_request.email == contact_request_model.email
 
 
-def test_create_contact_request_for_item(client: TestClient, full_db: Session, headers: dict[str, str]):
+@mock_aws
+def test_create_contact_request_for_item(
+    client: TestClient,
+    full_db: Session,
+    headers: dict[str, str],
+    ses: SESClient,
+):
     store = full_db.scalar(select(m.Store))
     assert store
 
     item = store.items[0]
     assert item
+
+    ses.verify_email_address(EmailAddress=item.realtor.email)
+    ses.verify_email_address(EmailAddress=store.email)
+    ses.verify_email_address(EmailAddress=CFG.MAIL_DEFAULT_SENDER)
 
     req_payload = s.ContactRequestIn(
         first_name="John",
@@ -126,9 +152,18 @@ def test_get_contact_requests(client: TestClient, full_db: Session, headers: dic
     assert processed_requests.items[0].first_name == "John"
 
 
-def test_update_contact_request_status(client: TestClient, full_db: Session, headers: dict[str, str]):
+@mock_aws
+def test_update_contact_request_status(
+    client: TestClient,
+    full_db: Session,
+    headers: dict[str, str],
+    ses: SESClient,
+):
     store = full_db.scalar(select(m.Store))
     assert store
+
+    ses.verify_email_address(EmailAddress=store.email)
+    ses.verify_email_address(EmailAddress=CFG.MAIL_DEFAULT_SENDER)
 
     payload = s.ContactRequestIn(
         first_name="John",
@@ -141,7 +176,9 @@ def test_update_contact_request_status(client: TestClient, full_db: Session, hea
     )
 
     res = client.post(
-        f"/api/contact_requests?store_url={store.url}", content=payload.model_dump_json(), headers=headers
+        f"/api/contact_requests?store_url={store.url}",
+        content=payload.model_dump_json(),
+        headers=headers,
     )
 
     assert res.status_code == 201
