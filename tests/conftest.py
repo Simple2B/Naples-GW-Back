@@ -401,6 +401,7 @@ def headers(
     with db.Session() as session:
         user = session.scalar(m.User.select().where(m.User.email == test_data.test_users[0].email))
         assert user, "User not found"
+
     token = create_access_token(user_id=user.id)
 
     yield dict(Authorization=f"Bearer {token}")
