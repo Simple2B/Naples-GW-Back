@@ -46,7 +46,4 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
             detail="Your account is blocked! Contact the support service",
         )
 
-    if user.store.status.value == s.StoreStatus.INACTIVE.value and user.role != s.UserRole.ADMIN.value:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Subscription is expired")
-
     return user

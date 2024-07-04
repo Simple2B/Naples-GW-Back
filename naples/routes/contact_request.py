@@ -71,7 +71,11 @@ async def create_contact_request(
     return contact_request
 
 
-@contact_request_router.get("/", response_model=s.ContactRequestListOut)
+@contact_request_router.get(
+    "/",
+    response_model=s.ContactRequestListOut,
+    responses={status.HTTP_404_NOT_FOUND: {"description": "Contact request not found"}},
+)
 async def get_contact_requests(
     store: m.Store = Depends(d.get_current_user_store),
     db: Session = Depends(get_db),

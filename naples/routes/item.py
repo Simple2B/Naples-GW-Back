@@ -121,13 +121,13 @@ def get_published_items(
         403: {"description": "Invalid URL"},
         400: {"description": "Store URL is not provided"},
     },
+    dependencies=[Depends(get_user_subscribe)],
 )
 def get_all_items(
     name: str | None = None,
     params: Params = Depends(),
     db: Session = Depends(get_db),
     current_store: m.Store = Depends(get_current_store),
-    subscription: m.Subscription = Depends(get_user_subscribe),
 ):
     """Get items by filters and pagination"""
 
@@ -158,13 +158,13 @@ def get_all_items(
     responses={
         404: {"description": "Item not found"},
     },
+    dependencies=[Depends(get_user_subscribe)],
 )
 def get_item_by_uuid(
     item_uuid: str,
     # sorted_urls_images: Annotated[list[str], Query()] = [],
     db: Session = Depends(get_db),
     current_store: m.Store = Depends(get_current_store),
-    subscription: m.Subscription = Depends(get_user_subscribe),
 ):
     """Get item by UUID"""
 
@@ -187,7 +187,6 @@ def get_item_by_uuid(
 def get_filters_data(
     db: Session = Depends(get_db),
     current_user_store: m.Store = Depends(get_current_store),
-    subscription: m.Subscription = Depends(get_user_subscribe),
 ):
     """Get data for filter items"""
 

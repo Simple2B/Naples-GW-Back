@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 
 from naples.database import get_db
-from naples.dependency import get_current_user_store, get_current_store, get_user_subscribe
+from naples.dependency import get_current_user_store, get_current_store
 from naples import schemas as s, models as m, controllers as c
 from naples.dependency.s3_client import get_s3_connect
 from naples.logger import log
@@ -19,7 +19,6 @@ member_router = APIRouter(prefix="/members", tags=["Members"])
 @member_router.get("", response_model=s.MemberListOut)
 def get_members(
     store: m.Store = Depends(get_current_store),
-    subscription: m.Subscription = Depends(get_user_subscribe),
 ):
     log(log.INFO, "Getting members for store {%s}", store.uuid)
     members = [s.MemberOut.model_validate(member) for member in store.members]
@@ -31,7 +30,6 @@ def get_member(
     member_uuid: str,
     db: Session = Depends(get_db),
     current_store: m.Store = Depends(get_current_store),
-    subscription: m.Subscription = Depends(get_user_subscribe),
 ):
     log(log.INFO, "Getting member {%s} for store {%s}", member_uuid, current_store.uuid)
 
