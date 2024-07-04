@@ -125,16 +125,21 @@ def createMsgContactRequest(contact_request: m.ContactRequest) -> str:
                 <h1 style='background-color: rgba(0, 53, 102, 1); padding: 5px 10px; border-radius: 5px; color: white;'>Naples GW
                 </h1>
                 <div
-                    style='margin: 30px auto; background: white; width: 40%; border-radius: 10px; padding: 50px; text-align: center;'>
-                    <h3 style='margin-bottom: 100px; font-size: 24px;'>You have a new request</h3>
-                    <p style='margin-bottom: 10px;'>
+                    style='margin: 25px auto; background: white; width: 70%; border-radius: 10px; padding: 50px;'>
+
+                    <h6 style='margin-bottom: 35px; text-align: center; font-size: 24px; '>You have a new request from: </h6>
+                    <div style='margin: 5px; text-align: left;'>
                         <b>Name:</b> {contact_request.first_name} {contact_request.last_name}
+                    </div>
+                    <div style='margin: 5px; text-align: left;'>
                         <b>Email:</b> {contact_request.email}
+                    </div>
+                    <div style='margin: 5px; text-align: left;'>
                         <b>Phone:</b> {contact_request.phone}
-                    </p>
-                    <p style='margin-bottom: 10px;'>
+                    </div>
+                    <div style='margin: 5px; text-align: left;'>
                         <b>Message:</b> {contact_request.message}
-                    </p>
+                    </div>
                 </div>
                 </div>
             </div>
