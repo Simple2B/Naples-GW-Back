@@ -449,11 +449,11 @@ def get_stores(
     db: Session = Depends(get_db),
     params: Params = Depends(),
     search: str | None = None,
-    subscription_status: s.SubscriptionFilteringStatus | None = None,
+    subscription_status: s.StoreStatus | None = None,
 ):
     """Returns the stores for the admin panel"""
 
-    stores = get_stores_admin(db, search, subscription_status)
+    stores = get_stores_admin(db, search, subscription_status if subscription_status else None)
     return paginate(stores, params)
 
 
@@ -469,11 +469,11 @@ def get_stores(
 def get_stores_report(
     db: Session = Depends(get_db),
     search: str | None = None,
-    subscription_status: s.SubscriptionFilteringStatus | None = None,
+    subscription_status: s.StoreStatus | None = None,
 ):
     """Create report of the stores for the admin panel"""
 
-    stores = get_stores_admin(db, search, subscription_status)
+    stores = get_stores_admin(db, search, subscription_status if subscription_status else None)
 
     if not stores:
         log(log.ERROR, "Stores not found")

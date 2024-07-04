@@ -100,10 +100,6 @@ class StoreStatus(enum.Enum):
     ACTIVE = "active"
     INACTIVE = "inactive"
 
-    model_config = ConfigDict(
-        from_attributes=True,
-    )
-
 
 class StoreAdminOut(BaseModel):
     url: str

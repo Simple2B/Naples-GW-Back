@@ -129,8 +129,3 @@ class SubscriptionHistoryAdmin(BaseModel):
     model_config = ConfigDict(
         arbitrary_types_allowed=True,
     )
-
-
-class SubscriptionFilteringStatus(enum.Enum):
-    ACTIVE = "active"
-    INACTIVE = "inactive"

@@ -443,7 +443,7 @@ def test_get_stores_for_admin(
     full_db.commit()
 
     response = client.get(
-        "/api/stores", headers=admin_headers, params={"subscription_status": s.SubscriptionFilteringStatus.ACTIVE.value}
+        "/api/stores", headers=admin_headers, params={"subscription_status": s.StoreStatus.ACTIVE.value}
     )
     assert response.status_code == 200
     stores = response.json()["items"]
@@ -452,7 +452,7 @@ def test_get_stores_for_admin(
     response = client.get(
         "/api/stores",
         headers=admin_headers,
-        params={"subscription_status": s.SubscriptionFilteringStatus.INACTIVE.value},
+        params={"subscription_status": s.StoreStatus.INACTIVE.value},
     )
     assert response.status_code == 200
     stores = response.json()["items"]

@@ -114,7 +114,7 @@ def check_user_subscription_max_active_items(store: m.Store, item: m.Item, db: S
 
 # get stores for admin panel
 def get_stores_admin(
-    db: Session, search: str | None, subscription_status: s.SubscriptionFilteringStatus | None
+    db: Session, search: str | None, subscription_status: s.StoreStatus | None
 ) -> Sequence[s.StoreAdminOut]:
     stmt = sa.select(m.Store)
     stmt_user = sa.select(m.User).where(m.User.is_deleted.is_(False))
@@ -150,7 +150,7 @@ def get_stores_admin(
     if subscription_status:
         users = db.scalars(stmt_user).all()
 
-        if subscription_status.value == s.SubscriptionFilteringStatus.ACTIVE.value:
+        if subscription_status.value == s.StoreStatus.ACTIVE.value:
             users_last_active_subscription = [
                 user
                 for user in users
