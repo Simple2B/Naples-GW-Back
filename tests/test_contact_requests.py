@@ -101,8 +101,8 @@ def test_get_contact_requests(client: TestClient, full_db: Session, headers: dic
 
     assert len(contact_requests.items) == len(store.contact_requests)
 
-    assert contact_requests.items[0].first_name == request_one.first_name
-    assert contact_requests.items[1].item_uuid == request_two.item_uuid
+    assert contact_requests.items[0].first_name == request_two.first_name
+    assert contact_requests.items[1].item_uuid == request_one.item_uuid
 
     just_jane = client.get("/api/contact_requests", headers=headers, params={"search": "Jane"})
     assert just_jane.status_code == 200

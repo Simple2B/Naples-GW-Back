@@ -48,8 +48,10 @@ async def get_contact_requests(
     status: s.ContactRequestStatus | None = None,
 ):
     log(log.INFO, "Getting contact requests for store {%s}. Search: {%s}. Status: {%s}", store.uuid, search, status)
-    stmt = sa.select(m.ContactRequest).where(
-        sa.and_(m.ContactRequest.store_id == store.id, m.ContactRequest.is_deleted.is_(False))
+    stmt = (
+        sa.select(m.ContactRequest)
+        .where(sa.and_(m.ContactRequest.store_id == store.id, m.ContactRequest.is_deleted.is_(False)))
+        .order_by(m.ContactRequest.created_at.desc())
     )
     if search:
         items = db.scalars(

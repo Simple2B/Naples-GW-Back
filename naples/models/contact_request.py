@@ -7,7 +7,7 @@ from sqlalchemy import orm
 from naples.database import db
 from naples.schemas.contact_request import ContactRequestStatus
 
-from .utils import create_uuid
+from .utils import create_uuid, datetime_utc
 
 if TYPE_CHECKING:
     from .item import Item
@@ -37,6 +37,8 @@ class ContactRequest(db.Model):
     item: orm.Mapped["Item"] = orm.relationship(
         back_populates="_contact_requests",
     )
+
+    created_at: orm.Mapped[datetime] = orm.mapped_column(default=datetime_utc, server_default=sa.func.now())
 
     @property
     def store_uuid(self):
