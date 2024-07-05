@@ -5,12 +5,9 @@ import sqlalchemy as sa
 
 sys.path = ["", ".."] + sys.path[1:]
 
-from naples.config import config  # noqa: E402
 from naples.database import db  # noqa: E402
 from naples import schemas as s, models as m  # noqa: E402
 from naples.logger import log  # noqa: E402
-
-CFG = config()
 
 
 @task
@@ -20,7 +17,7 @@ def create_metadata(with_print: bool = True):
         metadata_db = session.scalars(sa.select(m.Metadata)).all()
 
         for data in metadata_db:
-            if s.MetadataType(data.value):
+            if s.MetadataType(data.key):
                 log(log.INFO, "This key [%s] already exists ", data.value)
                 return
         for metadata in s.MetadataType:
