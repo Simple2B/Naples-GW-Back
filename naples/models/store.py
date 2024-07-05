@@ -152,10 +152,16 @@ class Store(db.Model, ModelMixin):
             and self.user.subscription.end_date > datetime.now()
         ):
             return s.StoreStatus.ACTIVE
-        if self.user.subscription.status == s.SubscriptionStatus.CANCELED.value or (
-            self.user.subscription.status != s.SubscriptionStatus.ACTIVE.value
-            and self.user.subscription.end_date < datetime.now()
+
+        if (
+            self.user.subscription.status == s.SubscriptionStatus.CANCELED.value
+            and self.user.subscription.end_date > datetime.now()
         ):
+            return s.StoreStatus.ACTIVE
+        if (
+            self.user.subscription.status == s.SubscriptionStatus.CANCELED.value
+            or self.user.subscription.status != s.SubscriptionStatus.ACTIVE.value
+        ) and self.user.subscription.end_date < datetime.now():
             return s.StoreStatus.INACTIVE
 
     def get_item_by_uuid(self, item_uuid: str):
