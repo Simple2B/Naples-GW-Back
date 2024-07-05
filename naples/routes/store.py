@@ -13,13 +13,11 @@ from sqlalchemy.orm import Session
 import sqlalchemy as sa
 
 from naples.controllers.file import get_file_type
-from naples.dependency.admin import get_admin
-from naples.dependency.s3_client import get_s3_connect
 from naples import controllers as c, models as m, schemas as s
 
 
 from naples.logger import log
-from naples.dependency import get_current_user, get_current_user_store
+from naples.dependency import get_current_user, get_current_user_store, get_user_subscribe, get_admin, get_s3_connect
 from naples.database import get_db
 from naples.routes.utils import get_stores_admin
 from naples.utils import get_file_extension
@@ -92,6 +90,7 @@ def get_stores_urls(
     responses={
         404: {"description": "Store not found"},
     },
+    dependencies=[Depends(get_user_subscribe)],
 )
 def get_store(
     store_url: str,

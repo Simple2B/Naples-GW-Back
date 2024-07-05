@@ -162,7 +162,6 @@ def get_all_items(
 )
 def get_item_by_uuid(
     item_uuid: str,
-    # sorted_urls_images: Annotated[list[str], Query()] = [],
     db: Session = Depends(get_db),
     current_store: m.Store = Depends(get_current_store),
 ):
@@ -183,6 +182,7 @@ def get_item_by_uuid(
     "/filters/data",
     status_code=status.HTTP_200_OK,
     response_model=s.ItemsFilterDataOut,
+    dependencies=[Depends(get_user_subscribe)],
 )
 def get_filters_data(
     db: Session = Depends(get_db),
