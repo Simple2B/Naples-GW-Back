@@ -143,7 +143,6 @@ def create_portal_session(
     responses={
         status.HTTP_400_BAD_REQUEST: {"description": "Error verifying webhook signature"},
     },
-    include_in_schema=False,
 )
 async def webhook_received(
     request: Request,
