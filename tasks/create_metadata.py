@@ -18,7 +18,7 @@ def create_metadata(with_print: bool = True):
 
         for data in metadata_db:
             if s.MetadataType(data.key):
-                log(log.INFO, "This key [%s] already exists ", data.value)
+                log(log.INFO, "This key [%s] already exists ", data.key)
                 return
         for metadata in s.MetadataType:
             new_metadata = m.Metadata(key=metadata.value, value="")
