@@ -2,15 +2,25 @@
 
 ## How to register a domain name with GoDaddy
 
-1. Enter the domain name in GoDaddy's domain name search bar.
-
-2. Click Add to Cart.
+1. Visit [GoDaddy.com](https://www.godaddy.com/uk-ua)
    
-3. If desired, register additional extensions to protect your online brand. Click Add to Cart for each additional domain name.
+Open up your preferred browser and go to [GoDaddy.com](https://www.godaddy.com/uk-ua). Once the home page loads, you’ll see a search bar where you can begin your domain search.
 
-4. Click Continue to Cart.
+2. Enter the domain name in GoDaddy's domain name search bar.
 
-5. Select a domain privacy plan, or click No Thanks.
+3. Click Add to Cart.
+   
+4. If desired, register additional extensions to protect your online brand. Click Add to Cart for each additional domain name.
+
+5. Click Continue to Cart.
+
+6. Select a domain privacy plan, or click No Thanks.
+
+7. Sign into your GoDaddy account or click Create Account.
+   You’ll be prompted to enter your billing and payment information. GoDaddy offers several payment methods so choose the one that’s most convenient for you. You will need to provide your billing address but if you’ve chosen domain privacy in the previous step, that information will not be visible to the public.
+
+8. Review your order under My Items and click Complete Purchase.
+   Consider registering your domain name for a longer term to save money in the long run and prevent accidental domain expiration.
 
 ## Find DNS Management or Name Server Settings
 
