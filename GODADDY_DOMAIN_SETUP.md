@@ -21,3 +21,15 @@
 5. Select a domain privacy plan, or click No Thanks.
 
     <img width="1017" alt="godaddy_5" src="https://github.com/Simple2B/Naples-GW-Back/assets/63252239/fbba25a4-a2a3-4fc3-8c73-58db0735990e">
+
+
+## Find DNS Management or Name Server Settings
+
+<img width="1362" alt="godaddy_6" src="https://github.com/Simple2B/Naples-GW-Back/assets/63252239/4514c799-dc40-4f39-8cc6-2dafee44b012">
+
+Under Domains, you’ll see a list of domain names you’ve purchased from GoDaddy. Select the domain name you’d like to connect to your hosting account and click Manage.
+
+<img width="1097" alt="godaddy_7" src="https://github.com/Simple2B/Naples-GW-Back/assets/63252239/8b955b69-9643-4f20-81af-fa1c5db7675f">
+
+
+
