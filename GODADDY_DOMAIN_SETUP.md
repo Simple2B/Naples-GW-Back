@@ -22,6 +22,8 @@ Open up your preferred browser and go to [GoDaddy.com](https://www.godaddy.com/u
 8. Review your order under My Items and click Complete Purchase.
    Consider registering your domain name for a longer term to save money in the long run and prevent accidental domain expiration.
 
+Go to your GoDaddy product page. Under Web Hosting, next to the Linux Hosting https://www.godaddy.com/uk-ua/%D1%85%D0%BE%D1%81%D1%82%D0%B8%D0%BD%D0%B3/%D0%B2%D0%B5%D0%B1-%D1%85%D0%BE%D1%81%D1%82%D0%B8%D0%BD%D0%B3#compare  account you want to set up, click Set up. Complete the on-screen fields, and then click Finish . We'll ask you which of your domains you want to associate with the account as your primary domain.
+
 ## Find DNS Management or Name Server Settings
 
 Under Domains, you’ll see a list of domain names you’ve purchased from GoDaddy. Select the domain name you’d like to connect to your hosting account and click Manage.
