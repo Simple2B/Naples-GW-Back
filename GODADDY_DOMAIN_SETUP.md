@@ -22,15 +22,14 @@ Open up your preferred browser and go to [GoDaddy.com](https://www.godaddy.com/u
 8. Review your order under My Items and click Complete Purchase.
    Consider registering your domain name for a longer term to save money in the long run and prevent accidental domain expiration.
 
-Go to your GoDaddy product page. Under Web Hosting, next to the Linux Hosting https://www.godaddy.com/uk-ua/%D1%85%D0%BE%D1%81%D1%82%D0%B8%D0%BD%D0%B3/%D0%B2%D0%B5%D0%B1-%D1%85%D0%BE%D1%81%D1%82%D0%B8%D0%BD%D0%B3#compare  account you want to set up, click Set up. Complete the on-screen fields, and then click Finish . We'll ask you which of your domains you want to associate with the account as your primary domain.
+9. Sign into your GoDaddy account and go to settings under "My products", in the list of products find your newly created domain and click on the management button
+10. On the page you went to on the right, there is a domain management button, click it and on the next page go to the DNS tab, where you need to create DNS records
 
-## Find DNS Management or Name Server Settings
+## Create DNS Records
+Сreate the following DNS records within GoDaddy's DNS settings:
+1). type - A, name - @, data - 3.21.37.85, TTL - 600
+2). type - CNAME, name - www, data - 3.21.37.85, TTL - 600
 
-Under Domains, you’ll see a list of domain names you’ve purchased from GoDaddy. Select the domain name you’d like to connect to your hosting account and click Manage.
-
-You will take you to the control panel page where you can manage that specific domain name. On this page, you can also view information related to your domain name i.e. when it will be automatically renewed. Having mentioned auto-renewals, we should make a reminder:
-
-If you don’t renew your domain before the expiration date, someone else might take them.
 
 
 
