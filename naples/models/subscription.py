@@ -24,6 +24,8 @@ class Subscription(db.Model, ModelMixin):
 
     status: orm.Mapped[str] = orm.mapped_column(sa.String(32), default=s.SubscriptionStatus.TRIALING.value)
 
+    amount: orm.Mapped[int] = orm.mapped_column(default=0, server_default="0")
+
     start_date: orm.Mapped[datetime] = orm.mapped_column(default=datetime_utc, server_default=sa.func.now())
     end_date: orm.Mapped[datetime] = orm.mapped_column(default=datetime_utc, server_default=sa.func.now())
 
@@ -50,12 +52,12 @@ class Subscription(db.Model, ModelMixin):
             return res["items"]["data"][0]["price"]["id"]
         return ""
 
-    @property
-    def amount(self):
-        if self.subscription_stripe_id:
-            res = stripe.Subscription.retrieve(self.subscription_stripe_id)
-            return res["items"]["data"][0]["price"]["unit_amount"] / 100
-        return 0
+    # @property
+    # def amount(self):
+    #     if self.subscription_stripe_id:
+    #         res = stripe.Subscription.retrieve(self.subscription_stripe_id)
+    #         return res["items"]["data"][0]["price"]["unit_amount"] / 100
+    #     return 0
 
     def __repr__(self):
         return f"<{self.id}: {self.uuid}>"

@@ -430,7 +430,9 @@ def get_user_subscription_history(
         log(log.ERROR, "User not found")
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User not found")
 
-    subscriptions = db.scalars(sa.select(m.Subscription).where(m.Subscription.user_id == user.id)).all()
+    subscriptions = db.scalars(
+        sa.select(m.Subscription).where(m.Subscription.user_id == user.id).order_by(m.Subscription.created_at.desc())
+    ).all()
 
     if not subscriptions:
         log(log.ERROR, "User subscription not found")
