@@ -279,8 +279,6 @@ def cancel_subscription(
 ):
     """Cancel subscription"""
 
-    product = get_product_by_id(data.stripe_price_id, db)
-
     if not current_user.subscription:
         log(log.ERROR, "User subscription not found")
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User subscription not found")
@@ -297,8 +295,6 @@ def cancel_subscription(
 
     res = stripe.Subscription.cancel(user_stripe_subscription.id)
 
-    user_subscription = save_state_subscription_from_stripe(res, product, db)
-
     log(log.INFO, "User subscription cancelled [%s]", res)
 
-    return user_subscription
+    return current_user.subscription

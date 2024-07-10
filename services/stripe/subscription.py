@@ -32,10 +32,22 @@ def save_state_subscription_from_stripe(
         log(log.ERROR, "User not found in stripe")
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User not found in stripe")
 
-    if subscription_data.status == s.SubscriptionStatus.ACTIVE.value:
+    if (
+        subscription_data.status == s.SubscriptionStatus.ACTIVE.value
+        and current_user.subscription.status == s.SubscriptionStatus.ACTIVE.value
+    ):
         current_user.subscription.status = s.SubscriptionStatus.CANCELED.value
         db.commit()
         db.refresh(current_user)
+
+    if (
+        subscription_data.status == s.SubscriptionStatus.CANCELED.value
+        and current_user.subscription.status == s.SubscriptionStatus.ACTIVE.value
+    ):
+        current_user.subscription.status = s.SubscriptionStatus.CANCELED.value
+        db.commit()
+        db.refresh(current_user)
+        return current_user.subscription
 
     user_subscription = m.Subscription(
         customer_stripe_id=subscription_data.customer,
