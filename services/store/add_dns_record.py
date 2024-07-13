@@ -12,6 +12,8 @@ def check_main_domain(url: str) -> bool:
 
 
 def get_subdomain_from_url(url: str) -> str | None:
+    if CFG.MAIN_DOMAIN not in url:
+        return None
     return url.replace(f".{CFG.MAIN_DOMAIN}", "")
 
 
