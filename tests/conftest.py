@@ -16,6 +16,7 @@ load_dotenv("tests/test.env")
 
 # ruff: noqa: F401 E402
 from sqlalchemy import orm
+import sqlalchemy as sa
 from fastapi.testclient import TestClient
 from naples.main import api
 from naples import models as m
@@ -103,7 +104,7 @@ def full_db(db: orm.Session) -> Generator[orm.Session, None, None]:
 def client(db, requests_mock: Mocker) -> Generator[TestClient, None, None]:
     """Returns a non-authorized test client for the API"""
     with TestClient(api) as c:
-        stores = db.scalars(m.Store.select())
+        stores = db.scalars(sa.select(m.Store))
 
         # Mock requests
         requests_mock.get(
@@ -120,6 +121,14 @@ def client(db, requests_mock: Mocker) -> Generator[TestClient, None, None]:
         )
 
         requests_mock.patch(f"{CFG.GODADDY_API_URL}/domains/{CFG.MAIN_DOMAIN}/records", json={"status_code": 200})
+
+        store_model = db.scalar(sa.select(m.Store))
+        assert store_model
+
+        requests_mock.delete(
+            f"https://api.godaddy.com/v1/domains/propertyroster.com/records/A/{store_model.uuid}",
+            response_list=[{"status_code": 204}],
+        )
 
         for email in ["doe@mail.com", "test_2@mail.com", "test_3@mail.com"]:
             requests_mock.get(
