@@ -155,6 +155,10 @@ def update_store(
                 # add new record with new url for the store in godaddy
                 add_godaddy_dns_record(new_subdomain)
 
+            if not godaddy_subdomain:
+                # add new record with new url for the store in godaddy
+                add_godaddy_dns_record(new_subdomain)
+
         current_store.url = store.url
 
         log(log.INFO, "store url  updated to [%s]", store.url)
