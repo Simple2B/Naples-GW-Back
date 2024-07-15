@@ -120,7 +120,11 @@ def client(db, requests_mock: Mocker) -> Generator[TestClient, None, None]:
             ],
         )
 
-        requests_mock.patch(f"{CFG.GODADDY_API_URL}/domains/{CFG.MAIN_DOMAIN}/records", json={"status_code": 200})
+        requests_mock.patch(
+            f"{CFG.GODADDY_API_URL}/domains/{CFG.MAIN_DOMAIN}/records",
+            # json={"status_code": 200},
+            response_list=[{"status_code": 200}],
+        )
 
         store_model = db.scalar(sa.select(m.Store))
         assert store_model

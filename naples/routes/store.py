@@ -154,21 +154,31 @@ def update_store(
 
                 # add new record with new url for the store in godaddy
                 add_godaddy_dns_record(new_subdomain)
+                log(log.INFO, "New subdomain [%s] added", new_subdomain)
 
             if not godaddy_subdomain:
                 # add new record with new url for the store in godaddy
                 add_godaddy_dns_record(new_subdomain)
+                log(log.INFO, "New subdomain [%s] added", new_subdomain)
 
-        # if check_main_domain(current_store.url):
-        #     subdomain = get_subdomain_from_url(current_store.url)
-        #     godaddy_subdomain = check_subdomain_existence(subdomain)
-        #     if godaddy_subdomain and subdomain:
-        #         delete_godaddy_dns_record(subdomain)
-        #         log(log.INFO, "current store's subdomain [%s] deleted from godaddy", subdomain)
+        current_store_url = current_store.url
+        if check_main_domain(current_store_url):
+            log(log.INFO, "=== current store's url [%s] is main domain", current_store_url)
+            subdomain = get_subdomain_from_url(current_store_url)
+            log(log.INFO, "=== current store's subdomain [%s]", subdomain)
+            godaddy_subdomain = check_subdomain_existence(subdomain)
+            log(log.INFO, "=== current store's subdomain [%s] exists in godaddy", subdomain)
+            if godaddy_subdomain and subdomain:
+                delete_godaddy_dns_record(subdomain)
+                log(
+                    log.INFO,
+                    "=== current store's subdomain [%s] deleted from godaddy",
+                    subdomain,
+                )
 
         current_store.url = store.url
 
-        log(log.INFO, "store url  updated to [%s]", store.url)
+        log(log.INFO, "=== store url  updated to [%s]", store.url)
 
     if store.email is not None:
         log(log.INFO, "Updating email to [%s] for store [%s]", store.email, current_store.url)
