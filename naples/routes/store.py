@@ -159,12 +159,12 @@ def update_store(
                 # add new record with new url for the store in godaddy
                 add_godaddy_dns_record(new_subdomain)
 
-        if check_main_domain(current_store.url):
-            subdomain = get_subdomain_from_url(current_store.url)
-            godaddy_subdomain = check_subdomain_existence(subdomain)
-            if godaddy_subdomain and subdomain:
-                delete_godaddy_dns_record(subdomain)
-                log(log.INFO, "current store's subdomain [%s] deleted from godaddy", subdomain)
+        # if check_main_domain(current_store.url):
+        #     subdomain = get_subdomain_from_url(current_store.url)
+        #     godaddy_subdomain = check_subdomain_existence(subdomain)
+        #     if godaddy_subdomain and subdomain:
+        #         delete_godaddy_dns_record(subdomain)
+        #         log(log.INFO, "current store's subdomain [%s] deleted from godaddy", subdomain)
 
         current_store.url = store.url
 
