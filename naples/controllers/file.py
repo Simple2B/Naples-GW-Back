@@ -29,7 +29,12 @@ def create_file(
     content_type_override: str | None = None,
 ) -> m.File:
     try:
-        filename_without_special_characters = re.sub(RE_SPECIAL_CHARACTERS, "", file.filename if file.filename else "")
+        if not file.filename:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="File name is required",
+            )
+        filename_without_special_characters = re.sub(RE_SPECIAL_CHARACTERS, "", file.filename)
         filename_without_spaces = filename_without_special_characters.replace(" ", "_")
         file_uuid = create_uuid()
         filename = f"{file_uuid}_{filename_without_spaces}"
