@@ -130,7 +130,7 @@ def client(db, requests_mock: Mocker) -> Generator[TestClient, None, None]:
         assert store_model
 
         requests_mock.delete(
-            f"https://api.godaddy.com/v1/domains/propertyroster.com/records/A/{store_model.uuid}",
+            f"{CFG.GODADDY_API_URL}/domains/{CFG.MAIN_DOMAIN}/records/A/{store_model.uuid}",
             response_list=[{"status_code": 204}],
         )
 

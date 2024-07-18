@@ -258,11 +258,11 @@ def test_upload_item_main_image(
     item_model = full_db.scalar(select(m.Item))
     assert item_model
 
-    with open("tests/house_example.png", "rb") as image:
+    with open("tests/1950 Gulf Shore Blvd N #104, Naples, FL 34102 (26) (1).jpg", "rb") as image:
         response = client.post(
             f"/api/items/{item_model.uuid}/main_media/",
             headers=headers,
-            files={"main_media": ("test.png", image, "image/npg")},
+            files={"main_media": ("1950 Gulf Shore Blvd N #104, Naples, FL 34102 (26) (1).jpg", image, "image/npg")},
         )
         assert response.status_code == 201
 

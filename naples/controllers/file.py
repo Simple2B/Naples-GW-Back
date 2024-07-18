@@ -1,3 +1,4 @@
+import re
 from fastapi import UploadFile, status, HTTPException
 from botocore.exceptions import ClientError
 from mypy_boto3_s3 import S3Client
@@ -11,6 +12,8 @@ from naples.models.utils import create_uuid
 from naples.config import config
 
 S3_UPLOAD_EXTRAS = {"ACL": "public-read-write"}
+
+RE_SPECIAL_CHARACTERS = "[^a-zA-Z0-9 \n\.]"
 
 
 CFG = config()
@@ -26,8 +29,15 @@ def create_file(
     content_type_override: str | None = None,
 ) -> m.File:
     try:
+        if not file.filename:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="File name is required",
+            )
+        filename_without_special_characters = re.sub(RE_SPECIAL_CHARACTERS, "", file.filename)
+        filename_without_spaces = filename_without_special_characters.replace(" ", "_")
         file_uuid = create_uuid()
-        filename = f"{file_uuid}_{file.filename}"
+        filename = f"{file_uuid}_{filename_without_spaces}"
         escaped_store_url = store_url.replace(".", "_")
         short_name = filename.split(".")[0]
 
