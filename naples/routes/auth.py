@@ -72,7 +72,7 @@ def login(
             log(log.INFO, "user stripe subscription data [%s] ", stripe_subscription_data)
             product = get_product_by_id(stripe_subscription_data["items"]["data"][0]["plan"]["id"], db)
 
-            save_state_subscription_from_stripe(user.subscription, product, db)
+            save_state_subscription_from_stripe(stripe_subscription_data, product, db)
 
             log(log.INFO, "Subscription state updated for user [%s]", user.email)
     log(log.INFO, "User [%s] logged in", user.email)
