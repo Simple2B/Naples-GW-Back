@@ -120,7 +120,9 @@ def get_token(auth_data: s.Auth, db=Depends(get_db)):
             log(log.INFO, "user stripe subscription data [%s] ", stripe_subscription_data)
             product = get_product_by_id(stripe_subscription_data["items"]["data"][0]["plan"]["id"], db)
 
-            save_state_subscription_from_stripe(user.subscription, product, db)
+            log(log.INFO, "== product [%s] ==", product)
+
+            save_state_subscription_from_stripe(stripe_subscription_data, product, db)
 
             log(log.INFO, "Subscription state updated for user [%s]", user.email)
     log(log.INFO, "User [%s] logged in", user.email)
