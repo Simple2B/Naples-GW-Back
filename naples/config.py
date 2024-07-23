@@ -26,6 +26,8 @@ class BaseConfig(BaseSettings):
     ADMIN_USERNAME: str
     ADMIN_EMAIL: str
     ADMIN_PASSWORD: str
+    ADMIN_FIRST_NAME: str
+    ADMIN_LAST_NAME: str
 
     # API
     JWT_SECRET: str
@@ -83,6 +85,15 @@ class BaseConfig(BaseSettings):
     GO_DADDY_TTL: int = 600
 
     DAYS_BEFORE_UPDATE: int = 3
+
+    MAX_PRODUCTS: int = 3
+
+    MAX_ITEMS_TRIALING: int = 6
+    MAX_ACTIVE_ITEMS_TRIALING: int = 3
+
+    # file_report_path
+    REPORTS_DIR: str = "reports/"
+    STORES_REPORT_FILE: str = "stores_report.csv"
 
     model_config = SettingsConfigDict(
         extra="allow",

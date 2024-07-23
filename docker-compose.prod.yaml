@@ -23,11 +23,7 @@ services:
       - db
     env_file:
       - .env
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.naples.rule=Host(`api-prod.naples.simple2b.net`)"
-      - "traefik.http.routers.naples.tls=true"
-      - "traefik.http.routers.naples.tls.certresolver=myresolver"
+
 
 volumes:
   db_data:

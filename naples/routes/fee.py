@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from naples.database import get_db
-from naples.dependency import get_current_user_store, get_user_subscribe, get_current_store
+from naples.dependency import get_current_user_store, get_current_store
 from naples.logger import log
 from naples import schemas as s, models as m
 
@@ -16,7 +16,6 @@ fee_router = APIRouter(prefix="/fee", tags=["Fee"])
 async def get_fees_for_item(
     item_uuid: str,
     current_store: m.Store = Depends(get_current_store),
-    subscription: m.Subscription = Depends(get_user_subscribe),
 ):
     item = current_store.get_item_by_uuid(item_uuid)
 

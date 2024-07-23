@@ -11,12 +11,12 @@ from moto.ses.models import SESBackend
 from requests_mock import Mocker
 
 from dotenv import load_dotenv
-import stripe
 
 load_dotenv("tests/test.env")
 
 # ruff: noqa: F401 E402
 from sqlalchemy import orm
+import sqlalchemy as sa
 from fastapi.testclient import TestClient
 from naples.main import api
 from naples import models as m
@@ -35,7 +35,8 @@ TEST_CSV_FILE = MODULE_PATH / ".." / "data" / "test_uscities.csv"
 @pytest.fixture
 def db(test_data: s.TestData) -> Generator[orm.Session, None, None]:
     from naples.database import db, get_db
-    from services.export_usa_locations import export_usa_locations_from_csv_file
+
+    # from services.export_usa_locations import export_usa_locations_from_csv_file
     from services.create_test_data import create_item, create_member, create_store, create_test_user
 
     with db.Session() as session:
@@ -65,12 +66,20 @@ def db(test_data: s.TestData) -> Generator[orm.Session, None, None]:
             store = create_store(test_store)
             session.add(store)
 
-        export_usa_locations_from_csv_file(session, TEST_CSV_FILE)
+        # export_usa_locations_from_csv_file(session, TEST_CSV_FILE)
 
         for test_item in test_data.test_items:
-            city = session.scalars(m.City.select()).all()[0]
-            item = create_item(test_item, city=city)
+            # city = session.scalars(m.City.select()).all()[0]
+            item = create_item(test_item)
             session.add(item)
+            location: m.Location = m.Location(
+                item_id=test_item.id,
+                city=test_item.city,
+                state=test_item.state,
+                address=test_item.address,
+            )
+            session.add(location)
+            session.commit()
         for member in test_data.test_members:
             new_member = create_member(member)
             session.add(new_member)
@@ -95,7 +104,7 @@ def full_db(db: orm.Session) -> Generator[orm.Session, None, None]:
 def client(db, requests_mock: Mocker) -> Generator[TestClient, None, None]:
     """Returns a non-authorized test client for the API"""
     with TestClient(api) as c:
-        stores = db.scalars(m.Store.select())
+        stores = db.scalars(sa.select(m.Store))
 
         # Mock requests
         requests_mock.get(
@@ -111,7 +120,19 @@ def client(db, requests_mock: Mocker) -> Generator[TestClient, None, None]:
             ],
         )
 
-        requests_mock.patch(f"{CFG.GODADDY_API_URL}/domains/{CFG.MAIN_DOMAIN}/records", json={"status_code": 200})
+        requests_mock.patch(
+            f"{CFG.GODADDY_API_URL}/domains/{CFG.MAIN_DOMAIN}/records",
+            # json={"status_code": 200},
+            response_list=[{"status_code": 200}],
+        )
+
+        store_model = db.scalar(sa.select(m.Store))
+        assert store_model
+
+        requests_mock.delete(
+            f"{CFG.GODADDY_API_URL}/domains/{CFG.MAIN_DOMAIN}/records/A/{store_model.uuid}",
+            response_list=[{"status_code": 204}],
+        )
 
         for email in ["doe@mail.com", "test_2@mail.com", "test_3@mail.com"]:
             requests_mock.get(
@@ -208,6 +229,138 @@ def client(db, requests_mock: Mocker) -> Generator[TestClient, None, None]:
                 "url": None,
             },
         )
+
+        # subscription_stripe_id = "sub_1PWKkCI7HDNT50q3w1u0yh6x"
+        # requests_mock.get(
+        #     f"https://api.stripe.com/v1/subscriptions?id={subscription_stripe_id}",
+        #     json={
+        #         "object": "list",
+        #         "url": "/v1/subscriptions",
+        #         "has_more": False,
+        #         "data": {
+        #             "id": "sub_1PWKkCI7HDNT50q3w1u0yh6x",
+        #             "object": "subscription",
+        #             "application": None,
+        #             "application_fee_percent": None,
+        #             "automatic_tax": {"enabled": False, "liability": None},
+        #             "billing_cycle_anchor": 1679609767,
+        #             "billing_thresholds": None,
+        #             "cancel_at": None,
+        #             "cancel_at_period_end": False,
+        #             "canceled_at": None,
+        #             "cancellation_details": {
+        #                 "comment": None,
+        #                 "feedback": None,
+        #                 "reason": None,
+        #             },
+        #             "collection_method": "charge_automatically",
+        #             "created": 1679609767,
+        #             "currency": "usd",
+        #             "current_period_end": 1682288167,
+        #             "current_period_start": 1679609767,
+        #             "customer": "cus_Na6dX7aXxi11N4",
+        #             "days_until_due": None,
+        #             "default_payment_method": None,
+        #             "default_source": None,
+        #             "default_tax_rates": [],
+        #             "description": None,
+        #             "discount": None,
+        #             "discounts": None,
+        #             "ended_at": None,
+        #             "invoice_settings": {"issuer": {"type": "self"}},
+        #             "items": {
+        #                 "object": "list",
+        #                 "data": [
+        #                     {
+        #                         "id": "si_Na6dzxczY5fwHx",
+        #                         "object": "subscription_item",
+        #                         "billing_thresholds": None,
+        #                         "created": 1679609768,
+        #                         "metadata": {},
+        #                         "plan": {
+        #                             "id": "price_1POJ3eI7HDNT50q3Efh2O1S7",
+        #                             "object": "plan",
+        #                             "active": True,
+        #                             "aggregate_usage": None,
+        #                             "amount": 1000,
+        #                             "amount_decimal": "1000",
+        #                             "billing_scheme": "per_unit",
+        #                             "created": 1679609766,
+        #                             "currency": "usd",
+        #                             "discounts": None,
+        #                             "interval": "month",
+        #                             "interval_count": 1,
+        #                             "livemode": False,
+        #                             "metadata": {},
+        #                             "nickname": None,
+        #                             "product": "prod_Na6dGcTsmU0I4R",
+        #                             "tiers_mode": None,
+        #                             "transform_usage": None,
+        #                             "trial_period_days": None,
+        #                             "usage_type": "licensed",
+        #                         },
+        #                         "price": {
+        #                             "id": "price_1MowQULkdIwHu7ixraBm864M",
+        #                             "object": "price",
+        #                             "active": True,
+        #                             "billing_scheme": "per_unit",
+        #                             "created": 1679609766,
+        #                             "currency": "usd",
+        #                             "custom_unit_amount": None,
+        #                             "livemode": False,
+        #                             "lookup_key": None,
+        #                             "metadata": {},
+        #                             "nickname": None,
+        #                             "product": "prod_Na6dGcTsmU0I4R",
+        #                             "recurring": {
+        #                                 "aggregate_usage": None,
+        #                                 "interval": "month",
+        #                                 "interval_count": 1,
+        #                                 "trial_period_days": None,
+        #                                 "usage_type": "licensed",
+        #                             },
+        #                             "tax_behavior": "unspecified",
+        #                             "tiers_mode": None,
+        #                             "transform_quantity": None,
+        #                             "type": "recurring",
+        #                             "unit_amount": 1000,
+        #                             "unit_amount_decimal": "1000",
+        #                         },
+        #                         "quantity": 1,
+        #                         "subscription": "sub_1MowQVLkdIwHu7ixeRlqHVzs",
+        #                         "tax_rates": [],
+        #                     }
+        #                 ],
+        #                 "has_more": False,
+        #                 "total_count": 1,
+        #                 "url": "/v1/subscription_items?subscription=sub_1MowQVLkdIwHu7ixeRlqHVzs",
+        #             },
+        #             "latest_invoice": "in_1MowQWLkdIwHu7ixuzkSPfKd",
+        #             "livemode": False,
+        #             "metadata": {},
+        #             "next_pending_invoice_item_invoice": None,
+        #             "on_behalf_of": None,
+        #             "pause_collection": None,
+        #             "payment_settings": {
+        #                 "payment_method_options": None,
+        #                 "payment_method_types": None,
+        #                 "save_default_payment_method": "off",
+        #             },
+        #             "pending_invoice_item_interval": None,
+        #             "pending_setup_intent": None,
+        #             "pending_update": None,
+        #             "schedule": None,
+        #             "start_date": 1679609767,
+        #             "status": "active",
+        #             "test_clock": None,
+        #             "transfer_data": None,
+        #             "trial_end": None,
+        #             "trial_settings": {"end_behavior": {"missing_payment_method": "create_invoice"}},
+        #             "trial_start": None,
+        #         },
+        #     },
+        # )
+
         yield c
 
 
@@ -261,6 +414,25 @@ def headers(
     with db.Session() as session:
         user = session.scalar(m.User.select().where(m.User.email == test_data.test_users[0].email))
         assert user, "User not found"
+
+    token = create_access_token(user_id=user.id)
+
+    yield dict(Authorization=f"Bearer {token}")
+
+
+@pytest.fixture
+def admin_headers(
+    client: TestClient,
+    test_data: s.TestData,
+) -> Generator[dict[str, str], None, None]:
+    """Returns an authorized test client admin for the API"""
+    from naples.oauth2 import create_access_token
+    from naples.database import db
+
+    # get admin from db
+    with db.Session() as session:
+        user = session.scalar(m.User.select().where(m.User.role == s.UserRole.ADMIN.value))
+        assert user, "Admin not found"
     token = create_access_token(user_id=user.id)
 
     yield dict(Authorization=f"Bearer {token}")

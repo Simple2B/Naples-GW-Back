@@ -1,3 +1,5 @@
+from datetime import datetime, timedelta, UTC
+from typing import Sequence
 from mypy_boto3_s3 import S3Client
 import sqlalchemy as sa
 from sqlalchemy.orm import Session
@@ -399,3 +401,64 @@ def test_upload_store_about_us_media(
     assert not db_store.about_us_main_media
     assert not store_model.about_us_main_media
     assert store_model.main_media.original_name == "main_media_test.jpg"
+
+
+def test_get_stores_for_admin(
+    client: TestClient,
+    full_db: Session,
+    admin_headers: dict[str, str],
+):
+    db_stores: Sequence[m.Store] = full_db.scalars(sa.select(m.Store)).all()
+    search = db_stores[0].user.email
+
+    response = client.get(
+        "/api/stores",
+        headers=admin_headers,
+        params={"search": search},
+    )
+    assert response.status_code == 200
+    assert len(response.json()["items"]) == 1
+
+    # add subscription for users
+
+    full_db.add(
+        m.Subscription(
+            user_id=db_stores[0].user.id,
+            type=s.SubscriptionStatus.ACTIVE.value,
+            status=s.SubscriptionStatus.ACTIVE.value,
+            start_date=datetime.now(UTC),
+            end_date=datetime.now(UTC) + timedelta(days=30),
+        )
+    )
+
+    full_db.add(
+        m.Subscription(
+            user_id=db_stores[1].user.id,
+            type=s.SubscriptionStatus.TRIALING.value,
+            status=s.SubscriptionStatus.TRIALING.value,
+            start_date=datetime.now(UTC),
+            end_date=datetime.now(UTC) - timedelta(days=30),
+        )
+    )
+    full_db.commit()
+
+    response = client.get(
+        "/api/stores", headers=admin_headers, params={"subscription_status": s.StoreStatus.ACTIVE.value}
+    )
+    assert response.status_code == 200
+    stores = response.json()["items"]
+    assert len(stores) == 1
+
+    response = client.get(
+        "/api/stores",
+        headers=admin_headers,
+        params={"subscription_status": s.StoreStatus.INACTIVE.value},
+    )
+    assert response.status_code == 200
+    stores = response.json()["items"]
+    assert stores
+    assert len(stores) == 1
+
+    response = client.post("/api/stores/report/download", headers=admin_headers)
+
+    assert response.status_code == 200

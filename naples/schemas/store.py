@@ -1,5 +1,8 @@
+import enum
 from pydantic import BaseModel, ConfigDict, EmailStr
 from pydantic_extra_types.color import Color
+
+from naples.schemas.user import UserOutAdmin
 
 from .main_media import MainMedia
 from .editable_text import EditableText
@@ -87,6 +90,31 @@ class StoreOut(Store):
 
 class Stores(BaseModel):
     stores: list[StoreOut]
+
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
+
+
+class StoreStatus(enum.Enum):
+    ACTIVE = "active"
+    INACTIVE = "inactive"
+
+
+class StoreAdminOut(BaseModel):
+    url: str
+    items_count: int
+    status: StoreStatus
+
+    user: UserOutAdmin
+
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
+
+
+class StoresAdminOut(BaseModel):
+    stores: list[StoreAdminOut]
 
     model_config = ConfigDict(
         from_attributes=True,

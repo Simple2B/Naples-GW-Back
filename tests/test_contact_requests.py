@@ -3,14 +3,30 @@ from datetime import datetime
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 from sqlalchemy import select
+from moto import mock_aws
+from mypy_boto3_ses import SESClient
 
 
 from naples import schemas as s, models as m
 
+from naples.config import config
 
-def test_create_contact_request(client: TestClient, full_db: Session, headers: dict[str, str]):
+
+CFG = config("testing")
+
+
+@mock_aws
+def test_create_contact_request(
+    client: TestClient,
+    full_db: Session,
+    headers: dict[str, str],
+    ses: SESClient,
+):
     store = full_db.scalar(select(m.Store))
     assert store
+
+    ses.verify_email_address(EmailAddress=store.email)
+    ses.verify_email_address(EmailAddress=CFG.MAIL_DEFAULT_SENDER)
 
     req_payload = s.ContactRequestIn(
         first_name="John",
@@ -22,7 +38,9 @@ def test_create_contact_request(client: TestClient, full_db: Session, headers: d
         check_out=datetime.now(),
     )
 
-    res = client.post("/api/contact_requests/", content=req_payload.model_dump_json(), headers=headers)
+    res = client.post(
+        f"/api/contact_requests?store_url={store.url}", content=req_payload.model_dump_json(), headers=headers
+    )
     assert res.status_code == 201
     contact_request = s.ContactRequestOut.model_validate(res.json())
 
@@ -34,12 +52,22 @@ def test_create_contact_request(client: TestClient, full_db: Session, headers: d
     assert contact_request.email == contact_request_model.email
 
 
-def test_create_contact_request_for_item(client: TestClient, full_db: Session, headers: dict[str, str]):
+@mock_aws
+def test_create_contact_request_for_item(
+    client: TestClient,
+    full_db: Session,
+    headers: dict[str, str],
+    ses: SESClient,
+):
     store = full_db.scalar(select(m.Store))
     assert store
 
     item = store.items[0]
     assert item
+
+    ses.verify_email_address(EmailAddress=item.realtor.email)
+    ses.verify_email_address(EmailAddress=store.email)
+    ses.verify_email_address(EmailAddress=CFG.MAIL_DEFAULT_SENDER)
 
     req_payload = s.ContactRequestIn(
         first_name="John",
@@ -52,7 +80,9 @@ def test_create_contact_request_for_item(client: TestClient, full_db: Session, h
         item_uuid=item.uuid,
     )
 
-    res = client.post("/api/contact_requests/", content=req_payload.model_dump_json(), headers=headers)
+    res = client.post(
+        f"/api/contact_requests?store_url={store.url}", content=req_payload.model_dump_json(), headers=headers
+    )
     assert res.status_code == 201
     contact_request = s.ContactRequestOut.model_validate(res.json())
 
@@ -97,8 +127,8 @@ def test_get_contact_requests(client: TestClient, full_db: Session, headers: dic
 
     assert len(contact_requests.items) == len(store.contact_requests)
 
-    assert contact_requests.items[0].first_name == request_one.first_name
-    assert contact_requests.items[1].item_uuid == request_two.item_uuid
+    assert contact_requests.items[0].first_name == request_two.first_name
+    assert contact_requests.items[1].item_uuid == request_one.item_uuid
 
     just_jane = client.get("/api/contact_requests", headers=headers, params={"search": "Jane"})
     assert just_jane.status_code == 200
@@ -122,9 +152,18 @@ def test_get_contact_requests(client: TestClient, full_db: Session, headers: dic
     assert processed_requests.items[0].first_name == "John"
 
 
-def test_update_contact_request_status(client: TestClient, full_db: Session, headers: dict[str, str]):
+@mock_aws
+def test_update_contact_request_status(
+    client: TestClient,
+    full_db: Session,
+    headers: dict[str, str],
+    ses: SESClient,
+):
     store = full_db.scalar(select(m.Store))
     assert store
+
+    ses.verify_email_address(EmailAddress=store.email)
+    ses.verify_email_address(EmailAddress=CFG.MAIL_DEFAULT_SENDER)
 
     payload = s.ContactRequestIn(
         first_name="John",
@@ -136,12 +175,16 @@ def test_update_contact_request_status(client: TestClient, full_db: Session, hea
         check_out=datetime.now(),
     )
 
-    res = client.post("/api/contact_requests/", content=payload.model_dump_json(), headers=headers)
+    res = client.post(
+        f"/api/contact_requests?store_url={store.url}",
+        content=payload.model_dump_json(),
+        headers=headers,
+    )
 
     assert res.status_code == 201
 
     contact_request = s.ContactRequestOut.model_validate(res.json())
-    assert contact_request.status == s.ContactRequestStatus.CREATED.value
+    assert contact_request.status == s.ContactRequestStatus.CREATED
 
     res = client.put(
         f"/api/contact_requests/{contact_request.uuid}",
@@ -151,7 +194,7 @@ def test_update_contact_request_status(client: TestClient, full_db: Session, hea
 
     assert res.status_code == 200
     updated_contact_request = s.ContactRequestOut.model_validate(res.json())
-    assert updated_contact_request.status == s.ContactRequestStatus.PROCESSED.value
+    assert updated_contact_request.status == s.ContactRequestStatus.PROCESSED
 
 
 def test_delete_contact_request(client: TestClient, full_db: Session, headers: dict[str, str]):

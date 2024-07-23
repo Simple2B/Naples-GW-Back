@@ -12,7 +12,6 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from .store import Store
     from .member import Member
-    from .city import City
     from .amenity import Amenity
     from .fee import Fee
     from .rate import Rate
@@ -21,6 +20,7 @@ if TYPE_CHECKING:
     from .booked_date import BookedDate
     from .contact_request import ContactRequest
     from .link import Link
+    from .location import Location
 
 
 class Item(db.Model, ModelMixin):
@@ -41,10 +41,10 @@ class Item(db.Model, ModelMixin):
         nullable=False,
     )
     description: orm.Mapped[str] = orm.mapped_column(sa.Text, default="")
-    latitude: orm.Mapped[float] = orm.mapped_column(default=0.0)
-    longitude: orm.Mapped[float] = orm.mapped_column(default=0.0)
+    # latitude: orm.Mapped[float] = orm.mapped_column(default=0.0)
+    # longitude: orm.Mapped[float] = orm.mapped_column(default=0.0)
 
-    address: orm.Mapped[str] = orm.mapped_column(sa.String(256), default="")
+    # address: orm.Mapped[str] = orm.mapped_column(sa.String(256), default="")
 
     stage: orm.Mapped[str] = orm.mapped_column(default=s.ItemStage.DRAFT.value)
 
@@ -65,7 +65,6 @@ class Item(db.Model, ModelMixin):
     # store id should not be changed via API
     store_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey("stores.id"))
 
-    city_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey("cities.id"))
     realtor_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey("members.id"))
 
     # media should be changed via separate API endpoints
@@ -73,7 +72,8 @@ class Item(db.Model, ModelMixin):
 
     realtor: orm.Mapped["Member"] = orm.relationship()
     store: orm.Mapped["Store"] = orm.relationship()
-    city: orm.Mapped["City"] = orm.relationship()
+
+    location: orm.Mapped["Location"] = orm.relationship(back_populates="item")
 
     _amenities: orm.Mapped[list["Amenity"]] = orm.relationship(secondary="amenities_items")
     _fees: orm.Mapped[list["Fee"]] = orm.relationship()
@@ -91,6 +91,26 @@ class Item(db.Model, ModelMixin):
     _videos: orm.Mapped[list["File"]] = orm.relationship(secondary="items_videos")
 
     _links: orm.Mapped[list["Link"]] = orm.relationship(secondary="items_links")
+
+    @property
+    def longitude(self):
+        return self.location.longitude if self.location else 0.0
+
+    @property
+    def latitude(self):
+        return self.location.latitude if self.location else 0.0
+
+    @property
+    def city(self):
+        return self.location.city if self.location else ""
+
+    @property
+    def state(self):
+        return self.location.state if self.location else ""
+
+    @property
+    def address(self):
+        return self.location.address if self.location else ""
 
     @property
     def videos(self):
@@ -193,10 +213,6 @@ class Item(db.Model, ModelMixin):
             vrbo_url=self.vrbo_url,
             expedia_url=self.expedia_url,
         )
-
-    @property
-    def city_uuid(self) -> str:
-        return self.city.uuid
 
     @property
     def contact_requests(self):

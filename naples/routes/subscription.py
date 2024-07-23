@@ -103,9 +103,26 @@ def create_portal_session(
         log(log.ERROR, "User not created in stripe")
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not created in stripe")
 
+    # create portal configuration
+    configuration = stripe.billing_portal.Configuration.create(
+        business_profile={
+            "headline": "Manage your subscription",
+        },
+        features={
+            "invoice_history": {
+                "enabled": True,
+            },
+            "payment_method_update": {
+                "enabled": True,
+            },
+        },
+        default_return_url=f"{CFG.REDIRECT_URL}/dashboard/billing",
+    )
+
     session = stripe.billing_portal.Session.create(
         customer=current_user.subscription.customer_stripe_id,
-        return_url=CFG.REDIRECT_URL,
+        return_url=f"{CFG.REDIRECT_URL}/dashboard/billing",
+        configuration=configuration.id,
     )
 
     if not session:
@@ -126,7 +143,6 @@ def create_portal_session(
     responses={
         status.HTTP_400_BAD_REQUEST: {"description": "Error verifying webhook signature"},
     },
-    include_in_schema=False,
 )
 async def webhook_received(
     request: Request,
@@ -196,15 +212,16 @@ async def webhook_received(
 
         log(log.INFO, "User subscription updated [%s]", user_subscription)
 
-    elif event_type == "customer.subscription.created":
-        subscription = event_data["object"]
+    # TODO: handle customer.subscription.created (subscription created on event subscription updated)
+    # elif event_type == "customer.subscription.created":
+    #     subscription = event_data["object"]
 
-        product = get_product_by_id(subscription["plan"]["id"], db)
+    #     product = get_product_by_id(subscription["plan"]["id"], db)
 
-        # create new subscription for user
-        user_subscription = save_state_subscription_from_stripe(subscription, product, db)
+    #     # create new subscription for user
+    #     user_subscription = save_state_subscription_from_stripe(subscription, product, db)
 
-        log(log.INFO, "User subscription created [%s]", user_subscription)
+    #     log(log.INFO, "User subscription created [%s]", user_subscription)
 
     else:
         log(log.INFO, "Event not handled: %s", event_type)
@@ -262,8 +279,6 @@ def cancel_subscription(
 ):
     """Cancel subscription"""
 
-    product = get_product_by_id(data.stripe_price_id, db)
-
     if not current_user.subscription:
         log(log.ERROR, "User subscription not found")
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User subscription not found")
@@ -280,8 +295,6 @@ def cancel_subscription(
 
     res = stripe.Subscription.cancel(user_stripe_subscription.id)
 
-    user_subscription = save_state_subscription_from_stripe(res, product, db)
-
     log(log.INFO, "User subscription cancelled [%s]", res)
 
-    return user_subscription
+    return current_user.subscription

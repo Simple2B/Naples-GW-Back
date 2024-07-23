@@ -1,10 +1,16 @@
 import sqlalchemy as sa
 from fastapi import APIRouter, Depends, status, HTTPException
 from sqlalchemy.orm import Session
+from mypy_boto3_ses import SESClient
+from botocore.exceptions import ClientError
 
 from naples import schemas as s, models as m, dependency as d
 from naples.logger import log
 from naples.database import get_db
+from naples.utils import createMsgContactRequest, sendEmailAmazonSES
+from naples.config import config
+
+CFG = config()
 
 
 contact_request_router = APIRouter(prefix="/contact_requests", tags=["Contact Requests"])
@@ -18,8 +24,9 @@ contact_request_router = APIRouter(prefix="/contact_requests", tags=["Contact Re
 )
 async def create_contact_request(
     contact_request: s.ContactRequestIn,
-    store: m.Store = Depends(d.get_current_user_store),
+    store: m.Store = Depends(d.get_current_store),
     db: Session = Depends(get_db),
+    ses: SESClient = Depends(d.get_ses_client),
 ):
     log(log.INFO, "Creating contact request for store {%s}", store.uuid)
     item = None
@@ -37,10 +44,38 @@ async def create_contact_request(
     db.commit()
     db.refresh(contact_request)
     log(log.INFO, "Contact request {%s} created for store {%s}", contact_request.uuid, store.uuid)
+
+    # Sending email to the store's owner or the item's member
+    mail_message = createMsgContactRequest(contact_request)
+    recipient_email = store.email
+
+    if contact_request.item_id and item:
+        recipient_email = item.realtor.email
+
+    try:
+        emailContent = s.EmailAmazonSESContent(
+            recipient_email=recipient_email,
+            sender_email=CFG.MAIL_DEFAULT_SENDER,
+            message=mail_message,
+            charset=CFG.CHARSET,
+            mail_body_text="New Contact Request from Naples GW!",
+            mail_subject="New Contact Request",
+        )
+        sendEmailAmazonSES(emailContent, ses_client=ses)
+
+    except ClientError as e:
+        log(log.ERROR, "Email not sent! [%s]", e)
+        log(log.ERROR, "Email not sent with new contact request to [%s]! ", recipient_email)
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email not sent with new contact reques!")
+
     return contact_request
 
 
-@contact_request_router.get("/", response_model=s.ContactRequestListOut)
+@contact_request_router.get(
+    "/",
+    response_model=s.ContactRequestListOut,
+    responses={status.HTTP_404_NOT_FOUND: {"description": "Contact request not found"}},
+)
 async def get_contact_requests(
     store: m.Store = Depends(d.get_current_user_store),
     db: Session = Depends(get_db),
@@ -48,15 +83,25 @@ async def get_contact_requests(
     status: s.ContactRequestStatus | None = None,
 ):
     log(log.INFO, "Getting contact requests for store {%s}. Search: {%s}. Status: {%s}", store.uuid, search, status)
-    stmt = sa.select(m.ContactRequest).where(
-        sa.and_(m.ContactRequest.store_id == store.id, m.ContactRequest.is_deleted.is_(False))
+
+    stmt = (
+        sa.select(m.ContactRequest)
+        .where(sa.and_(m.ContactRequest.store_id == store.id, m.ContactRequest.is_deleted.is_(False)))
+        .order_by(m.ContactRequest.created_at.desc())
     )
+
     if search:
+        items = db.scalars(
+            sa.select(m.Item).where(m.Item.store_id == store.id).where(m.Item.name.ilike(f"%{search}%"))
+        ).all()
+        item_ids = [item.id for item in items]
+
         stmt = stmt.where(
             sa.or_(
                 m.ContactRequest.first_name.ilike(f"%{search}%"),
                 m.ContactRequest.last_name.ilike(f"%{search}%"),
                 m.ContactRequest.email.ilike(f"%{search}%"),
+                m.ContactRequest.item_id.in_(item_ids),
             )
         )
     if status:
@@ -88,9 +133,10 @@ async def update_contact_request_status(
         log(log.ERROR, "Contact request {%s} does not belong to store {%s}", contact_request.uuid, store.uuid)
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Contact request not found")
 
-    if contact_request.status != s.ContactRequestStatus.CREATED.value and data.status == s.ContactRequestStatus.CREATED:
-        log(log.ERROR, "Contact request {%s} is already processed", contact_request.uuid)
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Status downgrade is not allowed")
+    # TODO: Ability to limit downgrading status (ask the client if such functionality is needed)
+    # if contact_request.status != s.ContactRequestStatus.CREATED.value and data.status == s.ContactRequestStatus.CREATED:
+    #     log(log.ERROR, "Contact request {%s} is already processed", contact_request.uuid)
+    #     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Status downgrade is not allowed")
 
     contact_request.status = data.status.value
     db.commit()

@@ -12,34 +12,71 @@ CFG = config("testing")
 
 def test_create_stripe_product_get_products(
     client: TestClient,
-    headers: dict[str, str],
+    admin_headers: dict[str, str],
     full_db: Session,
 ):
-    test_stripe_product = s.ProductIn(
-        type_name="test product",
-        description="description",
-        amount=1,
+    test_stripe_product1 = s.ProductIn(
+        type_name="starter",
+        amount=14,
         currency="usd",
         recurring_interval=s.ProductTypeRecurringInterval.MONTH.value,
-        points=["point 1", "point 2"],
+        max_items=5,
+        max_active_items=3,
+        min_items=11,
+        inactive_items=30,
+    )
+    res = client.post(
+        "/api/products/",
+        headers=admin_headers,
+        json=test_stripe_product1.model_dump(),
+    )
+    assert res.status_code == 200
+
+    test_stripe_product2 = s.ProductIn(
+        type_name="plus",
+        amount=29,
+        currency="usd",
+        recurring_interval=s.ProductTypeRecurringInterval.MONTH.value,
+        max_items=5,
+        max_active_items=3,
+        min_items=11,
+        inactive_items=30,
+    )
+    res = client.post(
+        "/api/products/",
+        headers=admin_headers,
+        json=test_stripe_product2.model_dump(),
+    )
+
+    assert res.status_code == 200
+
+    test_stripe_product3 = s.ProductIn(
+        type_name="pro",
+        amount=59,
+        currency="usd",
+        recurring_interval=s.ProductTypeRecurringInterval.MONTH.value,
+        max_items=5,
+        max_active_items=3,
+        min_items=11,
+        inactive_items=30,
     )
 
     res = client.post(
         "/api/products/",
-        headers=headers,
-        json=test_stripe_product.model_dump(),
+        headers=admin_headers,
+        json=test_stripe_product3.model_dump(),
     )
 
     assert res.status_code == 200
 
     response = client.get(
         "/api/products/",
-        headers=headers,
+        headers=admin_headers,
     )
 
     assert response.status_code == 200
 
-    db_product = full_db.scalar(sa.select(m.Product).where(m.Product.type_name == test_stripe_product.type_name))
+    db_product = full_db.scalar(sa.select(m.Product).where(m.Product.type_name == test_stripe_product3.type_name))
 
     assert db_product is not None
     assert db_product.type_name in response.text
@@ -47,3 +84,20 @@ def test_create_stripe_product_get_products(
     response = client.get("/api/products/base")
 
     assert response.status_code == 200
+
+    update_data = s.ProductModify(
+        stripe_price_id=db_product.stripe_price_id,
+        max_items=10,
+        max_active_items=5,
+        min_items=3,
+        inactive_items=7,
+    )
+
+    # update product
+    res = client.patch(
+        "/api/products/",
+        headers=admin_headers,
+        json=update_data.model_dump(),
+    )
+
+    response.status_code == 200

@@ -16,7 +16,7 @@ class TestUser(BaseModel):
 
 
 class TestItem(ItemIn):
-    city_id: int
+    id: int
     store_id: int
     realtor_id: int
     nightly: bool

@@ -1,5 +1,6 @@
 from typing import Self
 from datetime import datetime
+from fastapi import status, HTTPException
 
 import sqlalchemy as sa
 from sqlalchemy import orm
@@ -62,6 +63,8 @@ class User(db.Model, ModelMixin):
 
     subscriptions: orm.Mapped[list["Subscription"]] = orm.relationship(viewonly=True, order_by="asc(Subscription.id)")
 
+    is_blocked: orm.Mapped[bool] = orm.mapped_column(default=False, server_default=sa.false())
+
     @property
     def subscription(self):
         # get last saved data in subscriptions
@@ -97,6 +100,12 @@ class User(db.Model, ModelMixin):
             password,
             user.password,
         ):
+            if user.is_blocked:
+                log(log.INFO, "User is blocked")
+                raise HTTPException(
+                    status_code=status.HTTP_423_LOCKED,
+                    detail="Your account is blocked! Contact the support service",
+                )
             return user
         return None
 

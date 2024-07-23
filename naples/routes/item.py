@@ -4,23 +4,29 @@ from datetime import datetime
 
 from fastapi import Depends, APIRouter, File, Form, Query, UploadFile, status, HTTPException
 from fastapi_pagination import Page, Params, paginate
-from mypy_boto3_s3 import S3Client
-
-from naples.controllers.file import get_file_type
-from naples.dependency.s3_client import get_s3_connect
-import naples.models as m
-import naples.schemas as s
-from naples import controllers as c
-from naples.logger import log
-
 import sqlalchemy as sa
 from sqlalchemy.orm import Session
+from mypy_boto3_s3 import S3Client
 
-from naples.dependency import get_current_user, get_current_store, get_current_user_store, get_user_subscribe
+from naples import models as m, schemas as s
+from naples.dependency import (
+    get_current_user,
+    get_current_store,
+    get_current_user_store,
+    get_user_subscribe,
+    get_s3_connect,
+)
+from naples import controllers as c
 from naples.database import get_db
+from naples.routes.utils import (
+    check_user_subscription_max_active_items,
+    check_user_subscription_max_items,
+)
+from naples.utils import get_file_extension, get_link_type
+from naples.logger import log
+
 
 from naples.config import config
-from naples.utils import get_file_extension, get_link_type
 
 CFG = config()
 
@@ -37,10 +43,11 @@ item_router = APIRouter(prefix="/items", tags=["Items"])
         403: {"description": "Invalid URL"},
         400: {"description": "Store URL is not provided"},
     },
+    dependencies=[Depends(get_user_subscribe)],
 )
 def get_published_items(
     rent_length: Annotated[list[s.RentalLength], Query()] = [],
-    city_uuid: str | None = None,
+    city: str | None = None,
     adults: int = 0,
     check_in: datetime | None = None,
     check_out: datetime | None = None,
@@ -48,7 +55,6 @@ def get_published_items(
     params: Params = Depends(),
     db: Session = Depends(get_db),
     current_store: m.Store = Depends(get_current_store),
-    subscription: m.Subscription = Depends(get_user_subscribe),
 ):
     """Get items by filters and pagination"""
 
@@ -61,11 +67,6 @@ def get_published_items(
             m.Item.stage == s.ItemStage.ACTIVE.value,
         )
     )
-
-    if city_uuid:
-        city: m.City | None = db.scalar(sa.select(m.City).where(m.City.uuid == city_uuid))
-        assert city, f"City with UUID [{city_uuid}] not found"
-        stmt = stmt.where(m.Item.city_id == city.id)
 
     if adults:
         stmt = stmt.where(m.Item.adults >= adults)
@@ -100,6 +101,12 @@ def get_published_items(
     db_items: Sequence[m.Item] = db.scalars(stmt).all()
     items: Sequence[s.ItemOut] = [s.ItemOut.model_validate(item) for item in db_items]
 
+    if city is not None:
+        items_by_city: Sequence[s.ItemOut] = [
+            s.ItemOut.model_validate(item) for item in db_items if item.location.city == city
+        ]
+        return paginate(items_by_city, params)
+
     log(log.INFO, "Got [%s] items for store [%s]", len(items), current_store.url)
 
     return paginate(items, params)
@@ -114,13 +121,13 @@ def get_published_items(
         403: {"description": "Invalid URL"},
         400: {"description": "Store URL is not provided"},
     },
+    dependencies=[Depends(get_user_subscribe)],
 )
 def get_all_items(
     name: str | None = None,
     params: Params = Depends(),
     db: Session = Depends(get_db),
     current_store: m.Store = Depends(get_current_store),
-    subscription: m.Subscription = Depends(get_user_subscribe),
 ):
     """Get items by filters and pagination"""
 
@@ -136,7 +143,7 @@ def get_all_items(
     if name:
         stmt = stmt.where(m.Item.name.ilike(f"%{name}%"))
 
-    db_items: Sequence[m.Item] = db.scalars(stmt).all()
+    db_items: Sequence[m.Item] = db.scalars(stmt.order_by(m.Item.created_at)).all()
     items: Sequence[s.ItemOut] = [s.ItemOut.model_validate(item) for item in db_items]
 
     log(log.INFO, "Got [%s] items for store [%s]", len(items), current_store.url)
@@ -151,13 +158,12 @@ def get_all_items(
     responses={
         404: {"description": "Item not found"},
     },
+    dependencies=[Depends(get_user_subscribe)],
 )
 def get_item_by_uuid(
     item_uuid: str,
-    # sorted_urls_images: Annotated[list[str], Query()] = [],
     db: Session = Depends(get_db),
     current_store: m.Store = Depends(get_current_store),
-    subscription: m.Subscription = Depends(get_user_subscribe),
 ):
     """Get item by UUID"""
 
@@ -176,21 +182,22 @@ def get_item_by_uuid(
     "/filters/data",
     status_code=status.HTTP_200_OK,
     response_model=s.ItemsFilterDataOut,
+    dependencies=[Depends(get_user_subscribe)],
 )
 def get_filters_data(
     db: Session = Depends(get_db),
     current_user_store: m.Store = Depends(get_current_store),
-    subscription: m.Subscription = Depends(get_user_subscribe),
 ):
     """Get data for filter items"""
 
-    cities_idx = [
-        item.city_id
+    location_cities = [
+        item.location.city
         for item in current_user_store.items
-        if not item.is_deleted and item.stage == s.ItemStage.ACTIVE.value
+        if item.stage == s.ItemStage.ACTIVE.value and not item.is_deleted
     ]
 
-    cities = db.scalars(sa.select(m.City).where(m.City.id.in_(cities_idx))).all()
+    unique_cities = set(location_cities)
+
     adults = max(
         [
             item.adults
@@ -200,7 +207,7 @@ def get_filters_data(
         default=0,
     )
 
-    return s.ItemsFilterDataOut(locations=list(cities), adults=adults)
+    return s.ItemsFilterDataOut(cities=list(unique_cities), adults=adults)
 
 
 @item_router.post(
@@ -209,6 +216,7 @@ def get_filters_data(
     response_model=s.ItemOut,
     responses={
         404: {"description": "Store not found"},
+        403: {"description": "Max items limit reached"},
     },
 )
 def create_item(
@@ -224,25 +232,31 @@ def create_item(
         log(log.ERROR, "User [%s] has no store", current_user.email)
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User has no store")
 
+    res = check_user_subscription_max_items(store, db)
+
+    if not res:
+        log(log.ERROR, "Max items limit reached")
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Max items limit reached")
+
     realtor: m.Member | None = db.scalar(sa.select(m.Member).where(m.Member.uuid == new_item.realtor_uuid))
 
     if not realtor or realtor.store_id != store.id:
         log(log.ERROR, "Realtor [%s] not found", new_item.realtor_uuid)
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Realtor not found")
 
-    city: m.City | None = db.scalar(sa.select(m.City).where(m.City.uuid == new_item.city_uuid))
-
-    if not city:
-        log(log.ERROR, "City [%s] not found", new_item.city_uuid)
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="City not found")
-
     new_item_model: m.Item = m.Item(
-        **new_item.model_dump(exclude={"realtor_uuid", "city_uuid"}),
+        **new_item.model_dump(
+            exclude={
+                "realtor_uuid",
+                "city",
+                "state",
+                "address",
+                "latitude",
+                "longitude",
+            }
+        ),
         realtor_id=realtor.id,
         store_id=store.id,
-        city_id=city.id,
-        latitude=city.latitude,
-        longitude=city.longitude,
     )
 
     db.add(new_item_model)
@@ -251,6 +265,47 @@ def create_item(
     db.commit()
 
     log(log.INFO, "Created item [%s] for store [%s]", new_item.name, new_item_model.store_id)
+
+    # add location for item
+    item_location: m.Location = m.Location(
+        address=new_item.address,
+        city=new_item.city,
+        state=new_item.state,
+        item_id=new_item_model.id,
+    )
+
+    db.add(item_location)
+    db.flush()
+
+    db.commit()
+
+    log(
+        log.INFO,
+        "Created location [%s] for item [%s]",
+        item_location.city,
+        new_item_model.id,
+    )
+
+    if new_item.longitude is not None:
+        log(
+            log.INFO,
+            "Add longitude [%s] to location [%s] ",
+            new_item.longitude,
+            item_location.city,
+        )
+        item_location.longitude = new_item.longitude
+        db.commit()
+
+    if new_item.latitude is not None:
+        log(
+            log.INFO,
+            "Add latitude [%s] to location [%s] ",
+            new_item.latitude,
+            item_location.city,
+        )
+        item_location.latitude = new_item.latitude
+        db.commit()
+
     return s.ItemOut.model_validate(new_item_model)
 
 
@@ -276,13 +331,37 @@ def update_item(
         log(log.ERROR, "Item [%s] not found for store [%s]", item_uuid, current_store.url)
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
 
-    if item_data.city_uuid is not None:
-        city = db.scalar(sa.select(m.City).where(m.City.uuid == item_data.city_uuid))
-        if not city:
-            log(log.ERROR, "City [%s] not found", item_data.city_uuid)
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="City not found")
-        log(log.INFO, "City [%s] was updated for item [%s]", city.name, item_uuid)
-        item.city_id = city.id
+    if item_data.city is not None:
+        # TODO: is it necessary to do such a check for the location? is there any sense in this?
+        # location = db.scalar(sa.select(m.Location).where(m.Location.id == item.location.id))
+
+        # if not location:
+        #     log(log.ERROR, "Location [%s] not found", item.location.id)
+        #     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Location not found")
+
+        item.location.city = item_data.city
+
+        log(log.ERROR, "City [%s] was updated for item [%s] ", item_data.city, item_uuid)
+
+    if item_data.address is not None:
+        item.location.address = item_data.address
+
+        log(log.ERROR, "Address [%s] was updated for item [%s] ", item_data.address, item_uuid)
+
+    if item_data.state is not None:
+        item.location.state = item_data.state
+
+        log(log.ERROR, "State [%s] was updated for item [%s] ", item_data.state, item_uuid)
+
+    if item_data.longitude is not None:
+        item.location.longitude = item_data.longitude
+
+        log(log.ERROR, "Longitude [%s] was updated for item [%s] ", item_data.longitude, item_uuid)
+
+    if item_data.latitude is not None:
+        item.location.latitude = item_data.latitude
+
+        log(log.ERROR, "Latitude [%s] was updated for item [%s] ", item_data.longitude, item_uuid)
 
     if item_data.realtor_uuid is not None:
         realtor = db.scalar(sa.select(m.Member).where(m.Member.uuid == item_data.realtor_uuid))
@@ -300,15 +379,10 @@ def update_item(
         log(log.INFO, "Description [%s] was updated for item [%s]", item_data.description, item_uuid)
         item.description = item_data.description
 
-    if item_data.latitude is not None:
-        log(log.INFO, "Latitude [%s] was updated for item [%s]", item_data.latitude, item_uuid)
-        item.latitude = item_data.latitude
-
-    if item_data.longitude is not None:
-        log(log.INFO, "Longitude [%s] was updated for item [%s]", item_data.longitude, item_uuid)
-        item.longitude = item_data.longitude
-
     if item_data.stage is not None:
+        res = check_user_subscription_max_active_items(current_store, item, db)
+        if not res:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Max active items limit reached")
         log(log.INFO, "Stage [%s] was updated for item [%s]", item_data.stage, item_uuid)
         item.stage = item_data.stage.value
 
@@ -438,7 +512,7 @@ def upload_item_main_media(
 
     extension = get_file_extension(main_media)
 
-    file_type = get_file_type(extension)
+    file_type = c.get_file_type(extension)
 
     if file_type == s.FileType.UNKNOWN:
         log(log.ERROR, "Unknown file extension [%s]", extension)
@@ -745,7 +819,7 @@ def upload_item_video(
 
     extension = get_file_extension(file)
 
-    file_type = get_file_type(extension)
+    file_type = c.get_file_type(extension)
 
     if file_type == s.FileType.UNKNOWN:
         log(log.ERROR, "Unknown file extension [%s]", extension)

@@ -23,6 +23,7 @@ from .subscription import subscription_router
 from .product import product_router
 from .contact_request_admin import admin_contact_request_router
 
+from .metadata import metadatas_router
 
 router = APIRouter(prefix="/api", tags=["API"])
 
@@ -42,6 +43,7 @@ router.include_router(contact_request_router)
 router.include_router(subscription_router)
 router.include_router(product_router)
 router.include_router(admin_contact_request_router)
+router.include_router(metadatas_router)
 
 CFG = config()
 

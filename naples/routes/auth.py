@@ -51,29 +51,31 @@ def login(
 ):
     """Logs in a user"""
 
-    user = m.User.authenticate(form_data.username, form_data.password, session=db)
+    user: m.User | None = m.User.authenticate(form_data.username, form_data.password, session=db)
 
     if not user:
         log(log.ERROR, "User [%s] wrong username (email) or password", form_data.username)
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Invalid credentials")
 
-    # admin user can not get API token
-    if user.role == s.UserRole.ADMIN.value:
-        log(log.ERROR, "User [%s] is an admin user", user.email)
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin user can not get API token")
-    log(log.INFO, "User [%s] logged in", user.email)
-
     # update last subscription in db with stripe data every 3 days
-    if user.subscription and user.subscription.last_checked_date < datetime.now() - timedelta(
-        days=CFG.DAYS_BEFORE_UPDATE
+    if (
+        user.role == s.UserRole.USER.value
+        and user.subscription
+        and len(user.subscription.subscription_stripe_id) > 0
+        and user.subscription.last_checked_date < datetime.now() - timedelta(days=CFG.DAYS_BEFORE_UPDATE)
     ):
+        log(log.INFO, " === user stripe subscription id [%s] ", user.subscription.subscription_stripe_id)
+
         stripe_subscription_data = stripe.Subscription.retrieve(user.subscription.subscription_stripe_id)
 
-        product = get_product_by_id(stripe_subscription_data["items"]["data"][0]["plan"]["id"], db)
+        if stripe_subscription_data is not None:
+            log(log.INFO, "user stripe subscription data [%s] ", stripe_subscription_data)
+            product = get_product_by_id(stripe_subscription_data["items"]["data"][0]["plan"]["id"], db)
 
-        save_state_subscription_from_stripe(user.subscription, product, db)
+            save_state_subscription_from_stripe(stripe_subscription_data, product, db)
 
-        log(log.INFO, "Subscription state updated for user [%s]", user.email)
+            log(log.INFO, "Subscription state updated for user [%s]", user.email)
+    log(log.INFO, "User [%s] logged in", user.email)
 
     return create_access_token_exp_datetime(user.id)
 
@@ -103,10 +105,26 @@ def get_token(auth_data: s.Auth, db=Depends(get_db)):
             status_code=status.HTTP_400_BAD_REQUEST, detail="User not verified. Please verify your email"
         )
 
-    # admin user can not get API token
-    if user.role == s.UserRole.ADMIN.value:
-        log(log.ERROR, "User [%s] is an admin user", user.email)
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin user can not get API token")
+    # update last subscription in db with stripe data every 3 days
+    if (
+        user.role == s.UserRole.USER.value
+        and user.subscription
+        and len(user.subscription.subscription_stripe_id) > 0
+        and user.subscription.last_checked_date < datetime.now() - timedelta(days=CFG.DAYS_BEFORE_UPDATE)
+    ):
+        log(log.INFO, " === user stripe subscription id [%s] ", user.subscription.subscription_stripe_id)
+
+        stripe_subscription_data = stripe.Subscription.retrieve(user.subscription.subscription_stripe_id)
+
+        if stripe_subscription_data is not None:
+            log(log.INFO, "user stripe subscription data [%s] ", stripe_subscription_data)
+            product = get_product_by_id(stripe_subscription_data["items"]["data"][0]["plan"]["id"], db)
+
+            log(log.INFO, "== product [%s] ==", product)
+
+            save_state_subscription_from_stripe(stripe_subscription_data, product, db)
+
+            log(log.INFO, "Subscription state updated for user [%s]", user.email)
     log(log.INFO, "User [%s] logged in", user.email)
 
     return create_access_token_exp_datetime(user.id)
@@ -157,17 +175,6 @@ def sign_up(
 
     log(log.INFO, "Store for user [%s] created", new_user.email)
 
-    # add dns for store url
-    try:
-        add_godaddy_dns_record(new_user.uuid)
-    except Exception as e:
-        delete_user_with_store(db, new_user)
-        log(log.ERROR, "DNS record not added! [%s]", e)
-        log(log.INFO, "User [%s] user is not registered", new_user.email)
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="DNS record not added!")
-
-    log(log.INFO, "DNS record added for store [%s]", new_user.email)
-
     # create stripe customer
     stripe_customer = create_stripe_customer(new_user)
 
@@ -215,6 +222,17 @@ def sign_up(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email not sent!")
 
     log(log.INFO, "Verification email sent to [%s]", new_user.email)
+
+    # add dns for store url
+    try:
+        add_godaddy_dns_record(new_user.uuid)
+    except Exception as e:
+        delete_user_with_store(db, new_user)
+        log(log.ERROR, "DNS record not added! [%s]", e)
+        log(log.INFO, "User [%s] user is not registered", new_user.email)
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="DNS record not added!")
+
+    log(log.INFO, "DNS record added for store [%s]", new_user.email)
 
     return new_user
 

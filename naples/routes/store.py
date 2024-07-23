@@ -1,19 +1,28 @@
+import os
+import csv
+
+
 from fastapi import Depends, APIRouter, UploadFile, status, HTTPException
+from fastapi_pagination import Page, Params, paginate
+
+from fastapi.responses import FileResponse
+
 
 from mypy_boto3_s3 import S3Client
 from sqlalchemy.orm import Session
 import sqlalchemy as sa
 
 from naples.controllers.file import get_file_type
-from naples.dependency.s3_client import get_s3_connect
 from naples import controllers as c, models as m, schemas as s
 
 
 from naples.logger import log
-from naples.dependency import get_current_user, get_current_user_store
+from naples.dependency import get_current_user, get_current_user_store, get_user_subscribe, get_admin, get_s3_connect
 from naples.database import get_db
+from naples.routes.utils import get_stores_admin
 from naples.utils import get_file_extension
 from naples.config import config
+
 from services.store.add_dns_record import (
     add_godaddy_dns_record,
     check_main_domain,
@@ -81,6 +90,7 @@ def get_stores_urls(
     responses={
         404: {"description": "Store not found"},
     },
+    dependencies=[Depends(get_user_subscribe)],
 )
 def get_store(
     store_url: str,
@@ -93,17 +103,6 @@ def get_store(
         log(log.ERROR, "Store [%s] not found", store_url)
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Store not found")
     return store
-
-
-# TODO: implement this route with Depends from admin
-# @store_router.get("/", status_code=status.HTTP_200_OK, response_model=s.Stores)
-# def get_stores(
-#     db: Session = Depends(get_db),
-#     current_user: m.User = Depends(get_current_user),
-# ):
-#     query = sa.select(m.Store)
-#     stores: Sequence[m.Store] = db.scalars(query).all()
-#     return s.Stores(stores=cast(list, stores))
 
 
 @store_router.post("/", status_code=status.HTTP_201_CREATED, response_model=s.StoreOut)
@@ -155,10 +154,31 @@ def update_store(
 
                 # add new record with new url for the store in godaddy
                 add_godaddy_dns_record(new_subdomain)
+                log(log.INFO, "New subdomain [%s] added", new_subdomain)
+
+            if not godaddy_subdomain:
+                # add new record with new url for the store in godaddy
+                add_godaddy_dns_record(new_subdomain)
+                log(log.INFO, "New subdomain [%s] added", new_subdomain)
+
+        current_store_url = current_store.url
+        if check_main_domain(current_store_url):
+            log(log.INFO, "=== current store's url [%s] is main domain", current_store_url)
+            subdomain = get_subdomain_from_url(current_store_url)
+            log(log.INFO, "=== current store's subdomain [%s]", subdomain)
+            godaddy_subdomain = check_subdomain_existence(subdomain)
+            log(log.INFO, "=== current store's subdomain [%s] exists in godaddy", subdomain)
+            if godaddy_subdomain and subdomain:
+                delete_godaddy_dns_record(subdomain)
+                log(
+                    log.INFO,
+                    "=== current store's subdomain [%s] deleted from godaddy",
+                    subdomain,
+                )
 
         current_store.url = store.url
 
-        log(log.INFO, "store url  updated to [%s]", store.url)
+        log(log.INFO, "=== store url  updated to [%s]", store.url)
 
     if store.email is not None:
         log(log.INFO, "Updating email to [%s] for store [%s]", store.email, current_store.url)
@@ -314,18 +334,34 @@ def upload_store_logo(
         current_store.logo.mark_as_deleted()
         db.commit()
 
-    if not logo.content_type == "image/svg+xml":
-        log(log.ERROR, "Logo must be of type image/svg+xml. Received [%s]", logo.content_type)
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Logo must be of type image/svg+xml")
+    if logo.content_type == "image/svg+xml":
+        log(log.INFO, "SVG type format file [%s]", logo.filename)
+        logo_file_model = c.create_file(
+            db=db,
+            file=logo,
+            s3_client=s3_client,
+            extension="svg",
+            store_url=current_store.url,
+            file_type=s.FileType.LOGO,
+            content_type_override="image/svg+xml",
+        )
+        current_store.logo_id = logo_file_model.id
+        db.commit()
+        db.refresh(current_store)
+
+        log(log.INFO, "Logo [%s] uploaded for store [%s] with type svg", logo_file_model.name, current_store.url)
+
+        return current_store
+
+    extension = get_file_extension(logo)
 
     logo_file_model = c.create_file(
-        db=db,
         file=logo,
-        s3_client=s3_client,
-        extension="svg",
+        db=db,
+        extension=extension,
         store_url=current_store.url,
-        file_type=s.FileType.LOGO,
-        content_type_override="image/svg+xml",
+        file_type=s.FileType.IMAGE,
+        s3_client=s3_client,
     )
 
     current_store.logo_id = logo_file_model.id
@@ -434,3 +470,106 @@ def delete_store_about_us_media(
     db.commit()
 
     log(log.INFO, "About us main media deleted for store [%s]", current_store.url)
+
+
+# get info stores for admin panel
+# TODO: will be finishing
+@store_router.get(
+    "/",
+    status_code=status.HTTP_200_OK,
+    response_model=Page[s.StoreAdminOut],
+    responses={status.HTTP_404_NOT_FOUND: {"description": "Stores not found"}},
+    dependencies=[Depends(get_admin)],
+)
+def get_stores(
+    db: Session = Depends(get_db),
+    params: Params = Depends(),
+    search: str | None = None,
+    subscription_status: s.StoreStatus | None = None,
+):
+    """Returns the stores for the admin panel"""
+
+    stores = get_stores_admin(db, search, subscription_status if subscription_status else None)
+    return paginate(stores, params)
+
+
+@store_router.post(
+    "/report/download",
+    status_code=status.HTTP_200_OK,
+    response_class=FileResponse,
+    responses={
+        status.HTTP_404_NOT_FOUND: {"description": "Stores not found"},
+    },
+    dependencies=[Depends(get_admin)],
+)
+def get_stores_report(
+    db: Session = Depends(get_db),
+    search: str | None = None,
+    subscription_status: s.StoreStatus | None = None,
+):
+    """Create report of the stores for the admin panel"""
+
+    stores = get_stores_admin(db, search, subscription_status if subscription_status else None)
+
+    if not stores:
+        log(log.ERROR, "Stores not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Stores not found",
+        )
+
+    with open(
+        os.path.join(CFG.REPORTS_DIR, CFG.STORES_REPORT_FILE),
+        "w",
+        newline="",
+    ) as report_file:
+        report = csv.writer(report_file)
+        data = [
+            [
+                "User Name",
+                "Email",
+                "Phone",
+                "Is Blocked",
+                "Subscription Status",
+                "Created At",
+                "Store Url",
+                "№ of properties",
+            ]
+        ]
+
+        for store in stores:
+            user_name = store.user.first_name + " " + store.user.last_name
+            email = store.user.email
+            phone = store.user.phone
+            is_blocked = str(store.user.is_blocked).lower()
+            status_subscription = store.status.value.upper()
+            created_at = store.user.created_at.strftime("%H:%M %b %d %Y")
+            store_url = store.url
+            properties = str(store.items_count)
+            data.append(
+                [
+                    user_name,
+                    email,
+                    phone,
+                    is_blocked,
+                    status_subscription,
+                    created_at,
+                    store_url,
+                    properties,
+                ]
+            )
+        log(
+            log.INFO,
+            "Create report data [%s] for admin panel ",
+            data,
+        )
+
+        report.writerows(data)
+
+        log(
+            log.INFO,
+            "Write data (count of stores in data [%d]) to csv file",
+            len(data),
+        )
+
+    return FileResponse(os.path.join(CFG.REPORTS_DIR, CFG.STORES_REPORT_FILE))

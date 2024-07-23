@@ -26,3 +26,5 @@ from .product import Product
 from .point import Point
 from .link import Link
 from .admin_contact_request import AdminContactRequest
+from .metadata import Metadata
+from .location import Location

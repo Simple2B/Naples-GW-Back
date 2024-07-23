@@ -1,10 +1,13 @@
+from typing import Sequence
 from fastapi.testclient import TestClient
 from mypy_boto3_s3 import S3Client
 from sqlalchemy.orm import Session
 from sqlalchemy import select
+import sqlalchemy as sa
 
 from naples import schemas as s
 from naples import models as m
+
 
 from naples.config import config
 
@@ -77,24 +80,29 @@ def test_get_item(
         assert item.images_urls
 
 
-def test_create_item(client: TestClient, full_db: Session, headers: dict[str, str], test_data: s.TestData):
-    city: m.City | None = full_db.scalar(select(m.City))
-    assert city
+def test_create_item(
+    client: TestClient,
+    full_db: Session,
+    headers: dict[str, str],
+    test_data: s.TestData,
+):
     test_realtor = full_db.scalar(select(m.Member))
-
     assert test_realtor
 
     test_item = s.ItemIn(
         name="Test Item",
         description="Test Description",
-        address="Test Address",
         size=100,
         bedrooms_count=2,
         bathrooms_count=1,
         stage=s.ItemStage.DRAFT.value,
-        city_uuid=city.uuid,
         realtor_uuid=test_realtor.uuid,
         adults=5,
+        city="city",
+        address="address",
+        state="state",
+        latitude=0.0,
+        longitude=0.0,
     )
 
     response = client.post(
@@ -104,8 +112,38 @@ def test_create_item(client: TestClient, full_db: Session, headers: dict[str, st
     )
     assert response.status_code == 201
 
+    test_item = s.ItemIn(
+        name="Test Item active - 4",
+        description="Test Description",
+        size=100,
+        bedrooms_count=2,
+        bathrooms_count=1,
+        stage=s.ItemStage.ACTIVE.value,
+        realtor_uuid=test_realtor.uuid,
+        adults=5,
+        city="city_2",
+        address="address_2",
+        state="state_2",
+    )
 
-def test_get_filters_data(client: TestClient, headers: dict[str, str], full_db: Session):
+    response = client.post(
+        "/api/items/",
+        json=test_item.model_dump(),
+        headers=headers,
+    )
+    # Max items limit reached
+    assert response.status_code == 403
+    store_db = full_db.scalar(sa.select(m.Store))
+    assert store_db
+    assert len(store_db.items) == CFG.MAX_ITEMS_TRIALING
+
+
+def test_get_filters_data(
+    client: TestClient,
+    headers: dict[str, str],
+    full_db: Session,
+    test_data: s.TestData,
+):
     store = full_db.scalar(select(m.Store))
     assert store
     response = client.get(
@@ -118,7 +156,7 @@ def test_get_filters_data(client: TestClient, headers: dict[str, str], full_db: 
 
     filters_data = s.ItemsFilterDataOut.model_validate(response.json())
 
-    assert filters_data.locations
+    assert filters_data.cities
     assert filters_data.adults == 5
 
 
@@ -126,14 +164,10 @@ def test_get_items(client: TestClient, full_db: Session, headers: dict[str, str]
     store = full_db.scalar(select(m.Store))
     assert store
 
-    item = full_db.scalar(select(m.Item))
+    item = full_db.scalar(select(m.Item).where(m.Item.stage == s.ItemStage.DRAFT.value))
     assert item
 
     assert item.id in [i.id for i in store.items]
-
-    item.stage = s.ItemStage.DRAFT.value
-    full_db.commit()
-    full_db.refresh(item)
 
     store_url = store.url
     size = 3
@@ -149,7 +183,7 @@ def test_get_items(client: TestClient, full_db: Session, headers: dict[str, str]
 
     items = s.Items.model_validate(response.json()).items
     assert items
-    assert len(items) == size  # We have 5 items in the store, but only 4 are published
+    assert len(items) == size  # We have 5 items in the store, but only 3 are published
 
     assert item.uuid not in [i.uuid for i in items]
 
@@ -158,7 +192,7 @@ def test_get_items(client: TestClient, full_db: Session, headers: dict[str, str]
         params={
             "store_url": store_url,
             "page": 2,
-            "size": size,
+            "size": 1,
         },
     )
     assert response.status_code == 200
@@ -166,10 +200,10 @@ def test_get_items(client: TestClient, full_db: Session, headers: dict[str, str]
     res_items = s.Items.model_validate(response.json()).items
     assert res_items
 
-    city: m.City | None = full_db.scalar(select(m.City))
-    assert city
+    location: Sequence[m.Location] | None = full_db.scalars(select(m.Location)).all()
+    assert location
 
-    city_uuid = city.uuid
+    city = location[0].city
 
     response = client.get(
         "/api/items",
@@ -178,7 +212,7 @@ def test_get_items(client: TestClient, full_db: Session, headers: dict[str, str]
             "store_url": store.url,
             "page": 1,
             "size": size,
-            "city_uuid": city_uuid,
+            "city": city,
         },
     )
     assert response.status_code == 200
@@ -224,11 +258,11 @@ def test_upload_item_main_image(
     item_model = full_db.scalar(select(m.Item))
     assert item_model
 
-    with open("tests/house_example.png", "rb") as image:
+    with open("tests/1950 Gulf Shore Blvd N #104, Naples, FL 34102 (26) (1).jpg", "rb") as image:
         response = client.post(
             f"/api/items/{item_model.uuid}/main_media/",
             headers=headers,
-            files={"main_media": ("test.png", image, "image/npg")},
+            files={"main_media": ("1950 Gulf Shore Blvd N #104, Naples, FL 34102 (26) (1).jpg", image, "image/npg")},
         )
         assert response.status_code == 201
 
@@ -560,7 +594,7 @@ def test_item_list_with_filter(
     assert response.status_code == 200
 
     items = s.Items.model_validate(response.json()).items
-    assert len(items) == 5
+    assert len(items) == 3
 
     filet_response = client.get(
         "/api/items",
@@ -578,7 +612,6 @@ def test_item_list_with_filter(
             "store_url": store_url,
             "rent_length": [
                 s.RentalLength.NIGHTLY.value,
-                # s.RentalLength.MONTHLY.value,
             ],
         },
     )
@@ -586,7 +619,7 @@ def test_item_list_with_filter(
 
     nightly_items = s.Items.model_validate(nightly_response.json()).items
 
-    assert len(nightly_items) == 3
+    assert len(nightly_items) == 2
 
 
 def test_update_item(
@@ -596,8 +629,8 @@ def test_update_item(
 ):
     item = full_db.scalar(select(m.Item))
     assert item
-    city = full_db.scalars(select(m.City)).all()[1]
-
+    location = full_db.scalars(select(m.Location)).all()[1]
+    city = location.city
     assert city
 
     update_data = s.ItemUpdateIn(
@@ -635,11 +668,13 @@ def test_update_item(
     assert updated_item.annual is True
     assert updated_item.nightly is True
 
+    new_city = "new_city_name"
+
     more_update_data = s.ItemUpdateIn(
         airbnb_url="https://www.airbnb.com/updated",
         vrbo_url="https://www.vrbo.com/updated",
         expedia_url="https://www.expedia.com/updated",
-        city_uuid=city.uuid,
+        city=new_city,
     )
 
     response = client.patch(
@@ -655,7 +690,7 @@ def test_update_item(
         assert updated_item.external_urls.airbnb_url == str(more_update_data.airbnb_url)
         assert updated_item.external_urls.vrbo_url == str(more_update_data.vrbo_url)
         assert updated_item.external_urls.expedia_url == str(more_update_data.expedia_url)
-    assert updated_item.city.uuid == city.uuid
+    assert updated_item.city == new_city
 
     empty_url_string_data = s.ItemUpdateIn(
         airbnb_url="",

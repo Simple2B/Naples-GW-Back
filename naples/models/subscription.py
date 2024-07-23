@@ -20,12 +20,14 @@ class Subscription(db.Model, ModelMixin):
     id: orm.Mapped[int] = orm.mapped_column(primary_key=True)
     uuid: orm.Mapped[str] = orm.mapped_column(sa.String(32), default=create_uuid, unique=True)
 
-    type: orm.Mapped[str] = orm.mapped_column(default="")
+    type: orm.Mapped[str] = orm.mapped_column(default=s.ProductType.STARTER.value)
 
     status: orm.Mapped[str] = orm.mapped_column(sa.String(32), default=s.SubscriptionStatus.TRIALING.value)
 
-    start_date: orm.Mapped[datetime | None] = orm.mapped_column()
-    end_date: orm.Mapped[datetime | None] = orm.mapped_column()
+    amount: orm.Mapped[int] = orm.mapped_column(default=0, server_default="0")
+
+    start_date: orm.Mapped[datetime] = orm.mapped_column(default=datetime_utc, server_default=sa.func.now())
+    end_date: orm.Mapped[datetime] = orm.mapped_column(default=datetime_utc, server_default=sa.func.now())
 
     subscription_stripe_id: orm.Mapped[str] = orm.mapped_column(sa.String(128), default="")
 
@@ -49,6 +51,13 @@ class Subscription(db.Model, ModelMixin):
             res = stripe.Subscription.retrieve(self.subscription_stripe_id)
             return res["items"]["data"][0]["price"]["id"]
         return ""
+
+    # @property
+    # def amount(self):
+    #     if self.subscription_stripe_id:
+    #         res = stripe.Subscription.retrieve(self.subscription_stripe_id)
+    #         return res["items"]["data"][0]["price"]["unit_amount"] / 100
+    #     return 0
 
     def __repr__(self):
         return f"<{self.id}: {self.uuid}>"
