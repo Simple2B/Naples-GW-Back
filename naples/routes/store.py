@@ -334,9 +334,9 @@ def upload_store_logo(
         current_store.logo.mark_as_deleted()
         db.commit()
 
-    if not logo.content_type == "image/svg+xml":
-        log(log.ERROR, "Logo must be of type image/svg+xml. Received [%s]", logo.content_type)
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Logo must be of type image/svg+xml")
+    # if not logo.content_type == "image/svg+xml":
+    #     log(log.ERROR, "Logo must be of type image/svg+xml. Received [%s]", logo.content_type)
+    #     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Logo must be of type image/svg+xml")
 
     logo_file_model = c.create_file(
         db=db,
