@@ -45,7 +45,7 @@ def get_current_store(store_url: str | None, db: Session = Depends(get_db)) -> m
             detail="Store not found",
         )
 
-    if store.user.is_blocked:
+    if store.user.is_blocked and store.is_protected is False:
         log(log.INFO, "User is blocked")
         raise HTTPException(
             status_code=status.HTTP_423_LOCKED,

@@ -39,7 +39,7 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
             detail="User was not found",
         )
 
-    if user.is_blocked:
+    if user.is_blocked and user.store.is_protected is False:
         log(log.INFO, "User is blocked")
         raise HTTPException(
             status_code=status.HTTP_423_LOCKED,

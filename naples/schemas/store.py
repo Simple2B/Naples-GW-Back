@@ -82,6 +82,7 @@ class StoreOut(Store):
     sub_title: EditableText
 
     about_us: StoreAboutUs
+    is_protected: bool = False
 
     model_config = ConfigDict(
         from_attributes=True,
