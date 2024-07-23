@@ -334,18 +334,34 @@ def upload_store_logo(
         current_store.logo.mark_as_deleted()
         db.commit()
 
-    # if not logo.content_type == "image/svg+xml":
-    #     log(log.ERROR, "Logo must be of type image/svg+xml. Received [%s]", logo.content_type)
-    #     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Logo must be of type image/svg+xml")
+    if logo.content_type == "image/svg+xml":
+        log(log.INFO, "SVG type format file [%s]", logo.filename)
+        logo_file_model = c.create_file(
+            db=db,
+            file=logo,
+            s3_client=s3_client,
+            extension="svg",
+            store_url=current_store.url,
+            file_type=s.FileType.LOGO,
+            content_type_override="image/svg+xml",
+        )
+        current_store.logo_id = logo_file_model.id
+        db.commit()
+        db.refresh(current_store)
+
+        log(log.INFO, "Logo [%s] uploaded for store [%s] with type svg", logo_file_model.name, current_store.url)
+
+        return current_store
+
+    extension = get_file_extension(logo)
 
     logo_file_model = c.create_file(
-        db=db,
         file=logo,
-        s3_client=s3_client,
-        extension="svg",
+        db=db,
+        extension=extension,
         store_url=current_store.url,
-        file_type=s.FileType.LOGO,
-        content_type_override="image/svg+xml",
+        file_type=s.FileType.IMAGE,
+        s3_client=s3_client,
     )
 
     current_store.logo_id = logo_file_model.id
