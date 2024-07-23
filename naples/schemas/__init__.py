@@ -99,3 +99,10 @@ from .product import (
 )
 from .point import Point, PointIn, PointOut, PointsOut
 from .link import LinkType, Link, LinkIn, LinkOut, LinksOut
+from .admin_contact_request import (
+    AdminContactRequestStatus,
+    AdminContactRequestIn,
+    AdminContactRequestUpdateIn,
+    AdminContactRequestOut,
+    AdminContactRequestListOut,
+)

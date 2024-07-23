@@ -21,6 +21,7 @@ from .amenity import amenities_router
 from .contact_request import contact_request_router
 from .subscription import subscription_router
 from .product import product_router
+from .contact_request_admin import admin_contact_request_router
 
 
 router = APIRouter(prefix="/api", tags=["API"])
@@ -40,6 +41,7 @@ router.include_router(amenities_router)
 router.include_router(contact_request_router)
 router.include_router(subscription_router)
 router.include_router(product_router)
+router.include_router(admin_contact_request_router)
 
 CFG = config()
 
