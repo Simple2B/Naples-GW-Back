@@ -1,5 +1,3 @@
-# from datetime import datetime
-
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 from sqlalchemy import select
@@ -8,7 +6,11 @@ from sqlalchemy import select
 from naples import schemas as s, models as m
 
 
-def test_create_admin_contact_request(client: TestClient, full_db: Session, headers: dict[str, str]):
+def test_create_admin_contact_request(
+    client: TestClient,
+    full_db: Session,
+    headers: dict[str, str],
+):
     admin = full_db.scalar(select(m.User).where(m.User.role == s.UserRole.ADMIN.value))
     assert admin
 
@@ -21,161 +23,137 @@ def test_create_admin_contact_request(client: TestClient, full_db: Session, head
 
     res = client.post("/api/admin_contact_requests/", content=req_payload.model_dump_json(), headers=headers)
     assert res.status_code == 201
-    contact_request = s.ContactRequestOut.model_validate(res.json())
+    contact_request = s.AdminContactRequestOut.model_validate(res.json())
 
     contact_request_model = full_db.scalar(select(m.AdminContactRequest))
     assert contact_request_model
 
-    assert contact_request.first_name == contact_request_model.name
+    assert contact_request.name == contact_request_model.name
     assert contact_request.email == contact_request_model.email
 
 
-# def test_create_contact_request_for_item(client: TestClient, full_db: Session, headers: dict[str, str]):
-#     store = full_db.scalar(select(m.Store))
-#     assert store
+def test_get_admin_contact_requests(
+    client: TestClient,
+    full_db: Session,
+    headers: dict[str, str],
+    admin_headers: dict[str, str],
+):
+    request_one = s.AdminContactRequestIn(
+        name="John Doe",
+        email="abc@abc.com",
+        phone="1234567890",
+        message="Hello, I would like to know more about this service",
+    )
 
-#     item = store.items[0]
-#     assert item
+    res_one = client.post("/api/admin_contact_requests/", content=request_one.model_dump_json(), headers=headers)
+    assert res_one.status_code == 201
 
-#     req_payload = s.ContactRequestIn(
-#         first_name="John",
-#         last_name="Doe",
-#         email="john_doe@buu.com",
-#         phone="1234567890",
-#         message="Hello, I would like to know more about this item",
-#         check_in=datetime.now(),
-#         check_out=datetime.now(),
-#         item_uuid=item.uuid,
-#     )
+    request_two = s.AdminContactRequestIn(
+        name="Den Brown",
+        email="def@def.com",
+        phone="1234567890",
+        message="Hello, I would like to know more about this service",
+    )
 
-#     res = client.post("/api/contact_requests/", content=req_payload.model_dump_json(), headers=headers)
-#     assert res.status_code == 201
-#     contact_request = s.ContactRequestOut.model_validate(res.json())
+    res_two = client.post("/api/admin_contact_requests/", content=request_two.model_dump_json(), headers=headers)
+    assert res_two.status_code == 201
 
-#     assert contact_request.item_uuid == item.uuid
+    res = client.get("/api/admin_contact_requests/", headers=admin_headers)
+    assert res.status_code == 200
 
+    contact_requests = s.AdminContactRequestListOut.model_validate(res.json())
 
-# def test_get_contact_requests(client: TestClient, full_db: Session, headers: dict[str, str]):
-#     store = full_db.scalar(select(m.Store))
-#     assert store
+    admin_contact_requests = full_db.execute(select(m.AdminContactRequest)).scalars().all()
 
-#     item = store.items[0]
-#     assert item
+    assert len(admin_contact_requests) == len(contact_requests.contact_requests)
 
-#     request_one = m.ContactRequest(
-#         first_name="John",
-#         last_name="Doe",
-#         email="abc@abc.com",
-#         phone="1234567890",
-#         message="Hello, I would like to know more about this item",
-#         check_in=datetime.now(),
-#         check_out=datetime.now(),
-#         store_id=store.id,
-#     )
-#     request_two = m.ContactRequest(
-#         first_name="Jane",
-#         last_name="Doe",
-#         email="def@def.com",
-#         phone="1234567890",
-#         message="Hello, I would like to know more about this item",
-#         check_in=datetime.now(),
-#         check_out=datetime.now(),
-#         store_id=store.id,
-#         item_id=item.id,
-#     )
-#     full_db.add_all([request_one, request_two])
-#     full_db.commit()
-#     full_db.refresh(store)
+    assert contact_requests.contact_requests[0].name == request_one.name
+    assert contact_requests.contact_requests[1].email == request_two.email
 
-#     res = client.get("/api/contact_requests/", headers=headers)
-#     assert res.status_code == 200
-#     contact_requests = s.ContactRequestListOut.model_validate(res.json())
+    res_den = client.get("/api/admin_contact_requests", headers=admin_headers, params={"search": "Den"})
+    assert res_den.status_code == 200
+    user = s.AdminContactRequestListOut.model_validate(res_den.json())
+    assert len(user.contact_requests) == 1
+    assert user.contact_requests[0].name == "Den Brown"
 
-#     assert len(contact_requests.items) == len(store.contact_requests)
+    john_model = full_db.scalar(select(m.AdminContactRequest).where(m.AdminContactRequest.email == "abc@abc.com"))
+    assert john_model
 
-#     assert contact_requests.items[0].first_name == request_one.first_name
-#     assert contact_requests.items[1].item_uuid == request_two.item_uuid
+    john_model.status = s.ContactRequestStatus.PROCESSED.value
+    full_db.commit()
 
-#     just_jane = client.get("/api/contact_requests", headers=headers, params={"search": "Jane"})
-#     assert just_jane.status_code == 200
-#     jane = s.ContactRequestListOut.model_validate(just_jane.json())
-#     assert len(jane.items) == 1
-#     assert jane.items[0].first_name == "Jane"
+    processed = client.get(
+        "/api/admin_contact_requests",
+        headers=admin_headers,
+        params={"status": s.AdminContactRequestStatus.PROCESSED.value},
+    )
+    assert processed.status_code == 200
+    processed_requests = s.AdminContactRequestListOut.model_validate(processed.json())
 
-#     john_model = full_db.scalar(select(m.ContactRequest).where(m.ContactRequest.first_name == "John"))
-#     assert john_model
-
-#     john_model.status = s.ContactRequestStatus.PROCESSED.value
-#     full_db.commit()
-
-#     processed = client.get(
-#         "/api/contact_requests", headers=headers, params={"status": s.ContactRequestStatus.PROCESSED.value}
-#     )
-#     assert processed.status_code == 200
-#     processed_requests = s.ContactRequestListOut.model_validate(processed.json())
-
-#     assert len(processed_requests.items) == 1
-#     assert processed_requests.items[0].first_name == "John"
+    assert len(processed_requests.contact_requests) == 1
+    assert processed_requests.contact_requests[0].name == "John Doe"
 
 
-# def test_update_contact_request_status(client: TestClient, full_db: Session, headers: dict[str, str]):
-#     store = full_db.scalar(select(m.Store))
-#     assert store
+def test_update_admin_contact_request_status(
+    client: TestClient,
+    full_db: Session,
+    headers: dict[str, str],
+    admin_headers: dict[str, str],
+):
+    admin = full_db.scalar(select(m.User).where(m.User.role == s.UserRole.ADMIN.value))
+    assert admin
 
-#     payload = s.ContactRequestIn(
-#         first_name="John",
-#         last_name="Doe",
-#         email="abc@abc.com",
-#         phone="1234567890",
-#         message="Hello, I would like to know more about this item",
-#         check_in=datetime.now(),
-#         check_out=datetime.now(),
-#     )
+    payload = s.AdminContactRequestIn(
+        name="John",
+        email="abc@abc.com",
+        phone="1234567890",
+        message="Hello, I would like to know more about this service",
+    )
 
-#     res = client.post("/api/contact_requests/", content=payload.model_dump_json(), headers=headers)
+    res = client.post("/api/admin_contact_requests/", content=payload.model_dump_json(), headers=headers)
 
-#     assert res.status_code == 201
+    assert res.status_code == 201
 
-#     contact_request = s.ContactRequestOut.model_validate(res.json())
-#     assert contact_request.status == s.ContactRequestStatus.CREATED.value
+    contact_request = s.AdminContactRequestOut.model_validate(res.json())
+    assert contact_request.status == s.AdminContactRequestStatus.CREATED.value
 
-#     res = client.put(
-#         f"/api/contact_requests/{contact_request.uuid}",
-#         content=s.ContactRequestUpdateIn(status=s.ContactRequestStatus.PROCESSED).model_dump_json(),
-#         headers=headers,
-#     )
+    res = client.put(
+        f"/api/admin_contact_requests/{contact_request.uuid}",
+        content=s.AdminContactRequestUpdateIn(status=s.AdminContactRequestStatus.PROCESSED).model_dump_json(),
+        headers=admin_headers,
+    )
 
-#     assert res.status_code == 200
-#     updated_contact_request = s.ContactRequestOut.model_validate(res.json())
-#     assert updated_contact_request.status == s.ContactRequestStatus.PROCESSED.value
+    assert res.status_code == 200
+    updated_contact_request = s.AdminContactRequestOut.model_validate(res.json())
+    assert updated_contact_request.status == s.AdminContactRequestStatus.PROCESSED.value
 
 
-# def test_delete_contact_request(client: TestClient, full_db: Session, headers: dict[str, str]):
-#     store = full_db.scalar(select(m.Store))
-#     assert store
+def test_delete_admin_contact_request(
+    client: TestClient,
+    full_db: Session,
+    headers: dict[str, str],
+    admin_headers: dict[str, str],
+):
+    contact_request = s.AdminContactRequestIn(
+        name="John",
+        email="abc@abc.com",
+        phone="1234567890",
+        message="Hello, I would like to know more about this service",
+    )
+    response = client.post("/api/admin_contact_requests/", content=contact_request.model_dump_json(), headers=headers)
+    assert response.status_code == 201
 
-#     contact_request = m.ContactRequest(
-#         first_name="John",
-#         last_name="Doe",
-#         email="abc@abc.com",
-#         phone="1234567890",
-#         message="Hello, I would like to know more about this item",
-#         check_in=datetime.now(),
-#         check_out=datetime.now(),
-#         store_id=store.id,
-#     )
-#     full_db.add(contact_request)
-#     full_db.commit()
-#     full_db.refresh(store)
+    db_contact_request = s.AdminContactRequestOut.model_validate(response.json())
 
-#     res = client.delete(f"/api/contact_requests/{contact_request.uuid}", headers=headers)
-#     assert res.status_code == 204
+    res = client.delete(
+        f"/api/admin_contact_requests/{db_contact_request.uuid}",
+        headers=admin_headers,
+    )
+    assert res.status_code == 204
 
-#     full_db.refresh(contact_request)
+    assert db_contact_request.is_deleted is False
 
-#     assert contact_request.is_deleted
-
-#     res = client.get("/api/contact_requests", headers=headers)
-#     assert res.status_code == 200
-#     contact_requests = s.ContactRequestListOut.model_validate(res.json())
-#     assert len(contact_requests.items) == 0
+    res = client.get("/api/admin_contact_requests", headers=admin_headers)
+    assert res.status_code == 200
+    response_contact_requests = s.AdminContactRequestListOut.model_validate(res.json())
+    assert len(response_contact_requests.contact_requests) == 0

@@ -52,7 +52,7 @@ async def get_admin_contact_requests(
     """Get all contact requests for admin"""
 
     stmt = sa.select(m.AdminContactRequest).where(
-        sa.and_(m.AdminContactRequest.admin_id == admin.id, m.ContactRequest.is_deleted.is_(False))
+        sa.and_(m.AdminContactRequest.admin_id == admin.id, m.AdminContactRequest.is_deleted.is_(False))
     )
     if search:
         stmt = stmt.where(
@@ -64,7 +64,7 @@ async def get_admin_contact_requests(
     if status:
         stmt = stmt.where(m.AdminContactRequest.status == status.value)
     contact_requests = db.scalars(stmt).all()
-    res = s.AdminContactRequestListOut(items=list(contact_requests))
+    res = s.AdminContactRequestListOut(contact_requests=list(contact_requests))
     log(log.INFO, "Contact requests for admin {%s} fetched", admin.uuid)
     return res
 

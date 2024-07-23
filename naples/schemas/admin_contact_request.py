@@ -35,6 +35,7 @@ class AdminContactRequestUpdateIn(BaseModel):
 class AdminContactRequestOut(AdminContactRequestIn):
     uuid: str
     status: str
+    is_deleted: bool
 
     model_config = ConfigDict(
         from_attributes=True,
@@ -42,7 +43,7 @@ class AdminContactRequestOut(AdminContactRequestIn):
 
 
 class AdminContactRequestListOut(BaseModel):
-    items: list[AdminContactRequestOut]
+    contact_requests: list[AdminContactRequestOut]
 
     model_config = ConfigDict(
         from_attributes=True,
