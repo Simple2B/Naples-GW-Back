@@ -1,4 +1,3 @@
-import stripe
 from typing import Sequence
 from fastapi import Depends, UploadFile, APIRouter, status
 from fastapi_pagination import Page, Params, paginate
@@ -19,7 +18,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.sql.expression import Executable
 
 from naples.dependency import get_current_user, get_s3_connect, get_ses_client
-from naples.routes.utils import create_trial_subscription, get_user_data
+from naples.routes.utils import get_user_data
 from naples.utils import get_file_extension
 from naples.database import get_db
 from naples.utils import createMsgEmailChangePassword, sendEmailAmazonSES
@@ -480,73 +479,3 @@ def block_user(
     log(log.INFO, f"User {user.email} is blocked - {user.is_blocked}")
 
     return user
-
-
-@user_router.patch(
-    "/protect",
-    status_code=status.HTTP_200_OK,
-    response_model=s.Store,
-    dependencies=[Depends(get_admin)],
-    responses={
-        status.HTTP_404_NOT_FOUND: {"description": "Store not found"},
-        status.HTTP_400_BAD_REQUEST: {"description": "User subscription not found"},
-    },
-)
-def protect_store(
-    data: s.UserStoreIsProtectedIn,
-    db: Session = Depends(get_db),
-):
-    """Protect or unprotect store"""
-
-    store = db.scalar(sa.select(m.Store).where(m.Store.uuid == data.store_uuid))
-
-    if not store:
-        log(log.ERROR, "Store not found")
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Store not found")
-
-    is_protected = store.is_protected
-
-    store.is_protected = not is_protected
-
-    db.commit()
-    db.refresh(store)
-
-    log(log.INFO, f"Store {store.url} is protected - {store.is_protected}")
-
-    user = db.scalar(sa.select(m.User).where(m.User.id == store.user_id))
-
-    if not user:
-        log(log.ERROR, "User not found")
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
-
-    if not user.subscription:
-        log(log.ERROR, "User subscription not found")
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User subscription not found")
-
-    if not user.subscription.subscription_stripe_id and store.is_protected:
-        return store
-
-    if not user.subscription.subscription_stripe_id and store.is_protected is False:
-        create_trial_subscription(user, db, user.subscription.customer_stripe_id)
-        return store
-
-    user_stripe_subscription = stripe.Subscription.retrieve(user.subscription.subscription_stripe_id)
-
-    if not user_stripe_subscription:
-        log(log.ERROR, "User stripe subscription not found")
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User stripe subscription not found")
-
-    if store.is_protected:
-        # subscription must be canceled
-        if user_stripe_subscription.status == "canceled":
-            log(log.INFO, "User subscription already canceled [%s]", user.subscription.customer_stripe_id)
-            return user.subscription
-
-        res = stripe.Subscription.cancel(user_stripe_subscription.id)
-
-        log(log.INFO, "User subscription cancelled [%s]", res)
-
-    if store.is_protected is False:
-        create_trial_subscription(user, db, user.subscription.customer_stripe_id)
-
-    return store
