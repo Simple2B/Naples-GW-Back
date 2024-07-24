@@ -98,7 +98,7 @@ def get_published_items(
         items_check_in = [
             item
             for item in items
-            if not any(
+            if any(
                 [
                     check_in_date < booked_date.from_date.date() and booked_date.to_date.date() < check_in_date
                     for booked_date in item.booked_dates
@@ -114,7 +114,7 @@ def get_published_items(
         items_check_out = [
             item
             for item in items
-            if not any(
+            if any(
                 [
                     check_out_date < booked_date.from_date.date() and booked_date.to_date.date() < check_out_date
                     for booked_date in item.booked_dates
@@ -129,7 +129,7 @@ def get_published_items(
         items_out = [
             item
             for item in items
-            if not any(
+            if any(
                 [
                     (booked_date.to_date.date() < check_in_date and booked_date.to_date.date() < check_out_date)
                     or (booked_date.from_date.date() > check_in_date and booked_date.from_date.date() > check_out_date)
