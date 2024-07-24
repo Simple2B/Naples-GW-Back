@@ -20,7 +20,7 @@ class Subscription(db.Model, ModelMixin):
     id: orm.Mapped[int] = orm.mapped_column(primary_key=True)
     uuid: orm.Mapped[str] = orm.mapped_column(sa.String(32), default=create_uuid, unique=True)
 
-    type: orm.Mapped[str] = orm.mapped_column(default=s.ProductType.STARTER.value)
+    type: orm.Mapped[str] = orm.mapped_column(default=s.ProductType.PRO.value)
 
     status: orm.Mapped[str] = orm.mapped_column(sa.String(32), default=s.SubscriptionStatus.TRIALING.value)
 
