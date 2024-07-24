@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Sequence
 from fastapi import HTTPException, status
 import sqlalchemy as sa
@@ -185,3 +185,30 @@ def get_stores_admin(
     log(log.INFO, "Stores [%s] for admin panel ", len(stores))
 
     return stores
+
+
+# create trial subscription
+def create_trial_subscription(user: m.User, db: Session, stripe_customer_id: str) -> m.Subscription:
+    """Create trial subscription"""
+
+    start_date = datetime.now()
+    end_date = start_date + timedelta(days=CFG.STRIPE_SUBSCRIPTION_TRIAL_PERIOD_DAYS)
+
+    user_subscription = m.Subscription(
+        user_id=user.id,
+        customer_stripe_id=stripe_customer_id,
+        start_date=start_date,
+        end_date=end_date,
+    )
+
+    db.add(user_subscription)
+    db.commit()
+
+    log(
+        log.INFO,
+        "Trial subscription for user [%s] created with trial period [%s]",
+        user.email,
+        CFG.STRIPE_SUBSCRIPTION_TRIAL_PERIOD_DAYS,
+    )
+
+    return user_subscription

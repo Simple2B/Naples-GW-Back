@@ -14,6 +14,7 @@ class Store(BaseModel):
     phone: str = ""
     instagram_url: str = ""
     messenger_url: str = ""
+    is_protected: bool = False
 
     model_config = ConfigDict(
         from_attributes=True,
@@ -82,7 +83,6 @@ class StoreOut(Store):
     sub_title: EditableText
 
     about_us: StoreAboutUs
-    is_protected: bool = False
 
     model_config = ConfigDict(
         from_attributes=True,

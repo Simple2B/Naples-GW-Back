@@ -179,8 +179,8 @@ def update_store(
 
         log(log.INFO, "=== store url  updated to [%s]", store.url)
 
-        if check_main_domain(current_store.url) is False or CFG.MAIN_DOMAIN == current_store.url:
-            current_store.is_protected = True
+        # if check_main_domain(current_store.url) is False or CFG.MAIN_DOMAIN == current_store.url:
+        #     current_store.is_protected = True
 
     if store.email is not None:
         log(log.INFO, "Updating email to [%s] for store [%s]", store.email, current_store.url)

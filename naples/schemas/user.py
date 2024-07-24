@@ -148,3 +148,11 @@ class UserIsBlockedIn(BaseModel):
     model_config = ConfigDict(
         from_attributes=True,
     )
+
+
+class UserStoreIsProtectedIn(BaseModel):
+    store_uuid: str
+
+    model_config = ConfigDict(
+        from_attributes=True,
+    )

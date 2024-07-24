@@ -9,7 +9,7 @@ CFG = config()
 class SubscriptionStatus(enum.Enum):
     INCOMPLETE = "incomplete"
     INCOMPLETE_EXPIRED = "incomplete_expired"
-    # trial perid in our case is 14 days and manege by Fast API
+    # trial perid in our case is 7 days and manege by Fast API
     TRIALING = "trialing"
     ACTIVE = "active"
     PAST_DUE = "past_due"
