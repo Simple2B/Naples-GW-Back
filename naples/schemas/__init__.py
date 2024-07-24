@@ -17,6 +17,7 @@ from .user import (
     UserIsBlockedIn,
     AdminContactData,
     AdminContactDataIn,
+    UserStoreIsProtectedIn,
 )
 from .token import Token, TokenData, TokenOut, Auth
 from .store import (

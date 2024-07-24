@@ -25,6 +25,7 @@ class TestItem(ItemIn):
 
 
 class TestStore(StoreIn):
+    uuid: str
     user_id: int
 
 

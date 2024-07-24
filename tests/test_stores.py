@@ -314,6 +314,14 @@ def test_update_store(client: TestClient, headers: dict[str, str], full_db: Sess
     assert store.instagram_url == str(more_update_data.instagram_url)
     assert store.url == more_update_data.url
 
+    update_data_with_url = s.StoreUpdateIn(
+        url="propertyroster.com",
+    )
+
+    res = client.patch("/api/stores/", headers=headers, content=update_data_with_url.model_dump_json())
+    assert res.status_code == 200
+    assert res.json()["url"] == "propertyroster.com"
+
 
 def test_get_stores_urls(
     client: TestClient,

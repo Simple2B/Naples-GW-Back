@@ -164,6 +164,10 @@ class AdminContactDataIn(BaseModel):
     email: str | None = None
     phone: str | None = None
 
+
+class UserStoreIsProtectedIn(BaseModel):
+    store_uuid: str
+
     model_config = ConfigDict(
         from_attributes=True,
     )

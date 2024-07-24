@@ -12,6 +12,10 @@ def get_user_subscribe(store: m.Store = Depends(get_current_store), db: Session 
     """Get the current subscription for authorized user.
     Should be used for endpoints related to subscription management by clients."""
 
+    if store.is_protected:
+        log(log.INFO, "Store {%s} is protected", store.uuid)
+        return store.user.subscription
+
     if not store.user.subscription:
         log(log.INFO, "User {%s} does not have a subscription", store.user.uuid)
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User does not have a subscription")

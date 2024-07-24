@@ -72,6 +72,8 @@ class Store(db.Model, ModelMixin):
 
     about_us_main_media_id: orm.Mapped[int | None] = orm.mapped_column(sa.ForeignKey("files.id"), nullable=True)
 
+    is_protected: orm.Mapped[bool] = orm.mapped_column(sa.Boolean, default=False, server_default="false")
+
     _main_media: orm.Mapped["File"] = orm.relationship(viewonly=True, foreign_keys=[main_media_id])
 
     _about_us_main_media: orm.Mapped["File"] = orm.relationship(viewonly=True, foreign_keys=[about_us_main_media_id])
