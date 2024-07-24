@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 from typing import Sequence
 from fastapi.testclient import TestClient
 from mypy_boto3_s3 import S3Client
@@ -219,6 +220,44 @@ def test_get_items(client: TestClient, full_db: Session, headers: dict[str, str]
 
     response = client.get("/api/items", params={"store_url": store.url})
     assert response.status_code == 200
+
+    db_item = full_db.scalar(select(m.Item))
+    assert db_item
+
+    booked_date_one = m.BookedDate(
+        from_date=datetime.now(),
+        to_date=datetime.now() + timedelta(3),
+        item_id=db_item.id,
+    )
+    booked_date_two = m.BookedDate(
+        from_date=datetime.now() + timedelta(4),
+        to_date=datetime.now() + timedelta(7),
+        item_id=db_item.id,
+    )
+
+    full_db.add_all([booked_date_one, booked_date_two])
+    full_db.commit()
+    full_db.refresh(item)
+
+    booked_date = db_item.booked_dates
+    assert booked_date
+
+    check_in = booked_date[0].from_date
+    check_out = booked_date[1].to_date
+
+    response = client.get(
+        "/api/items",
+        headers=headers,
+        params={
+            "store_url": store.url,
+            "page": 1,
+            "size": 5,
+            "check_in": check_in,  # type: ignore
+            "check_out": check_out,  # type: ignore
+        },
+    )
+    assert response.status_code == 200
+    assert s.Items.model_validate(response.json()).items
 
     all_items_response = client.get(
         "/api/items/all",
