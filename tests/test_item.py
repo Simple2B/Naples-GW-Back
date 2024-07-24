@@ -242,6 +242,8 @@ def test_get_items(client: TestClient, full_db: Session, headers: dict[str, str]
     booked_date = db_item.booked_dates
     assert booked_date
 
+    # id 4
+
     check_in = booked_date[0].from_date
     check_out = booked_date[1].to_date
 
@@ -257,7 +259,7 @@ def test_get_items(client: TestClient, full_db: Session, headers: dict[str, str]
         },
     )
     assert response.status_code == 200
-    assert s.Items.model_validate(response.json()).items
+    assert len(s.Items.model_validate(response.json()).items) == 2
 
     all_items_response = client.get(
         "/api/items/all",

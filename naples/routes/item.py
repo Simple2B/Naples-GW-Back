@@ -104,6 +104,7 @@ def get_published_items(
                     for booked_date in item.booked_dates
                 ]
             )
+            or not item.booked_dates
         ]
         return paginate(items_check_in, params)
 
@@ -120,6 +121,7 @@ def get_published_items(
                     for booked_date in item.booked_dates
                 ]
             )
+            or not item.booked_dates
         ]
         return paginate(items_check_out, params)
 
@@ -136,6 +138,7 @@ def get_published_items(
                     for booked_date in item.booked_dates
                 ]
             )
+            or not item.booked_dates
         ]
         return paginate(items_out, params)
 
