@@ -1,10 +1,16 @@
 from fastapi import APIRouter, Depends, status, HTTPException
 from sqlalchemy.orm import Session
 import sqlalchemy as sa
+from mypy_boto3_ses import SESClient
+from botocore.exceptions import ClientError
 
 from naples import schemas as s, models as m, dependency as d
 from naples.logger import log
 from naples.database import get_db
+from naples.config import config
+from naples.utils import createMsgAdminContactRequest, sendEmailAmazonSES
+
+CFG = config()
 
 
 admin_contact_request_router = APIRouter(prefix="/admin_contact_requests", tags=["Contact Requests for Admin"])
@@ -22,6 +28,7 @@ async def admin_create_contact_request(
     contact_request: s.AdminContactRequestIn,
     admin: m.User = Depends(d.get_user_admin),
     db: Session = Depends(get_db),
+    ses: SESClient = Depends(d.get_ses_client),
 ):
     """Create a contact request for admin"""
 
@@ -36,6 +43,29 @@ async def admin_create_contact_request(
     db.refresh(contact_request)
 
     log(log.INFO, "Contact request {%s} created for admin {%s}", contact_request.uuid, admin.uuid)
+
+    # Sending email to the admin
+    mail_message = createMsgAdminContactRequest(contact_request)
+    recipient_email = admin.email
+
+    try:
+        emailContent = s.EmailAmazonSESContent(
+            recipient_email=recipient_email,
+            sender_email=CFG.MAIL_DEFAULT_SENDER,
+            message=mail_message,
+            charset=CFG.CHARSET,
+            mail_body_text="New Contact Request!",
+            mail_subject="New Admin Contact Request",
+        )
+        sendEmailAmazonSES(emailContent, ses_client=ses)
+
+    except ClientError as e:
+        log(log.ERROR, "Email not sent! [%s]", e)
+        log(log.ERROR, "Email not sent with new admin contact request to [%s]! ", recipient_email)
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Email not sent with new admin contact reques!"
+        )
+
     return contact_request
 
 

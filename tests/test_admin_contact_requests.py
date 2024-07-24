@@ -1,18 +1,30 @@
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 from sqlalchemy import select
+from moto import mock_aws
+from mypy_boto3_ses import SESClient
 
 
 from naples import schemas as s, models as m
 
+from naples.config import config
 
+
+CFG = config("testing")
+
+
+@mock_aws
 def test_create_admin_contact_request(
     client: TestClient,
     full_db: Session,
     headers: dict[str, str],
+    ses: SESClient,
 ):
     admin = full_db.scalar(select(m.User).where(m.User.role == s.UserRole.ADMIN.value))
     assert admin
+
+    ses.verify_email_address(EmailAddress=admin.email)
+    ses.verify_email_address(EmailAddress=CFG.MAIL_DEFAULT_SENDER)
 
     req_payload = s.AdminContactRequestIn(
         name="John Doe",
@@ -20,6 +32,8 @@ def test_create_admin_contact_request(
         phone="1234567890",
         message="Hello, I would like to know more about this service",
     )
+
+    ses.verify_email_address(EmailAddress=req_payload.email)
 
     res = client.post("/api/admin_contact_requests/", content=req_payload.model_dump_json(), headers=headers)
     assert res.status_code == 201
