@@ -148,3 +148,22 @@ class UserIsBlockedIn(BaseModel):
     model_config = ConfigDict(
         from_attributes=True,
     )
+
+
+# contacts data of admin for template
+class AdminContactData(BaseModel):
+    email: str
+    phone: str
+
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
+
+
+class AdminContactDataIn(BaseModel):
+    email: str | None = None
+    phone: str | None = None
+
+    model_config = ConfigDict(
+        from_attributes=True,
+    )

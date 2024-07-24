@@ -21,7 +21,7 @@ from .amenity import amenities_router
 from .contact_request import contact_request_router
 from .subscription import subscription_router
 from .product import product_router
-from .contact_request_admin import admin_contact_request_router
+from .admin_contact_request import admin_contact_request_router
 
 from .metadata import metadatas_router
 

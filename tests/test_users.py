@@ -188,3 +188,35 @@ def test_block_user(
         json=data.model_dump(),
     )
     assert response.status_code == 200
+
+
+# contacts data of admin for template
+def test_admin_contacts(
+    client: TestClient,
+    admin_headers: dict[str, str],
+):
+    response = client.get(
+        "/api/users/contacts",
+        headers=admin_headers,
+    )
+
+    assert response.status_code == 200
+    contacts = s.AdminContactData.model_validate(response.json())
+    assert contacts.email == "testemail2@gmail.com"
+    assert contacts.phone == ""
+
+    # test update
+    data = s.AdminContactDataIn(
+        email="update@email.com",
+        phone="1234567890",
+    )
+
+    response = client.patch(
+        "/api/users/contacts",
+        headers=admin_headers,
+        json=data.model_dump(),
+    )
+
+    assert response.status_code == 200
+    assert response.json()["email"] == data.email
+    assert response.json()["phone"] == data.phone

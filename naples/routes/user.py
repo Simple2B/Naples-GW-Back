@@ -481,3 +481,38 @@ def block_user(
     log(log.INFO, f"User {user.email} is blocked - {user.is_blocked}")
 
     return user
+
+
+# contacts data of admin for template
+@user_router.get(
+    "/contacts",
+    response_model=s.AdminContactData,
+)
+def get_admin_contacts(
+    admin: m.User = Depends(get_admin),
+):
+    """Get admin contacts"""
+
+    return s.AdminContactData(email=admin.email, phone=admin.phone)
+
+
+@user_router.patch(
+    "/contacts",
+    response_model=s.User,
+)
+def update_admin_contacts(
+    data: s.AdminContactDataIn,
+    db: Session = Depends(get_db),
+    admin: m.User = Depends(get_admin),
+):
+    """Get admin contacts"""
+
+    if data.email:
+        admin.email = data.email
+    if data.phone:
+        admin.phone = data.phone
+
+    db.commit()
+    db.refresh(admin)
+
+    return admin
