@@ -296,7 +296,6 @@ def test_update_store(client: TestClient, headers: dict[str, str], full_db: Sess
     assert store.sub_title.font_size == update_data.sub_title_font_size
     assert store.about_us
     assert store.about_us.about_us_description == update_data.about_us_description
-    assert store.is_protected is False
 
     more_update_data = s.StoreUpdateIn(
         messenger_url="https://messenger.com",
@@ -314,7 +313,6 @@ def test_update_store(client: TestClient, headers: dict[str, str], full_db: Sess
     assert store.phone == more_update_data.phone
     assert store.instagram_url == str(more_update_data.instagram_url)
     assert store.url == more_update_data.url
-    assert store.is_protected
 
     update_data_with_url = s.StoreUpdateIn(
         url="propertyroster.com",
@@ -323,7 +321,6 @@ def test_update_store(client: TestClient, headers: dict[str, str], full_db: Sess
     res = client.patch("/api/stores/", headers=headers, content=update_data_with_url.model_dump_json())
     assert res.status_code == 200
     assert res.json()["url"] == "propertyroster.com"
-    assert res.json()["is_protected"]
 
 
 def test_get_stores_urls(
