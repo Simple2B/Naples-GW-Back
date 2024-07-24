@@ -105,7 +105,7 @@ def check_user_subscription_max_active_items(store: m.Store, item: m.Item, db: S
 
     max_active_items = product_db.max_active_items
 
-    if len(active_items) == max_active_items:
+    if len(active_items) == max_active_items or len(active_items) > max_active_items:
         if item.id not in active_items_ids:
             log(log.INFO, f"Max active items limit reached: {max_active_items}")
             return False
