@@ -118,6 +118,8 @@ class ItemOut(BaseModel):
 
     stage: ItemStage
 
+    booked_dates: list[BookedDateOut] = []
+
     model_config = ConfigDict(
         from_attributes=True,
     )
