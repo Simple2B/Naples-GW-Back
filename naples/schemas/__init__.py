@@ -15,6 +15,8 @@ from .user import (
     StoreHistoryAdmin,
     UserHistoryAdmin,
     UserIsBlockedIn,
+    AdminContactData,
+    AdminContactDataIn,
     UserStoreIsProtectedIn,
 )
 from .token import Token, TokenData, TokenOut, Auth
@@ -123,4 +125,11 @@ from .product import (
 )
 from .point import Point, PointIn, PointOut, PointsOut
 from .link import LinkType, Link, LinkIn, LinkOut, LinksOut
+from .admin_contact_request import (
+    AdminContactRequestStatus,
+    AdminContactRequestIn,
+    AdminContactRequestUpdateIn,
+    AdminContactRequestOut,
+    AdminContactRequestListOut,
+)
 from .metadata import MetadataType, Metadata, MetadataIn, MetadataOut, Metadaties

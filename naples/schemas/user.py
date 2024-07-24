@@ -150,6 +150,21 @@ class UserIsBlockedIn(BaseModel):
     )
 
 
+# contacts data of admin for template
+class AdminContactData(BaseModel):
+    email: str
+    phone: str
+
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
+
+
+class AdminContactDataIn(BaseModel):
+    email: str | None = None
+    phone: str | None = None
+
+
 class UserStoreIsProtectedIn(BaseModel):
     store_uuid: str
 
