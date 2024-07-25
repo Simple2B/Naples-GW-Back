@@ -81,9 +81,8 @@ async def get_admin_contact_requests(
 ):
     """Get all contact requests for admin"""
 
-    stmt = sa.select(m.AdminContactRequest).where(
-        sa.and_(m.AdminContactRequest.admin_id == admin.id, m.AdminContactRequest.is_deleted.is_(False))
-    )
+    stmt = sa.select(m.AdminContactRequest).where(m.AdminContactRequest.is_deleted.is_(False))
+
     if search:
         stmt = stmt.where(
             sa.or_(
