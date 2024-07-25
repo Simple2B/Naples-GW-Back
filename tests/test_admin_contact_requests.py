@@ -48,12 +48,15 @@ def test_create_admin_contact_request(
     assert contact_request.email == contact_request_model.email
 
 
+@mock_aws
 def test_get_admin_contact_requests(
     client: TestClient,
     full_db: Session,
     headers: dict[str, str],
     admin_headers: dict[str, str],
+    ses: SESClient,
 ):
+    ses.verify_email_address(EmailAddress=CFG.MAIL_DEFAULT_SENDER)
     request_one = s.AdminContactRequestIn(
         first_name="John",
         last_name="Doe",
@@ -61,6 +64,8 @@ def test_get_admin_contact_requests(
         phone="1234567890",
         message="Hello, I would like to know more about this service",
     )
+
+    ses.verify_email_address(EmailAddress=request_one.email)
 
     res_one = client.post("/api/admin_contact_requests/", content=request_one.model_dump_json(), headers=headers)
     assert res_one.status_code == 201
@@ -72,6 +77,8 @@ def test_get_admin_contact_requests(
         phone="1234567890",
         message="Hello, I would like to know more about this service",
     )
+
+    ses.verify_email_address(EmailAddress=request_two.email)
 
     res_two = client.post("/api/admin_contact_requests/", content=request_two.model_dump_json())
     assert res_two.status_code == 201
@@ -112,13 +119,17 @@ def test_get_admin_contact_requests(
     assert processed_requests.contact_requests[0].first_name == "John"
 
 
+@mock_aws
 def test_update_admin_contact_request_status(
     client: TestClient,
     full_db: Session,
     admin_headers: dict[str, str],
+    ses: SESClient,
 ):
     admin = full_db.scalar(select(m.User).where(m.User.role == s.UserRole.ADMIN.value))
     assert admin
+    ses.verify_email_address(EmailAddress=CFG.MAIL_DEFAULT_SENDER)
+    ses.verify_email_address(EmailAddress=admin.email)
 
     payload = s.AdminContactRequestIn(
         first_name="John",
@@ -127,6 +138,8 @@ def test_update_admin_contact_request_status(
         phone="1234567890",
         message="Hello, I would like to know more about this service!",
     )
+
+    ses.verify_email_address(EmailAddress=payload.email)
 
     res = client.post(
         "/api/admin_contact_requests/",
@@ -151,10 +164,13 @@ def test_update_admin_contact_request_status(
     assert updated_contact_request.status == s.AdminContactRequestStatus.PROCESSED
 
 
+@mock_aws
 def test_delete_admin_contact_request(
     client: TestClient,
     admin_headers: dict[str, str],
+    ses: SESClient,
 ):
+    ses.verify_email_address(EmailAddress=CFG.MAIL_DEFAULT_SENDER)
     contact_request = s.AdminContactRequestIn(
         first_name="John",
         last_name="Doe",
@@ -162,6 +178,7 @@ def test_delete_admin_contact_request(
         phone="1234567890",
         message="Hello, I would like to know more about this service",
     )
+    ses.verify_email_address(EmailAddress=contact_request.email)
     response = client.post("/api/admin_contact_requests/", content=contact_request.model_dump_json())
     assert response.status_code == 201
 
