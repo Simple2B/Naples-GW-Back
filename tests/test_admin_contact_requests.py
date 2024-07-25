@@ -126,7 +126,7 @@ def test_update_admin_contact_request_status(
         last_name="Doe",
         email="abc@abc.com",
         phone="1234567890",
-        message="Hello, I would like to know more about this service",
+        message="Hello, I would like to know more about this service!",
     )
 
     res = client.post("/api/admin_contact_requests/", content=payload.model_dump_json(), headers=headers)
@@ -134,6 +134,7 @@ def test_update_admin_contact_request_status(
     assert res.status_code == 201
 
     contact_request = s.AdminContactRequestOut.model_validate(res.json())
+
     assert contact_request.status == s.AdminContactRequestStatus.CREATED
 
     res = client.put(
@@ -143,6 +144,7 @@ def test_update_admin_contact_request_status(
     )
 
     assert res.status_code == 200
+
     updated_contact_request = s.AdminContactRequestOut.model_validate(res.json())
     assert updated_contact_request.status == s.AdminContactRequestStatus.PROCESSED
 
