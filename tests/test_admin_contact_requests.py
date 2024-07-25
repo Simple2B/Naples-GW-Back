@@ -27,7 +27,8 @@ def test_create_admin_contact_request(
     ses.verify_email_address(EmailAddress=CFG.MAIL_DEFAULT_SENDER)
 
     req_payload = s.AdminContactRequestIn(
-        name="John Doe",
+        first_name="John",
+        last_name="Doe",
         email="john_doe@buu.com",
         phone="1234567890",
         message="Hello, I would like to know more about this service",
@@ -42,7 +43,8 @@ def test_create_admin_contact_request(
     contact_request_model = full_db.scalar(select(m.AdminContactRequest))
     assert contact_request_model
 
-    assert contact_request.name == contact_request_model.name
+    assert contact_request.first_name == contact_request_model.first_name
+    assert contact_request.last_name == contact_request_model.last_name
     assert contact_request.email == contact_request_model.email
 
 
@@ -53,7 +55,8 @@ def test_get_admin_contact_requests(
     admin_headers: dict[str, str],
 ):
     request_one = s.AdminContactRequestIn(
-        name="John Doe",
+        first_name="John",
+        last_name="Doe",
         email="abc@abc.com",
         phone="1234567890",
         message="Hello, I would like to know more about this service",
@@ -63,7 +66,8 @@ def test_get_admin_contact_requests(
     assert res_one.status_code == 201
 
     request_two = s.AdminContactRequestIn(
-        name="Den Brown",
+        first_name="Den",
+        last_name="Brown",
         email="def@def.com",
         phone="1234567890",
         message="Hello, I would like to know more about this service",
@@ -81,14 +85,14 @@ def test_get_admin_contact_requests(
 
     assert len(admin_contact_requests) == len(contact_requests.contact_requests)
 
-    assert contact_requests.contact_requests[0].name == request_one.name
+    assert contact_requests.contact_requests[0].first_name == request_one.first_name
     assert contact_requests.contact_requests[1].email == request_two.email
 
     res_den = client.get("/api/admin_contact_requests", headers=admin_headers, params={"search": "Den"})
     assert res_den.status_code == 200
     user = s.AdminContactRequestListOut.model_validate(res_den.json())
     assert len(user.contact_requests) == 1
-    assert user.contact_requests[0].name == "Den Brown"
+    assert user.contact_requests[0].first_name == "Den"
 
     john_model = full_db.scalar(select(m.AdminContactRequest).where(m.AdminContactRequest.email == "abc@abc.com"))
     assert john_model
@@ -105,7 +109,7 @@ def test_get_admin_contact_requests(
     processed_requests = s.AdminContactRequestListOut.model_validate(processed.json())
 
     assert len(processed_requests.contact_requests) == 1
-    assert processed_requests.contact_requests[0].name == "John Doe"
+    assert processed_requests.contact_requests[0].first_name == "John"
 
 
 def test_update_admin_contact_request_status(
@@ -118,7 +122,8 @@ def test_update_admin_contact_request_status(
     assert admin
 
     payload = s.AdminContactRequestIn(
-        name="John",
+        first_name="John",
+        last_name="Doe",
         email="abc@abc.com",
         phone="1234567890",
         message="Hello, I would like to know more about this service",
@@ -144,12 +149,12 @@ def test_update_admin_contact_request_status(
 
 def test_delete_admin_contact_request(
     client: TestClient,
-    full_db: Session,
     headers: dict[str, str],
     admin_headers: dict[str, str],
 ):
     contact_request = s.AdminContactRequestIn(
-        name="John",
+        first_name="John",
+        last_name="Doe",
         email="abc@abc.com",
         phone="1234567890",
         message="Hello, I would like to know more about this service",

@@ -14,7 +14,8 @@ class AdminContactRequestStatus(Enum):
 
 
 class AdminContactRequestIn(BaseModel):
-    name: str
+    first_name: str
+    last_name: str
     email: str
     phone: str
     message: str
