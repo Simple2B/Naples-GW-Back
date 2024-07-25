@@ -134,7 +134,7 @@ def test_update_admin_contact_request_status(
     assert res.status_code == 201
 
     contact_request = s.AdminContactRequestOut.model_validate(res.json())
-    assert contact_request.status == s.AdminContactRequestStatus.CREATED.value
+    assert contact_request.status == s.AdminContactRequestStatus.CREATED
 
     res = client.put(
         f"/api/admin_contact_requests/{contact_request.uuid}",
@@ -144,7 +144,7 @@ def test_update_admin_contact_request_status(
 
     assert res.status_code == 200
     updated_contact_request = s.AdminContactRequestOut.model_validate(res.json())
-    assert updated_contact_request.status == s.AdminContactRequestStatus.PROCESSED.value
+    assert updated_contact_request.status == s.AdminContactRequestStatus.PROCESSED
 
 
 def test_delete_admin_contact_request(

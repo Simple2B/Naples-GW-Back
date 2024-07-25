@@ -35,7 +35,7 @@ class AdminContactRequestUpdateIn(BaseModel):
 
 class AdminContactRequestOut(AdminContactRequestIn):
     uuid: str
-    status: str
+    status: AdminContactRequestStatus
     is_deleted: bool
 
     model_config = ConfigDict(
