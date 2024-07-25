@@ -207,7 +207,7 @@ def test_get_update_admin_contact_data(
     data = s.AdminContactDataIn(
         phone="1234567890",
         instagram_url="instagram.com",
-        messenger_url="messenger.com",
+        facebook_url="messenger.com",
         linkedin_url="linkedin.com",
     )
 

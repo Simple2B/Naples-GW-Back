@@ -38,7 +38,7 @@ class User(db.Model, ModelMixin):
 
     instagram_url: orm.Mapped[str] = orm.mapped_column(sa.String(256), default="", server_default="")
 
-    messenger_url: orm.Mapped[str] = orm.mapped_column(sa.String(256), default="", server_default="")
+    facebook_url: orm.Mapped[str] = orm.mapped_column(sa.String(256), default="", server_default="")
 
     linkedin_url: orm.Mapped[str] = orm.mapped_column(sa.String(256), default="", server_default="")
 

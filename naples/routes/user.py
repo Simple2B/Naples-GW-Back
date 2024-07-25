@@ -505,7 +505,7 @@ def get_admin_contacts_data(
         email=admin.email,
         phone=admin.phone,
         instagram_url=admin.instagram_url,
-        messenger_url=admin.messenger_url,
+        facebook_url=admin.facebook_url,
         linkedin_url=admin.linkedin_url,
     )
 
@@ -537,9 +537,9 @@ def update_admin_contacts_data(
         log(log.INFO, f"Admin {admin.email} updated his instagram_url to {data.instagram_url}")
         admin.instagram_url = data.instagram_url
 
-    if data.messenger_url:
-        log(log.INFO, f"Admin {admin.email} updated his messenger_url to {data.messenger_url}")
-        admin.messenger_url = data.messenger_url
+    if data.facebook_url:
+        log(log.INFO, f"Admin {admin.email} updated his facebook_url to {data.facebook_url}")
+        admin.facebook_url = data.facebook_url
 
     if data.linkedin_url:
         log(log.INFO, f"Admin {admin.email} updated his linkedin_url to {data.linkedin_url}")

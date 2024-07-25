@@ -155,7 +155,7 @@ class AdminContactData(BaseModel):
     email: str
     phone: str
     instagram_url: str = ""
-    messenger_url: str = ""
+    facebook_url: str = ""
     linkedin_url: str = ""
 
     model_config = ConfigDict(
@@ -167,7 +167,7 @@ class AdminContactDataIn(BaseModel):
     email: str | None = None
     phone: str | None = None
     instagram_url: str | None = None
-    messenger_url: str | None = None
+    facebook_url: str | None = None
     linkedin_url: str | None = None
 
 
