@@ -73,7 +73,7 @@ def test_get_admin_contact_requests(
         message="Hello, I would like to know more about this service",
     )
 
-    res_two = client.post("/api/admin_contact_requests/", content=request_two.model_dump_json(), headers=headers)
+    res_two = client.post("/api/admin_contact_requests/", content=request_two.model_dump_json())
     assert res_two.status_code == 201
 
     res = client.get("/api/admin_contact_requests/", headers=admin_headers)
@@ -115,7 +115,6 @@ def test_get_admin_contact_requests(
 def test_update_admin_contact_request_status(
     client: TestClient,
     full_db: Session,
-    headers: dict[str, str],
     admin_headers: dict[str, str],
 ):
     admin = full_db.scalar(select(m.User).where(m.User.role == s.UserRole.ADMIN.value))
@@ -129,7 +128,10 @@ def test_update_admin_contact_request_status(
         message="Hello, I would like to know more about this service!",
     )
 
-    res = client.post("/api/admin_contact_requests/", content=payload.model_dump_json(), headers=headers)
+    res = client.post(
+        "/api/admin_contact_requests/",
+        content=payload.model_dump_json(),
+    )
 
     assert res.status_code == 201
 
@@ -151,7 +153,6 @@ def test_update_admin_contact_request_status(
 
 def test_delete_admin_contact_request(
     client: TestClient,
-    headers: dict[str, str],
     admin_headers: dict[str, str],
 ):
     contact_request = s.AdminContactRequestIn(
@@ -161,7 +162,7 @@ def test_delete_admin_contact_request(
         phone="1234567890",
         message="Hello, I would like to know more about this service",
     )
-    response = client.post("/api/admin_contact_requests/", content=contact_request.model_dump_json(), headers=headers)
+    response = client.post("/api/admin_contact_requests/", content=contact_request.model_dump_json())
     assert response.status_code == 201
 
     db_contact_request = s.AdminContactRequestOut.model_validate(response.json())
