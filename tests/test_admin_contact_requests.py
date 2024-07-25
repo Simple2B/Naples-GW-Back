@@ -92,8 +92,8 @@ def test_get_admin_contact_requests(
 
     assert len(admin_contact_requests) == len(contact_requests.contact_requests)
 
-    assert contact_requests.contact_requests[0].first_name == request_one.first_name
-    assert contact_requests.contact_requests[1].email == request_two.email
+    assert contact_requests.contact_requests[0].first_name == request_two.first_name
+    assert contact_requests.contact_requests[1].email == request_one.email
 
     res_den = client.get("/api/admin_contact_requests", headers=admin_headers, params={"search": "Den"})
     assert res_den.status_code == 200

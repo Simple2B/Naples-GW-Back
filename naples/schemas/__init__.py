@@ -15,8 +15,6 @@ from .user import (
     StoreHistoryAdmin,
     UserHistoryAdmin,
     UserIsBlockedIn,
-    AdminContactData,
-    AdminContactDataIn,
     UserStoreIsProtectedIn,
 )
 from .token import Token, TokenData, TokenOut, Auth

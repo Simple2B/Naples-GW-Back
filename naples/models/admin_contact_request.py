@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import TYPE_CHECKING
 
 import sqlalchemy as sa
@@ -6,7 +7,7 @@ from sqlalchemy import orm
 from naples.database import db
 from naples.schemas.admin_contact_request import AdminContactRequestStatus
 
-from .utils import create_uuid
+from .utils import create_uuid, datetime_utc
 
 if TYPE_CHECKING:
     from .user import User
@@ -33,6 +34,8 @@ class AdminContactRequest(db.Model):
     admin_id: orm.Mapped[int] = orm.mapped_column(sa.ForeignKey("users.id"))
 
     admin: orm.Mapped["User"] = orm.relationship()
+
+    created_at: orm.Mapped[datetime] = orm.mapped_column(default=datetime_utc, server_default=sa.func.now())
 
     def __repr__(self):
         return f"<AdminContactRequest [{self.uuid}]: Name - [{self.name}]>"

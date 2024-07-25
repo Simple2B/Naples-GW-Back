@@ -36,12 +36,6 @@ class User(db.Model, ModelMixin):
 
     phone: orm.Mapped[str] = orm.mapped_column(sa.String(16), default="", server_default="")
 
-    instagram_url: orm.Mapped[str] = orm.mapped_column(sa.String(256), default="", server_default="")
-
-    facebook_url: orm.Mapped[str] = orm.mapped_column(sa.String(256), default="", server_default="")
-
-    linkedin_url: orm.Mapped[str] = orm.mapped_column(sa.String(256), default="", server_default="")
-
     avatar_id: orm.Mapped[int | None] = orm.mapped_column(sa.ForeignKey("files.id"))
 
     password_hash: orm.Mapped[str] = orm.mapped_column(sa.String(256), default="")

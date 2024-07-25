@@ -34,7 +34,7 @@ def test_save_get_metadata(
 
     metadata_db = db.scalars(sa.select(m.Metadata)).all()
     assert metadata_db
-    assert len(metadata_db) == 2
+    assert len(metadata_db) == 7
 
     update_data = s.MetadataIn(image_cover_url="image cover url")
 

@@ -46,8 +46,10 @@ async def admin_create_contact_request(
 
     # Sending email to the admin
     mail_message = createMsgContactRequest(contact_request)
-    recipient_email = admin.email
 
+    # get email from metadata
+    contact_email = db.scalar(sa.select(m.Metadata).where(m.Metadata.key == s.MetadataType.CONTACT_EMAIL.value))
+    recipient_email = contact_email.value if contact_email else CFG.ADMIN_EMAIL
     try:
         emailContent = s.EmailAmazonSESContent(
             recipient_email=recipient_email,
@@ -58,6 +60,8 @@ async def admin_create_contact_request(
             mail_subject="New Admin Contact Request",
         )
         sendEmailAmazonSES(emailContent, ses_client=ses)
+
+        log(log.INFO, "Email sent with new admin contact request to [%s]! ", recipient_email)
 
     except ClientError as e:
         log(log.ERROR, "Email not sent! [%s]", e)
@@ -81,7 +85,11 @@ async def get_admin_contact_requests(
 ):
     """Get all contact requests for admin"""
 
-    stmt = sa.select(m.AdminContactRequest).where(m.AdminContactRequest.is_deleted.is_(False))
+    stmt = (
+        sa.select(m.AdminContactRequest)
+        .where(m.AdminContactRequest.is_deleted.is_(False))
+        .order_by(m.AdminContactRequest.created_at.desc())
+    )
 
     if search:
         stmt = stmt.where(

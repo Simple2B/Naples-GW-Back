@@ -150,27 +150,6 @@ class UserIsBlockedIn(BaseModel):
     )
 
 
-# contacts data of admin for template
-class AdminContactData(BaseModel):
-    email: str
-    phone: str
-    instagram_url: str = ""
-    facebook_url: str = ""
-    linkedin_url: str = ""
-
-    model_config = ConfigDict(
-        from_attributes=True,
-    )
-
-
-class AdminContactDataIn(BaseModel):
-    email: str | None = None
-    phone: str | None = None
-    instagram_url: str | None = None
-    facebook_url: str | None = None
-    linkedin_url: str | None = None
-
-
 class UserStoreIsProtectedIn(BaseModel):
     store_uuid: str
 
