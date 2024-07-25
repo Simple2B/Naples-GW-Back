@@ -154,6 +154,9 @@ class UserIsBlockedIn(BaseModel):
 class AdminContactData(BaseModel):
     email: str
     phone: str
+    instagram_url: str = ""
+    messenger_url: str = ""
+    linkedin_url: str = ""
 
     model_config = ConfigDict(
         from_attributes=True,
@@ -163,6 +166,9 @@ class AdminContactData(BaseModel):
 class AdminContactDataIn(BaseModel):
     email: str | None = None
     phone: str | None = None
+    instagram_url: str | None = None
+    messenger_url: str | None = None
+    linkedin_url: str | None = None
 
 
 class UserStoreIsProtectedIn(BaseModel):

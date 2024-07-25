@@ -8,7 +8,7 @@ from naples import schemas as s, models as m, dependency as d
 from naples.logger import log
 from naples.database import get_db
 from naples.config import config
-from naples.utils import createMsgAdminContactRequest, sendEmailAmazonSES
+from naples.utils import createMsgContactRequest, sendEmailAmazonSES
 
 CFG = config()
 
@@ -45,7 +45,7 @@ async def admin_create_contact_request(
     log(log.INFO, "Contact request {%s} created for admin {%s}", contact_request.uuid, admin.uuid)
 
     # Sending email to the admin
-    mail_message = createMsgAdminContactRequest(contact_request)
+    mail_message = createMsgContactRequest(contact_request)
     recipient_email = admin.email
 
     try:
@@ -87,7 +87,8 @@ async def get_admin_contact_requests(
     if search:
         stmt = stmt.where(
             sa.or_(
-                m.AdminContactRequest.name.ilike(f"%{search}%"),
+                m.AdminContactRequest.first_name.ilike(f"%{search}%"),
+                m.AdminContactRequest.last_name.ilike(f"%{search}%"),
                 m.AdminContactRequest.email.ilike(f"%{search}%"),
             )
         )

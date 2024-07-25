@@ -19,7 +19,8 @@ class AdminContactRequest(db.Model):
     id: orm.Mapped[int] = orm.mapped_column(primary_key=True)
     uuid: orm.Mapped[str] = orm.mapped_column(sa.String(32), default=create_uuid, unique=True)
 
-    name: orm.Mapped[str] = orm.mapped_column(sa.String(128))
+    first_name: orm.Mapped[str] = orm.mapped_column(sa.String(64))
+    last_name: orm.Mapped[str] = orm.mapped_column(sa.String(64))
 
     email: orm.Mapped[str] = orm.mapped_column(sa.String(512))
     phone: orm.Mapped[str] = orm.mapped_column(sa.String(64))

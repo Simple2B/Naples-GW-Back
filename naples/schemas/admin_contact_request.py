@@ -14,7 +14,8 @@ class AdminContactRequestStatus(Enum):
 
 
 class AdminContactRequestIn(BaseModel):
-    name: str
+    first_name: str
+    last_name: str
     email: str
     phone: str
     message: str
@@ -34,7 +35,7 @@ class AdminContactRequestUpdateIn(BaseModel):
 
 class AdminContactRequestOut(AdminContactRequestIn):
     uuid: str
-    status: str
+    status: AdminContactRequestStatus
     is_deleted: bool
 
     model_config = ConfigDict(

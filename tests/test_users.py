@@ -188,3 +188,37 @@ def test_block_user(
         json=data.model_dump(),
     )
     assert response.status_code == 200
+
+
+def test_get_update_admin_contact_data(
+    client: TestClient,
+    db: Session,
+    headers: dict[str, str],
+    admin_headers: dict[str, str],
+):
+    ADMIN_EMAIL = "testemail2@gmail.com"
+    response = client.get(
+        "/api/users/contacts",
+        headers=headers,
+    )
+    assert response.status_code == 200
+    assert response.json()["email"] == ADMIN_EMAIL
+
+    data = s.AdminContactDataIn(
+        phone="1234567890",
+        instagram_url="instagram.com",
+        messenger_url="messenger.com",
+        linkedin_url="linkedin.com",
+    )
+
+    response = client.patch(
+        "/api/users/contacts",
+        headers=admin_headers,
+        json=data.model_dump(),
+    )
+
+    assert response.status_code == 200
+    admin_db: m.User | None = db.scalar(sa.select(m.User).where(m.User.email == ADMIN_EMAIL))
+    assert admin_db
+    assert admin_db.phone == data.phone
+    assert response.json()["phone"] == data.phone

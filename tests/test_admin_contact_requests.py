@@ -27,7 +27,8 @@ def test_create_admin_contact_request(
     ses.verify_email_address(EmailAddress=CFG.MAIL_DEFAULT_SENDER)
 
     req_payload = s.AdminContactRequestIn(
-        name="John Doe",
+        first_name="John",
+        last_name="Doe",
         email="john_doe@buu.com",
         phone="1234567890",
         message="Hello, I would like to know more about this service",
@@ -42,34 +43,44 @@ def test_create_admin_contact_request(
     contact_request_model = full_db.scalar(select(m.AdminContactRequest))
     assert contact_request_model
 
-    assert contact_request.name == contact_request_model.name
+    assert contact_request.first_name == contact_request_model.first_name
+    assert contact_request.last_name == contact_request_model.last_name
     assert contact_request.email == contact_request_model.email
 
 
+@mock_aws
 def test_get_admin_contact_requests(
     client: TestClient,
     full_db: Session,
     headers: dict[str, str],
     admin_headers: dict[str, str],
+    ses: SESClient,
 ):
+    ses.verify_email_address(EmailAddress=CFG.MAIL_DEFAULT_SENDER)
     request_one = s.AdminContactRequestIn(
-        name="John Doe",
+        first_name="John",
+        last_name="Doe",
         email="abc@abc.com",
         phone="1234567890",
         message="Hello, I would like to know more about this service",
     )
 
+    ses.verify_email_address(EmailAddress=request_one.email)
+
     res_one = client.post("/api/admin_contact_requests/", content=request_one.model_dump_json(), headers=headers)
     assert res_one.status_code == 201
 
     request_two = s.AdminContactRequestIn(
-        name="Den Brown",
+        first_name="Den",
+        last_name="Brown",
         email="def@def.com",
         phone="1234567890",
         message="Hello, I would like to know more about this service",
     )
 
-    res_two = client.post("/api/admin_contact_requests/", content=request_two.model_dump_json(), headers=headers)
+    ses.verify_email_address(EmailAddress=request_two.email)
+
+    res_two = client.post("/api/admin_contact_requests/", content=request_two.model_dump_json())
     assert res_two.status_code == 201
 
     res = client.get("/api/admin_contact_requests/", headers=admin_headers)
@@ -81,14 +92,14 @@ def test_get_admin_contact_requests(
 
     assert len(admin_contact_requests) == len(contact_requests.contact_requests)
 
-    assert contact_requests.contact_requests[0].name == request_one.name
+    assert contact_requests.contact_requests[0].first_name == request_one.first_name
     assert contact_requests.contact_requests[1].email == request_two.email
 
     res_den = client.get("/api/admin_contact_requests", headers=admin_headers, params={"search": "Den"})
     assert res_den.status_code == 200
     user = s.AdminContactRequestListOut.model_validate(res_den.json())
     assert len(user.contact_requests) == 1
-    assert user.contact_requests[0].name == "Den Brown"
+    assert user.contact_requests[0].first_name == "Den"
 
     john_model = full_db.scalar(select(m.AdminContactRequest).where(m.AdminContactRequest.email == "abc@abc.com"))
     assert john_model
@@ -105,31 +116,41 @@ def test_get_admin_contact_requests(
     processed_requests = s.AdminContactRequestListOut.model_validate(processed.json())
 
     assert len(processed_requests.contact_requests) == 1
-    assert processed_requests.contact_requests[0].name == "John Doe"
+    assert processed_requests.contact_requests[0].first_name == "John"
 
 
+@mock_aws
 def test_update_admin_contact_request_status(
     client: TestClient,
     full_db: Session,
-    headers: dict[str, str],
     admin_headers: dict[str, str],
+    ses: SESClient,
 ):
     admin = full_db.scalar(select(m.User).where(m.User.role == s.UserRole.ADMIN.value))
     assert admin
+    ses.verify_email_address(EmailAddress=CFG.MAIL_DEFAULT_SENDER)
+    ses.verify_email_address(EmailAddress=admin.email)
 
     payload = s.AdminContactRequestIn(
-        name="John",
+        first_name="John",
+        last_name="Doe",
         email="abc@abc.com",
         phone="1234567890",
-        message="Hello, I would like to know more about this service",
+        message="Hello, I would like to know more about this service!",
     )
 
-    res = client.post("/api/admin_contact_requests/", content=payload.model_dump_json(), headers=headers)
+    ses.verify_email_address(EmailAddress=payload.email)
+
+    res = client.post(
+        "/api/admin_contact_requests/",
+        content=payload.model_dump_json(),
+    )
 
     assert res.status_code == 201
 
     contact_request = s.AdminContactRequestOut.model_validate(res.json())
-    assert contact_request.status == s.AdminContactRequestStatus.CREATED.value
+
+    assert contact_request.status == s.AdminContactRequestStatus.CREATED
 
     res = client.put(
         f"/api/admin_contact_requests/{contact_request.uuid}",
@@ -138,23 +159,27 @@ def test_update_admin_contact_request_status(
     )
 
     assert res.status_code == 200
+
     updated_contact_request = s.AdminContactRequestOut.model_validate(res.json())
-    assert updated_contact_request.status == s.AdminContactRequestStatus.PROCESSED.value
+    assert updated_contact_request.status == s.AdminContactRequestStatus.PROCESSED
 
 
+@mock_aws
 def test_delete_admin_contact_request(
     client: TestClient,
-    full_db: Session,
-    headers: dict[str, str],
     admin_headers: dict[str, str],
+    ses: SESClient,
 ):
+    ses.verify_email_address(EmailAddress=CFG.MAIL_DEFAULT_SENDER)
     contact_request = s.AdminContactRequestIn(
-        name="John",
+        first_name="John",
+        last_name="Doe",
         email="abc@abc.com",
         phone="1234567890",
         message="Hello, I would like to know more about this service",
     )
-    response = client.post("/api/admin_contact_requests/", content=contact_request.model_dump_json(), headers=headers)
+    ses.verify_email_address(EmailAddress=contact_request.email)
+    response = client.post("/api/admin_contact_requests/", content=contact_request.model_dump_json())
     assert response.status_code == 201
 
     db_contact_request = s.AdminContactRequestOut.model_validate(response.json())
