@@ -16,7 +16,7 @@ class BaseConfig(BaseSettings):
     """Base configuration."""
 
     ENV: str = "base"
-    APP_NAME: str = "Naples Gateway"
+    APP_NAME: str = "Property Roster"
     SECRET_KEY: str
     SQLALCHEMY_TRACK_MODIFICATIONS: bool = False
     WTF_CSRF_ENABLED: bool = False

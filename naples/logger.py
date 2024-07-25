@@ -1,7 +1,7 @@
 import logging
 import sys
 
-LOGGER_NAME = "Naples Gateway"
+LOGGER_NAME = "Property Roster"
 
 
 class Logger(object):

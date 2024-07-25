@@ -35,7 +35,7 @@ def createMsgEmail(token: str, verify_router: str) -> str:
             <body style='margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, Helvetica, sans-serif;'>
             <div style='width: 100%; background: #efefef; border-radius: 10px; padding: 10px;'>
                 <div style='margin: 0 auto; width: 90%; text-align: center;'>
-                <h1 style='background-color: rgba(0, 53, 102, 1); padding: 5px 10px; border-radius: 5px; color: white;'>Naples GW
+                <h1 style='background-color: rgba(0, 53, 102, 1); padding: 5px 10px; border-radius: 5px; color: white;'>Property Roster
                 </h1>
                 <div
                     style='margin: 30px auto; background: white; width: 40%; border-radius: 10px; padding: 50px; text-align: center;'>
@@ -63,7 +63,7 @@ def createMsgEmailChangePassword(token: str, verify_router: str) -> str:
             <body style='margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, Helvetica, sans-serif;'>
             <div style='width: 100%; background: #efefef; border-radius: 10px; padding: 10px;'>
                 <div style='margin: 0 auto; width: 90%; text-align: center;'>
-                <h1 style='background-color: rgba(0, 53, 102, 1); padding: 5px 10px; border-radius: 5px; color: white;'>Naples GW
+                <h1 style='background-color: rgba(0, 53, 102, 1); padding: 5px 10px; border-radius: 5px; color: white;'>Property Roster
                 </h1>
                 <div
                     style='margin: 30px auto; background: white; width: 40%; border-radius: 10px; padding: 50px; text-align: center;'>
@@ -122,7 +122,7 @@ def createMsgContactRequest(contact_request: m.ContactRequest) -> str:
             <body style='margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, Helvetica, sans-serif;'>
             <div style='width: 100%; background: #efefef; border-radius: 10px; padding: 10px;'>
                 <div style='margin: 0 auto; width: 90%; text-align: center;'>
-                <h1 style='background-color: rgba(0, 53, 102, 1); padding: 5px 10px; border-radius: 5px; color: white;'>Naples GW
+                <h1 style='background-color: rgba(0, 53, 102, 1); padding: 5px 10px; border-radius: 5px; color: white;'>Property Roster
                 </h1>
                 <div
                     style='margin: 25px auto; background: white; width: 70%; border-radius: 10px; padding: 50px;'>

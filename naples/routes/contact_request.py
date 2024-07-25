@@ -58,7 +58,7 @@ async def create_contact_request(
             sender_email=CFG.MAIL_DEFAULT_SENDER,
             message=mail_message,
             charset=CFG.CHARSET,
-            mail_body_text="New Contact Request from Naples GW!",
+            mail_body_text="New Contact Request from Property Roster!",
             mail_subject="New Contact Request",
         )
         sendEmailAmazonSES(emailContent, ses_client=ses)
