@@ -39,6 +39,7 @@ def get_user_data(user: m.User) -> s.User:
             canceled_at=user.subscription.canceled_at if user.subscription.canceled_at else None,
             amount=user.subscription.amount,
         ),
+        is_protected=user.is_protected,
     )
 
     log(log.INFO, f"User data: {user_data}")

@@ -381,12 +381,11 @@ def forgot_password_create(
     responses={
         status.HTTP_404_NOT_FOUND: {"description": "User not found"},
     },
+    dependencies=[Depends(get_admin)],
 )
 def get_user_history(
     user_uuid: str,
     db: Session = Depends(get_db),
-    curent_user: m.User = Depends(get_current_user),
-    admin: m.User = Depends(get_admin),
 ):
     """Get user subscription history"""
 
@@ -403,6 +402,7 @@ def get_user_history(
         avatar_url=user.avatar_url,
         is_blocked=user.is_blocked,
         store=s.StoreHistoryAdmin.model_validate(user.store),
+        is_protected=user.is_protected,
     )
 
 

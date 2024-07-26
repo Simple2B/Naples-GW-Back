@@ -75,6 +75,10 @@ class User(db.Model, ModelMixin):
         return self.subscription.customer_stripe_id if self.subscription else ""
 
     @property
+    def is_protected(self) -> bool:
+        return self.store.is_protected if self.store else False
+
+    @property
     def password(self):
         return self.password_hash
 

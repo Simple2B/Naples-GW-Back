@@ -56,6 +56,8 @@ class User(BaseUser):
 
     subscription: SubscriptionOut
 
+    is_protected: bool
+
     model_config = ConfigDict(
         from_attributes=True,
     )
@@ -136,6 +138,8 @@ class UserHistoryAdmin(BaseModel):
     is_blocked: bool
 
     store: StoreHistoryAdmin
+
+    is_protected: bool
 
     model_config = ConfigDict(
         from_attributes=True,
