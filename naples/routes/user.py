@@ -389,7 +389,7 @@ def get_user_history(
 ):
     """Get user subscription history"""
 
-    user = db.scalar(sa.select(m.User).where(m.User.uuid == user_uuid))
+    user: m.User | None = db.scalar(sa.select(m.User).where(m.User.uuid == user_uuid))
 
     if not user:
         log(log.ERROR, "User not found")
