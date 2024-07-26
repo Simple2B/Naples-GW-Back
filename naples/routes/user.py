@@ -380,6 +380,7 @@ def forgot_password_create(
     response_model=s.UserHistoryAdmin,
     responses={
         status.HTTP_404_NOT_FOUND: {"description": "User not found"},
+        status.HTTP_400_BAD_REQUEST: {"description": "User store not found"},
     },
     dependencies=[Depends(get_admin)],
 )
@@ -393,7 +394,11 @@ def get_user_history(
 
     if not user:
         log(log.ERROR, "User not found")
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+
+    if not user.store:
+        log(log.ERROR, "User store not found")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User store not found")
 
     return s.UserHistoryAdmin(
         uuid=user.uuid,
