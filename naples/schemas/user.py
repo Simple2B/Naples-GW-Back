@@ -139,7 +139,7 @@ class UserHistoryAdmin(BaseModel):
 
     store: StoreHistoryAdmin
 
-    is_protected: bool
+    is_protected: bool = False
 
     model_config = ConfigDict(
         from_attributes=True,
