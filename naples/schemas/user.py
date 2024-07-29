@@ -117,6 +117,7 @@ class UserOutAdmin(BaseModel):
 
 # for admin panel
 class StoreHistoryAdmin(BaseModel):
+    uuid: str
     url: str
     items_count: int
     created_at: datetime
@@ -139,7 +140,7 @@ class UserHistoryAdmin(BaseModel):
 
     store: StoreHistoryAdmin
 
-    is_protected: bool = False
+    is_protected: bool
 
     model_config = ConfigDict(
         from_attributes=True,

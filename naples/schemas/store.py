@@ -106,6 +106,7 @@ class StoreAdminOut(BaseModel):
     url: str
     items_count: int
     status: StoreStatus
+    is_protected: bool
 
     user: UserOutAdmin
 
