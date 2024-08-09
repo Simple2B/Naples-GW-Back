@@ -134,7 +134,7 @@ def get_published_items(
             if any(
                 [
                     (booked_date.to_date.date() < check_in_date and booked_date.to_date.date() < check_out_date)
-                    or (booked_date.from_date.date() > check_in_date and booked_date.from_date.date() > check_out_date)
+                    and (booked_date.from_date.date() > check_in_date and booked_date.from_date.date() > check_out_date)
                     for booked_date in item.booked_dates
                 ]
             )
