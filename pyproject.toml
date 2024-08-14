@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "napples"
-version = "0.9.37"
+version = "0.9.38"
 description = "Backend for Property Roster project"
 authors = ["Varvara Shcherbyna <varvarashcherbyna7@gmail.com>"]
 readme = "README.md"
