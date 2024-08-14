@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from typing import Sequence
 from fastapi import HTTPException, status
 import sqlalchemy as sa
@@ -213,3 +213,11 @@ def create_trial_subscription(user: m.User, db: Session, stripe_customer_id: str
     )
 
     return user_subscription
+
+
+# Function to check if date ranges overlap
+def is_available(item: s.ItemOut, start_date: date, end_date: date) -> bool:
+    for booking in item.booked_dates:
+        if not (booking.from_date < start_date or booking.to_date > end_date):
+            return False
+    return True

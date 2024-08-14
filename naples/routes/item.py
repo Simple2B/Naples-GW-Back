@@ -21,6 +21,7 @@ from naples.database import get_db
 from naples.routes.utils import (
     check_user_subscription_max_active_items,
     check_user_subscription_max_items,
+    is_available,
 )
 from naples.utils import get_file_extension, get_link_type
 from naples.logger import log
@@ -126,20 +127,7 @@ def get_published_items(
         return paginate(items_check_out, params)
 
     if check_out and check_in:
-        check_in_date = check_in.date()
-        check_out_date = check_out.date()
-        items_out = [
-            item
-            for item in items
-            if any(
-                [
-                    (booked_date.to_date.date() < check_in_date and booked_date.to_date.date() < check_out_date)
-                    and (booked_date.from_date.date() > check_in_date and booked_date.from_date.date() > check_out_date)
-                    for booked_date in item.booked_dates
-                ]
-            )
-            or not item.booked_dates
-        ]
+        items_out = [item for item in items if is_available(item, check_in, check_out)]
         return paginate(items_out, params)
 
     if city is not None:

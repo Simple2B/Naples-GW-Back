@@ -270,7 +270,7 @@ def test_get_items(client: TestClient, full_db: Session, headers: dict[str, str]
         },
     )
     assert response.status_code == 200
-    assert len(s.Items.model_validate(response.json()).items) == 1
+    assert len(s.Items.model_validate(response.json()).items) == 2
 
     all_items_response = client.get(
         "/api/items/all",
