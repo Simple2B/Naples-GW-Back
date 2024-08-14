@@ -216,8 +216,9 @@ def create_trial_subscription(user: m.User, db: Session, stripe_customer_id: str
 
 
 # Function to check if date ranges overlap
-def is_available(item: s.ItemOut, start_date: date, end_date: date) -> bool:
+def is_available(item: s.ItemOut, start_date: datetime, end_date: datetime) -> bool:
     for booking in item.booked_dates:
-        if not (booking.from_date.date() < start_date or booking.to_date.date() > end_date):
+        # convert to date to compare
+        if not (booking.from_date < start_date or booking.to_date > end_date):
             return False
     return True
