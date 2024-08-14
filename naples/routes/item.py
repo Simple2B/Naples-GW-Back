@@ -92,40 +92,6 @@ def get_published_items(
     db_items: Sequence[m.Item] = db.scalars(stmt).all()
     items: Sequence[s.ItemOut] = [s.ItemOut.model_validate(item) for item in db_items]
 
-    if check_in and check_out is None:
-        check_in_date = check_in.date()
-        log(log.INFO, "Check in date [%s]", check_in_date)
-
-        items_check_in = [
-            item
-            for item in items
-            if any(
-                [
-                    check_in_date < booked_date.from_date.date() and booked_date.to_date.date() < check_in_date
-                    for booked_date in item.booked_dates
-                ]
-            )
-            or not item.booked_dates
-        ]
-        return paginate(items_check_in, params)
-
-    if check_out and check_in is None:
-        check_out_date = check_out.date()
-        log(log.INFO, "Check out date [%s]", check_out)
-
-        items_check_out = [
-            item
-            for item in items
-            if any(
-                [
-                    check_out_date < booked_date.from_date.date() and booked_date.to_date.date() < check_out_date
-                    for booked_date in item.booked_dates
-                ]
-            )
-            or not item.booked_dates
-        ]
-        return paginate(items_check_out, params)
-
     if check_out and check_in:
         items_out = [item for item in items if is_available(item, check_in, check_out)]
         return paginate(items_out, params)
