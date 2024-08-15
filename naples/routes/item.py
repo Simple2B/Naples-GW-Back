@@ -93,7 +93,12 @@ def get_published_items(
     items: Sequence[s.ItemOut] = [s.ItemOut.model_validate(item) for item in db_items]
 
     if check_out and check_in:
-        items_out = [item for item in items if is_available(item, check_in, check_out)]
+        # items_out = [item for item in items if is_available(item, check_in.date(), check_out.date())]
+        items_out = [
+            item
+            for item in items
+            if all(check_in >= booked.to_date or check_out <= booked.from_date for booked in item.booked_dates)
+        ]
         return paginate(items_out, params)
 
     if city is not None:
