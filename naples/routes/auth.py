@@ -63,6 +63,7 @@ def login(
         and user.subscription
         and len(user.subscription.subscription_stripe_id) > 0
         and user.subscription.last_checked_date < datetime.now() - timedelta(days=CFG.DAYS_BEFORE_UPDATE)
+        and not user.is_protected
     ):
         log(log.INFO, " === user stripe subscription id [%s] ", user.subscription.subscription_stripe_id)
 
@@ -111,6 +112,7 @@ def get_token(auth_data: s.Auth, db=Depends(get_db)):
         and user.subscription
         and len(user.subscription.subscription_stripe_id) > 0
         and user.subscription.last_checked_date < datetime.now() - timedelta(days=CFG.DAYS_BEFORE_UPDATE)
+        and not user.is_protected
     ):
         log(log.INFO, " === user stripe subscription id [%s] ", user.subscription.subscription_stripe_id)
 
