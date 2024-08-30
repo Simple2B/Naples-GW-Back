@@ -130,18 +130,20 @@ def update_store(
     if store.url is not None:
         log(log.INFO, "Updating url to [%s] for store [%s]", store.url, current_store.url)
 
-        if check_main_domain(store.url):
-            new_subdomain = get_subdomain_from_url(store.url)
+        url = store.url.lower()
+
+        if check_main_domain(url):
+            new_subdomain = get_subdomain_from_url(url)
 
             if not new_subdomain:
-                log(log.ERROR, "New subdomain not found for store [%s]", store.url)
+                log(log.ERROR, "New subdomain not found for store [%s]", url)
                 raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="New subdomain not found")
 
             # check if the new subdomain already exists in db
-            db_store = db.scalar(sa.select(m.Store).where(m.Store.url == store.url))
+            db_store = db.scalar(sa.select(m.Store).where(m.Store.url == url))
 
             if db_store:
-                log(log.ERROR, "Store with url [%s] already exists", store.url)
+                log(log.ERROR, "Store with url [%s] already exists", url)
                 raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Store with url already exists")
 
             subdomain = get_subdomain_from_url(current_store.url)
@@ -176,9 +178,9 @@ def update_store(
                     subdomain,
                 )
 
-        current_store.url = store.url
+        current_store.url = url
 
-        log(log.INFO, "=== store url  updated to [%s]", store.url)
+        log(log.INFO, "=== store url  updated to [%s]", url)
 
         # if check_main_domain(current_store.url) is False or CFG.MAIN_DOMAIN == current_store.url:
         #     current_store.is_protected = True

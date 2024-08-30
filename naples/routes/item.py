@@ -21,7 +21,6 @@ from naples.database import get_db
 from naples.routes.utils import (
     check_user_subscription_max_active_items,
     check_user_subscription_max_items,
-    is_available,
 )
 from naples.utils import get_file_extension, get_link_type
 from naples.logger import log
