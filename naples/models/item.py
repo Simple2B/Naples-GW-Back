@@ -27,6 +27,7 @@ class Item(db.Model, ModelMixin):
     __tablename__ = "items"
 
     id: orm.Mapped[int] = orm.mapped_column(primary_key=True)
+
     uuid: orm.Mapped[str] = orm.mapped_column(sa.String(32), default=create_uuid, unique=True)
 
     created_at: orm.Mapped[datetime] = orm.mapped_column(
@@ -80,6 +81,7 @@ class Item(db.Model, ModelMixin):
     _rates: orm.Mapped[list["Rate"]] = orm.relationship(back_populates="item")
     _floor_plans: orm.Mapped[list["FloorPlan"]] = orm.relationship(viewonly=True)
     _booked_dates: orm.Mapped[list["BookedDate"]] = orm.relationship(viewonly=True)
+
     _main_media: orm.Mapped["File"] = orm.relationship()
 
     _images: orm.Mapped[list["File"]] = orm.relationship(secondary="items_images")

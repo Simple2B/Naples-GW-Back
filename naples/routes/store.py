@@ -130,6 +130,10 @@ def update_store(
     if store.url is not None:
         log(log.INFO, "Updating url to [%s] for store [%s]", store.url, current_store.url)
 
+        if not store.url:
+            log(log.ERROR, "Url is empty")
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Url is empty")
+
         url = store.url.lower()
 
         if check_main_domain(url):
